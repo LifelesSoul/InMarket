@@ -8,5 +8,5 @@ public class UserProfile
 
     public string? AvatarUrl { get; set; }
     public string? Bio { get; set; }
-    public double RatingScore { get; set; } = 0.0;
+    public double RatingScore { get; set; } = default;
 }

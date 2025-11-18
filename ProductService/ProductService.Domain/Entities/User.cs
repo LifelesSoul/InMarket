@@ -17,5 +17,5 @@ public class User
 
     public required virtual UserProfile Profile { get; set; }
 
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual ICollection<Product> Products { get; set; } = new HashSet<Product>();
 }
