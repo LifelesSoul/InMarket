@@ -1,8 +1,8 @@
-﻿namespace UserService.Domain.Enums
+﻿namespace UserService.Domain.Enums;
+
+public enum UserRole
 {
-    public enum UserRole
-    {
-        User,
-        Admin
-    }
+    User,
+    Seller,
+    Admin
 }
