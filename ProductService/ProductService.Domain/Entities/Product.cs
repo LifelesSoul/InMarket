@@ -19,7 +19,7 @@ public class Product
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public required Priority Priority { get; set; }
 
-    [Column(TypeName = DbConstants.StatusColumnType)]
+    [Column(TypeName = DbConstants.Nvarhar50Type)]
     public required ProductStatus Status { get; set; }
 
     public required Guid CategoryId { get; set; }

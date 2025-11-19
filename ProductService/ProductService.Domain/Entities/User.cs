@@ -12,7 +12,7 @@ public class User
 {
     public required Guid Id { get; set; }
 
-    [MaxLength(DbConstants.UserNameTextLength)]
+    [MaxLength(DbConstants.NameTextLength)]
     public required string Username { get; set; }
 
     [MaxLength(DbConstants.EmailTextLength)]
