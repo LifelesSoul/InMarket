@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductService.Domain.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace ProductService.Domain.Entities;
@@ -8,8 +9,7 @@ public class Category
 {
     public required Guid Id { get; set; }
 
-    [MaxLength(100)]
-    [StringLength(100)]
+    [MaxLength(DbConstants.NameTextLength)]
     public required string Name { get; set; }
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();

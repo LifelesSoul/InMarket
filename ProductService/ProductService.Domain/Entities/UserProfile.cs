@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ProductService.Domain.Constants;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserService.Domain.Entities;
@@ -8,13 +9,13 @@ public class UserProfile
     [ForeignKey("User")]
     public required Guid UserId { get; set; }
 
-    [MaxLength(500)]
+    [MaxLength(DbConstants.AvatarURLLength)]
     public string? AvatarUrl { get; set; }
 
-    [MaxLength(1000)]
+    [MaxLength(DbConstants.BiographyTextLength)]
     public string? Biography { get; set; }
 
-    [Column(TypeName = "float")]
+    [Column(DbConstants.RatingScoreType)]
     public double RatingScore { get; set; } = default;
 
     public required virtual User User { get; set; }

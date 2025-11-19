@@ -10,7 +10,7 @@ public class Product
 {
     public required Guid Id { get; set; }
 
-    [MaxLength(200)]
+    [MaxLength(DbConstants.TitleTextLength)]
     public required string Title { get; set; }
     public string? Description { get; set; }
 
@@ -19,7 +19,7 @@ public class Product
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public required Priority Priority { get; set; }
 
-    [Column(TypeName = "nvarchar(50)")]
+    [Column(TypeName = DbConstants.StatusColumnType)]
     public required ProductStatus Status { get; set; }
 
     public required Guid CategoryId { get; set; }
