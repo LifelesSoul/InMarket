@@ -5,12 +5,12 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductService.Domain.Entities;
 
 [Index(nameof(Name), IsUnique = true)]
-public class Category
+public sealed class Category
 {
     public required Guid Id { get; set; }
 
     [MaxLength(DbConstants.NameTextLength)]
     public required string Name { get; set; }
 
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<Product> Products { get; set; } = new List<Product>();
 }

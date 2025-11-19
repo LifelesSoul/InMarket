@@ -6,7 +6,7 @@ using UserService.Domain.Entities;
 
 namespace ProductService.Domain.Entities;
 
-public class Product
+public sealed class Product
 {
     public required Guid Id { get; set; }
 
@@ -23,9 +23,10 @@ public class Product
     public required ProductStatus Status { get; set; }
 
     public required Guid CategoryId { get; set; }
-    public required virtual Category Category { get; set; }
-    public required Guid SellerId { get; set; }
-    public required virtual User Seller { get; set; }
+    public required Category Category { get; set; }
 
-    public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public required Guid SellerId { get; set; }
+    public required User Seller { get; set; }
+
+    public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
 }

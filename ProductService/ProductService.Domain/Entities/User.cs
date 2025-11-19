@@ -8,7 +8,7 @@ namespace UserService.Domain.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
 [Index(nameof(Email), IsUnique = true)]
-public class User
+public sealed class User
 {
     public required Guid Id { get; set; }
 
@@ -17,10 +17,12 @@ public class User
 
     [MaxLength(DbConstants.EmailTextLength)]
     public required string Email { get; set; }
+
     public required string PasswordHash { get; set; }
     public UserRole Role { get; set; }
+
     public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 
-    public required virtual UserProfile Profile { get; set; }
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public required UserProfile Profile { get; set; }
+    public ICollection<Product> Products { get; set; } = new List<Product>();
 }

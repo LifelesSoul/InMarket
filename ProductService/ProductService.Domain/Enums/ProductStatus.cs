@@ -2,8 +2,8 @@
 
 public enum ProductStatus
 {
-    Draft,
-    Available,
-    Sold,
-    Removed
+    Draft = 1,
+    Available = 2,
+    Sold = 3,
+    Removed = 4
 }
