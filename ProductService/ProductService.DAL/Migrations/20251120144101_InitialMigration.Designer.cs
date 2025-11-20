@@ -12,7 +12,7 @@ using ProductService.Infrastructure;
 namespace ProductService.DAL.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    [Migration("20251120134006_InitialMigration")]
+    [Migration("20251120144101_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />

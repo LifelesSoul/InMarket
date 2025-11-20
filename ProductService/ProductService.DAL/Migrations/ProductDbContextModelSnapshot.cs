@@ -15,7 +15,7 @@ partial class ProductDbContextModelSnapshot : ModelSnapshot
 {
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
-    #pragma warning disable 612, 618
+#pragma warning disable 612, 618
         modelBuilder
             .HasAnnotation("ProductVersion", "9.0.11")
             .HasAnnotation("Relational:MaxIdentifierLength", 128);
