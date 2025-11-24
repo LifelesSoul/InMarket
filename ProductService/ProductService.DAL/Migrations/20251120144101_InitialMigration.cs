@@ -31,7 +31,7 @@ public partial class InitialMigration : Migration
                 Email = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                 PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                 Role = table.Column<int>(type: "int", nullable: false),
-                RegistrationDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
             },
             constraints: table =>
             {
@@ -46,7 +46,7 @@ public partial class InitialMigration : Migration
                 Title = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                 Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                CreationDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                 Priority = table.Column<int>(type: "int", nullable: false),
                 Status = table.Column<string>(type: "nvarchar(50)", nullable: false),
                 CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -76,7 +76,7 @@ public partial class InitialMigration : Migration
                 UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 AvatarUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                 Biography = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                RatingScore = table.Column<double>(type: "float", nullable: false)
+                @float = table.Column<double>(name: "float", type: "float", nullable: false)
             },
             constraints: table =>
             {
