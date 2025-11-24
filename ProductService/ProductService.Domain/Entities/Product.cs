@@ -1,6 +1,5 @@
 ﻿using ProductService.Domain.Constants;
 using ProductService.Domain.Enums;
-using ProductService.Domain.Shared;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using UserService.Domain.Entities;
@@ -17,7 +16,7 @@ public sealed class Product
 
     [Column(TypeName = DbConstants.MoneyType)]
     public required decimal Price { get; set; }
-    public DateTimeOffset CreationDate { get; set; } = SystemDateTimeProvider.UtcNow;
+    public DateTimeOffset CreationDate { get; set; } = TimeProvider.System.GetUtcNow();
     public required Priority Priority { get; set; }
 
     [Column(TypeName = DbConstants.Nvarhar50Type)]

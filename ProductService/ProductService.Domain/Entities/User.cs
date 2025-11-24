@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Constants;
 using ProductService.Domain.Entities;
-using ProductService.Domain.Shared;
 using System.ComponentModel.DataAnnotations;
 using UserService.Domain.Enums;
 
@@ -22,7 +21,7 @@ public sealed class User
     public required string PasswordHash { get; set; }
     public UserRole Role { get; set; }
 
-    public DateTime RegistrationDate { get; set; } = SystemDateTimeProvider.UtcNow.Date;
+    public DateTimeOffset RegistrationDate { get; set; } = TimeProvider.System.GetUtcNow();
 
     public required UserProfile Profile { get; set; }
     public ICollection<Product> Products { get; set; } = new List<Product>();
