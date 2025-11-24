@@ -37,7 +37,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-ч
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
