@@ -21,7 +21,7 @@ public sealed class User
     public required string PasswordHash { get; set; }
     public UserRole Role { get; set; }
 
-    public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+    public DateTime RegistrationDate { get; set; }
 
     public required UserProfile Profile { get; set; }
     public ICollection<Product> Products { get; set; } = new List<Product>();
