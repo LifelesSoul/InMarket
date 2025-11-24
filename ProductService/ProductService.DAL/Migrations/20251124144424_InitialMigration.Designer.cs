@@ -12,7 +12,7 @@ using ProductService.Infrastructure;
 namespace ProductService.DAL.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    [Migration("20251120144101_InitialMigration")]
+    [Migration("20251124144424_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -53,8 +53,8 @@ namespace ProductService.DAL.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreationDate")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -121,8 +121,8 @@ namespace ProductService.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("RegistrationDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("RegistrationDate")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -156,8 +156,7 @@ namespace ProductService.DAL.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<double>("RatingScore")
-                        .HasColumnType("float")
-                        .HasColumnName("float");
+                        .HasColumnType("float");
 
                     b.HasKey("UserId");
 

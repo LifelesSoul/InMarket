@@ -50,8 +50,8 @@ partial class ProductDbContextModelSnapshot : ModelSnapshot
                 b.Property<Guid>("CategoryId")
                     .HasColumnType("uniqueidentifier");
 
-                b.Property<DateTime>("CreationDate")
-                    .HasColumnType("datetime2");
+                b.Property<DateTimeOffset>("CreationDate")
+                    .HasColumnType("datetimeoffset");
 
                 b.Property<string>("Description")
                     .HasColumnType("nvarchar(max)");
@@ -118,8 +118,8 @@ partial class ProductDbContextModelSnapshot : ModelSnapshot
                     .IsRequired()
                     .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("RegistrationDate")
-                    .HasColumnType("datetime2");
+                b.Property<DateTimeOffset>("RegistrationDate")
+                    .HasColumnType("datetimeoffset");
 
                 b.Property<int>("Role")
                     .HasColumnType("int");
@@ -153,8 +153,7 @@ partial class ProductDbContextModelSnapshot : ModelSnapshot
                     .HasColumnType("nvarchar(1000)");
 
                 b.Property<double>("RatingScore")
-                    .HasColumnType("float")
-                    .HasColumnName("float");
+                    .HasColumnType("float");
 
                 b.HasKey("UserId");
 
@@ -222,3 +221,4 @@ partial class ProductDbContextModelSnapshot : ModelSnapshot
 #pragma warning restore 612, 618
     }
 }
+

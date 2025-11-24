@@ -15,7 +15,7 @@ public sealed class UserProfile
     [MaxLength(DbConstants.BiographyTextLength)]
     public string? Biography { get; set; }
 
-    [Column(DbConstants.FloatType)]
+    [Column(TypeName = DbConstants.FloatType)]
     public double RatingScore { get; set; } = default;
 
     public required User User { get; set; }
