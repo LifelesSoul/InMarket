@@ -16,7 +16,7 @@ public sealed class Product
 
     [Column(TypeName = DbConstants.MoneyType)]
     public required decimal Price { get; set; }
-    public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset CreationDate { get; set; } = TimeProvider.System.GetUtcNow();
     public required Priority Priority { get; set; }
 
     [Column(TypeName = DbConstants.Nvarhar50Type)]
