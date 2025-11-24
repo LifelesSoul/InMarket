@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductService.DAL.Shared;
 using ProductService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,10 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
 });
 
 var app = builder.Build();
+
+var currentTime = SystemDateTimeProvider.UtcNow;
+
+Console.WriteLine($"Current UTC Time: {currentTime}");
 
 if (app.Environment.IsDevelopment())
 {
