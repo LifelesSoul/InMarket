@@ -23,9 +23,15 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ProductDbContext>();
 
-        context.Database.Migrate();
+        if (!context.Database.CanConnect())
+        {
+            context.Database.Migrate();
+        }
 
-        context.SeedData();
+        if (app.Environment.IsDevelopment())
+        {
+            context.SeedData();
+        }
     }
     catch (Exception ex)
     {
