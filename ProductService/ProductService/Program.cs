@@ -16,25 +16,28 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<ProductDbContext>();
-
-        context.Database.Migrate();
-
-        context.SeedData();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"{ex.Message}");
-    }
-}
-
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<ProductDbContext>();
+
+            if (!context.Database.CanConnect())
+            {
+                context.Database.Migrate();
+            }
+
+            context.SeedData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex.Message}");
+        }
+    }
+
     app.MapOpenApi();
 }
 
