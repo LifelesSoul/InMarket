@@ -24,40 +24,31 @@ public static class DataSeeder
             });
         }
 
-        var users = new List<User>();
         var profiles = new List<UserProfile>();
-        var faker = new Faker();
 
-        for (int i = 0; i < 50; i++)
-        {
-            var userId = Guid.NewGuid();
-            var username = faker.Internet.UserName();
+        var userFaker = new Faker<User>()
+                .RuleFor(u => u.Id, f => Guid.NewGuid())
+                .RuleFor(u => u.Username, f => f.Internet.UserName())
+                .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.Username))
+                .RuleFor(u => u.PasswordHash, f => f.Internet.Password())
+                .RuleFor(u => u.Role, f => f.PickRandom<UserRole>())
+                .RuleFor(u => u.RegistrationDate, f => f.Date.PastOffset(2))
+                .FinishWith((f, u) =>
+                {
+                    var profile = new UserProfile
+                    {
+                        UserId = u.Id,
+                        User = u,
+                        AvatarUrl = f.Internet.Avatar(),
+                        Biography = f.Lorem.Sentence(),
+                        RatingScore = f.Random.Double(0, 5)
+                    };
 
-            var user = new User
-            {
-                Id = userId,
-                Username = username,
-                Email = faker.Internet.Email(username),
-                PasswordHash = faker.Internet.Password(),
-                Role = faker.PickRandom<UserRole>(),
-                RegistrationDate = faker.Date.PastOffset(2),
-                Profile = null!
-            };
+                    u.Profile = profile;
+                    profiles.Add(profile);
+                });
 
-            var profile = new UserProfile
-            {
-                UserId = userId,
-                User = user,
-                AvatarUrl = faker.Internet.Avatar(),
-                Biography = faker.Lorem.Sentence(),
-                RatingScore = faker.Random.Double(0, 5)
-            };
-
-            user.Profile = profile;
-
-            users.Add(user);
-            profiles.Add(profile);
-        }
+        var users = userFaker.Generate(50);
 
         var productFaker = new Faker<Product>()
             .RuleFor(p => p.Id, f => Guid.NewGuid())
