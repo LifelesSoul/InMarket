@@ -17,8 +17,8 @@ public class ProductRepository : IProductRepository
     public async Task<List<Product>> GetAllWithDetailsAsync()
     {
         return await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.Seller)
+            .Include(products => products.Category)
+            .Include(products => products.Seller)
             .AsNoTracking()
             .ToListAsync();
     }

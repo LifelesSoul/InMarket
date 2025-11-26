@@ -19,14 +19,14 @@ public class ProductsService : IProductService
     {
         var entities = await _repository.GetAllWithDetailsAsync();
 
-        var viewModels = entities.Select(p => new ProductViewModel
+        var viewModels = entities.Select(productView => new ProductViewModel
         {
-            Id = p.Id,
-            Title = p.Title,
-            PriceString = $"{p.Price} rub.",
-            CategoryName = p.Category.Name,
-            SellerName = p.Seller.Username,
-            CreatedAt = p.CreationDate
+            Id = productView.Id,
+            Title = productView.Title,
+            PriceString = $"{productView.Price} rub.",
+            CategoryName = productView.Category.Name,
+            SellerName = productView.Seller.Username,
+            CreatedAt = productView.CreationDate
         }).ToList();
 
         return viewModels;
