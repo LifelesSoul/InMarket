@@ -1,4 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductService.BLL.Interfaces;
+using ProductService.BLL.Services;
+using ProductService.DAL.Interfaces;
+using ProductService.DAL.Repositories;
 using ProductService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +17,10 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
+
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.AddScoped<IProductService, ProductsService>();
 
 var app = builder.Build();
 
