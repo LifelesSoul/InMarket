@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UserService.Domain.Entities;
 
-public sealed class UserProfile
+public class UserProfile
 {
     [Key]
     [ForeignKey("User")]
@@ -18,5 +18,5 @@ public sealed class UserProfile
     [Column(TypeName = DbConstants.FloatType)]
     public double RatingScore { get; set; } = default;
 
-    public required User User { get; set; }
+    public virtual required User User { get; set; }
 }
