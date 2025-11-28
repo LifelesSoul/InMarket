@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.BLL.Interfaces;
-using ProductService.BLL.Services;
-using ProductService.DAL.Interfaces;
-using ProductService.DAL.Repositories;
+using ProductService.BLL.DI;
 using ProductService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,12 +12,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<ProductDbContext>(options =>
 {
+    options.UseLazyLoadingProxies();
+
     options.UseSqlServer(connectionString);
 });
 
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-
-builder.Services.AddScoped<IProductService, ProductsService>();
+builder.Services.AddBllServices();
 
 var app = builder.Build();
 

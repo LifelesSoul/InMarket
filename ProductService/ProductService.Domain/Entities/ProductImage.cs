@@ -1,11 +1,11 @@
 ﻿namespace ProductService.Domain.Entities;
 
-public sealed class ProductImage
+public class ProductImage
 {
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; }
 
     public required string Url { get; set; }
 
-    public required Guid ProductId { get; set; }
-    public Product? Product { get; set; }
+    public Guid ProductId { get; set; }
+    public virtual Product? Product { get; set; }
 }

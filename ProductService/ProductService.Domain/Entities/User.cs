@@ -8,7 +8,7 @@ namespace UserService.Domain.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
 [Index(nameof(Email), IsUnique = true)]
-public sealed class User
+public class User
 {
     public required Guid Id { get; set; }
 
@@ -23,6 +23,6 @@ public sealed class User
 
     public DateTimeOffset RegistrationDate { get; set; } = TimeProvider.System.GetUtcNow();
 
-    public required UserProfile Profile { get; set; }
-    public ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual required UserProfile Profile { get; set; }
+    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }
