@@ -7,11 +7,11 @@ namespace ProductService.BLL.DI;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddBllServices(this IServiceCollection services)
+    public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<IProductService, ProductsService>();
 
-        services.AddDalServices();
+        services.AddRepositories();
 
         return services;
     }

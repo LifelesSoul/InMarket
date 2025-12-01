@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductService.BLL.Interfaces;
+using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 
 namespace ProductService.API.Controllers;
@@ -16,9 +17,12 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProductViewModel>>> GetAll()
+    public async Task<ActionResult<PagedResult<ProductViewModel>>> GetAll(
+    [FromQuery] int limit = 10,
+    [FromQuery] string? continuationToken = null
+    )
     {
-        var result = await _service.GetAll();
+        var result = await _service.GetAll(limit, continuationToken);
 
         return Ok(result);
     }
@@ -27,7 +31,7 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ProductViewModel>> GetById(Guid id)
     {
         var product = await _service.GetById(id);
-        if (product == null)
+        if (product is null)
             return NotFound($"Product with id {id} not found");
 
         return Ok(product);
@@ -41,10 +45,16 @@ public class ProductsController : ControllerBase
         return Ok(createdProduct);
     }
 
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(Guid id)
     {
-        await _service.Remove(id);
+        var isDeleted = await _service.Remove(id);
+
+        if (!isDeleted)
+        {
+            return NotFound();
+        }
+
         return NoContent();
     }
 
@@ -53,7 +63,7 @@ public class ProductsController : ControllerBase
     {
         var updatedProduct = await _service.Update(id, model);
 
-        if (updatedProduct == null)
+        if (updatedProduct is null)
             return NotFound($"Product with id {id} not found");
 
         return Ok(updatedProduct);

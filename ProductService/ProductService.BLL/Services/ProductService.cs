@@ -1,4 +1,5 @@
 ﻿using ProductService.BLL.Interfaces;
+using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Models.User;
 using ProductService.DAL.Interfaces;
@@ -9,32 +10,47 @@ namespace ProductService.BLL.Services;
 
 public class ProductsService(IProductRepository repository) : IProductService
 {
-    public async Task<List<ProductViewModel>> GetAll()
+    public async Task<PagedResult<ProductViewModel>> GetAll(int limit, string? continuationToken)
     {
-        var entities = await repository.GetAll();
-        var abc = repository.GetAll();
-
-        return entities.Select(p => new ProductViewModel
+        Guid? lastId = null;
+        if (Guid.TryParse(continuationToken, out var parsedId))
         {
-            Id = p.Id,
-            Title = p.Title,
-            Price = p.Price,
-            CategoryName = p.Category.Name,
+            lastId = parsedId;
+        }
 
+        var entities = await repository.GetPaged(limit, lastId);
+
+        var viewModels = entities.Select(productView => new ProductViewModel
+        {
+            Id = productView.Id,
+            Title = productView.Title,
+            Price = productView.Price,
+            CategoryName = productView.Category.Name,
             Seller = new SellerViewModel
             {
-                Id = p.Seller.Id,
-                Username = p.Seller.Username,
-                Email = p.Seller.Email,
-                RegistrationDate = p.Seller.RegistrationDate
+                Id = productView.Seller.Id,
+                Username = productView.Seller.Username,
+                Email = productView.Seller.Email,
+                RegistrationDate = productView.Seller.RegistrationDate
             },
-
-            CreatedAt = p.CreationDate,
-            Description = p.Description,
-            Priority = p.Priority,
-            Status = p.Status,
-            ImageUrl = p.Images.FirstOrDefault()?.Url
+            CreatedAt = productView.CreationDate,
+            Description = productView.Description,
+            Priority = productView.Priority,
+            Status = productView.Status,
+            ImageUrl = productView.Images.FirstOrDefault()?.Url
         }).ToList();
+
+        string? nextToken = null;
+        if (viewModels.Count > 0)
+        {
+            nextToken = viewModels.Last().Id.ToString();
+        }
+
+        return new PagedResult<ProductViewModel>
+        {
+            Items = viewModels,
+            ContinuationToken = nextToken
+        };
     }
 
     public async Task<ProductViewModel> Create(CreateProductModel model, Guid sellerId)
@@ -47,7 +63,7 @@ public class ProductsService(IProductRepository repository) : IProductService
 
             Priority = Priority.Low,
             Status = ProductStatus.Available,
-            CreationDate = DateTimeOffset.UtcNow,
+            CreationDate = TimeProvider.System.GetUtcNow(),
 
             CategoryId = model.CategoryId,
             SellerId = sellerId,
@@ -64,8 +80,8 @@ public class ProductsService(IProductRepository repository) : IProductService
 
         var createdProduct = await repository.Add(entity);
 
-        if (createdProduct == null)
-            throw new Exception("Product creation failed");
+        if (createdProduct is null)
+            throw new InvalidOperationException("Failed to create product. The database did not return the entity.");
 
         return new ProductViewModel
         {
@@ -90,88 +106,79 @@ public class ProductsService(IProductRepository repository) : IProductService
             ImageUrl = createdProduct.Images.FirstOrDefault()?.Url
         };
     }
+
     public async Task<ProductViewModel?> GetById(Guid id)
     {
-        var p = await repository.GetById(id);
+        var productView = await repository.GetById(id);
 
-        if (p == null) return null;
+        if (productView is null) return null;
 
         return new ProductViewModel
         {
-            Id = p.Id,
-            Title = p.Title,
-            Price = p.Price,
-            CategoryName = p.Category.Name,
+            Id = productView.Id,
+            Title = productView.Title,
+            Price = productView.Price,
+            CategoryName = productView.Category.Name,
             Seller = new SellerViewModel
             {
-                Id = p.Seller.Id,
-                Username = p.Seller.Username,
-                Email = p.Seller.Email,
-                RegistrationDate = p.Seller.RegistrationDate
+                Id = productView.Seller.Id,
+                Username = productView.Seller.Username,
+                Email = productView.Seller.Email,
+                RegistrationDate = productView.Seller.RegistrationDate
             },
-            CreatedAt = p.CreationDate,
-            Description = p.Description,
-            Priority = p.Priority,
-            Status = p.Status,
-            ImageUrl = p.Images.FirstOrDefault()?.Url
+            CreatedAt = productView.CreationDate,
+            Description = productView.Description,
+            Priority = productView.Priority,
+            Status = productView.Status,
+            ImageUrl = productView.Images.FirstOrDefault()?.Url
         };
     }
 
-    public async Task Remove(Guid id)
+    public async Task<bool> Remove(Guid id)
     {
         var product = await repository.GetById(id);
-        if (product != null)
+        if (product == null)
         {
-            await repository.Delete(product);
+            return false;
         }
+
+        await repository.Delete(product);
+        return true;
     }
 
     public async Task<ProductViewModel?> Update(Guid id, UpdateProductModel model)
     {
-        var p = await repository.GetById(id);
-        if (p == null) return null;
+        var productView = await repository.GetById(id);
+        if (productView is null) return null;
 
-        p.Title = model.Title;
-        p.Price = model.Price;
-        p.Description = model.Description;
-        p.CategoryId = model.CategoryId;
+        productView.Title = model.Title;
+        productView.Price = model.Price;
+        productView.Description = model.Description;
+        productView.CategoryId = model.CategoryId;
+        productView.Status = model.Status;
 
-        if (model.ImageUrls != null)
-        {
-            p.Images.Clear();
+        await repository.Update(productView, model.ImageUrls);
 
-            foreach (var url in model.ImageUrls)
-            {
-                p.Images.Add(new ProductImage
-                {
-                    Url = url
-                });
-            }
-        }
-
-        await repository.Update(p);
+        var updatedProduct = await repository.GetById(id);
 
         return new ProductViewModel
         {
-            Id = p.Id,
-            Title = p.Title,
-            Price = p.Price,
-            CategoryName = p.Category.Name,
-
+            Id = updatedProduct.Id,
+            Title = updatedProduct.Title,
+            Price = updatedProduct.Price,
+            CategoryName = updatedProduct.Category?.Name,
             Seller = new SellerViewModel
             {
-                Id = p.Seller.Id,
-                Username = p.Seller.Username,
-                Email = p.Seller.Email,
-                RegistrationDate = p.Seller.RegistrationDate
+                Id = updatedProduct.Seller.Id,
+                Username = updatedProduct.Seller.Username,
+                Email = updatedProduct.Seller.Email,
+                RegistrationDate = updatedProduct.Seller.RegistrationDate
             },
-
-            CreatedAt = p.CreationDate,
-            Description = p.Description,
-            Priority = p.Priority,
-            Status = p.Status,
-
-            ImageUrl = p.Images.FirstOrDefault()?.Url
+            CreatedAt = updatedProduct.CreationDate,
+            Description = updatedProduct.Description,
+            Priority = updatedProduct.Priority,
+            Status = updatedProduct.Status,
+            ImageUrl = updatedProduct.Images.FirstOrDefault()?.Url
         };
     }
 }

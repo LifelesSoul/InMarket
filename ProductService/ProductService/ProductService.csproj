@@ -23,7 +23,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ProductService.BLL\ProductService.BLL.csproj" />
-		<ProjectReference Include="..\ProductService.DAL\ProductService.DAL.csproj" />
 	</ItemGroup>
 
 </Project>

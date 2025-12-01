@@ -1,12 +1,13 @@
-﻿using ProductService.BLL.Models.Product;
+﻿using ProductService.BLL.Models;
+using ProductService.BLL.Models.Product;
 
 namespace ProductService.BLL.Interfaces;
 
 public interface IProductService
 {
-    Task<List<ProductViewModel>> GetAll();
+    Task<PagedResult<ProductViewModel>> GetAll(int limit, string? continuationToken);
     Task<ProductViewModel> Create(CreateProductModel model, Guid sellerId);
     Task<ProductViewModel?> GetById(Guid id);
-    Task Remove(Guid id);
+    Task<bool> Remove(Guid id);
     Task<ProductViewModel?> Update(Guid id, UpdateProductModel model);
 }

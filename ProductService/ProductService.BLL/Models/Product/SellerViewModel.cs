@@ -1,4 +1,5 @@
 ﻿namespace ProductService.BLL.Models.User;
+
 public class SellerViewModel
 {
     public Guid Id { get; set; }

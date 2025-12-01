@@ -1,6 +1,7 @@
 ﻿using ProductService.Domain.Enums;
 
 namespace ProductService.BLL.Models.Product;
+
 public class UpdateProductModel
 {
     public required string Title { get; set; }
@@ -8,7 +9,7 @@ public class UpdateProductModel
     public string? Description { get; set; }
     public required ProductStatus Status { get; set; }
 
-    public List<string>? ImageUrls { get; set; }
+    public ICollection<string>? ImageUrls { get; set; }
 
     public required Guid CategoryId { get; set; }
 }

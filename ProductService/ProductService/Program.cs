@@ -17,7 +17,7 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
-builder.Services.AddBllServices();
+builder.Services.AddServices();
 
 var app = builder.Build();
 
