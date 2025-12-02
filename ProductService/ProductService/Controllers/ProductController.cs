@@ -19,18 +19,19 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProductViewModel>>> GetAll(
     [FromQuery] int limit = 10,
-    [FromQuery] string? continuationToken = null
+    [FromQuery] string? continuationToken = null,
+    CancellationToken ct = default
     )
     {
-        var result = await _service.GetAll(limit, continuationToken);
+        var result = await _service.GetAll(limit, continuationToken, ct);
 
         return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ProductViewModel>> GetById(Guid id)
+    public async Task<ActionResult<ProductViewModel>> GetById(Guid id, CancellationToken ct = default)
     {
-        var product = await _service.GetById(id);
+        var product = await _service.GetById(id, ct);
         if (product is null)
             return NotFound($"Product with id {id} not found");
 
@@ -38,17 +39,17 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateProductModel model)
+    public async Task<IActionResult> Create([FromBody] CreateProductModel model, CancellationToken ct = default)
     {
-        var createdProduct = await _service.Create(model, model.SellerId);
+        var createdProduct = await _service.Create(model, model.SellerId, ct);
 
         return Ok(createdProduct);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult> Delete(Guid id, CancellationToken ct = default)
     {
-        var isDeleted = await _service.Remove(id);
+        var isDeleted = await _service.Remove(id, ct);
 
         if (!isDeleted)
         {
@@ -59,9 +60,9 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<ProductViewModel>> Update(Guid id, [FromBody] UpdateProductModel model)
+    public async Task<ActionResult<ProductViewModel>> Update(Guid id, [FromBody] UpdateProductModel model, CancellationToken ct = default)
     {
-        var updatedProduct = await _service.Update(id, model);
+        var updatedProduct = await _service.Update(id, model, ct);
 
         if (updatedProduct is null)
             return NotFound($"Product with id {id} not found");

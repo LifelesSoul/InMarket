@@ -4,10 +4,9 @@ namespace ProductService.DAL.Interfaces;
 
 public interface IProductRepository
 {
-    Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId);
-    Task Update(Product product, IEnumerable<string>? newImageUrls);
-    Task<Product> Add(Product product);
-    Task<Product?> GetById(Guid id);
-    Task Delete(Product product);
-    //Task Update(Product product);
+    Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken ct = default);
+    Task<Product?> GetById(Guid id, CancellationToken ct = default);
+    Task Delete(Product product, CancellationToken ct = default);
+    Task<Product> Add(Product product, CancellationToken ct = default);
+    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken ct = default);
 }

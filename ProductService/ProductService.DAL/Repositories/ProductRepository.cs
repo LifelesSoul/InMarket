@@ -7,7 +7,7 @@ namespace ProductService.DAL.Repositories;
 
 public class ProductRepository(ProductDbContext context) : IProductRepository
 {
-    public async Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId)
+    public async Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken ct = default)
     {
         var query = context.Products
             .AsNoTracking()
@@ -21,23 +21,24 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
             query = (IOrderedQueryable<Product>)query.Where(product => product.Id > lastId.Value);
         }
 
-        return await query.Take(limit).ToListAsync();
+        return await query.Take(limit).ToListAsync(ct);
     }
 
-    public async Task<Product?> GetById(Guid id)
+    public async Task<Product?> GetById(Guid id, CancellationToken ct = default)
     {
         return await context.Products
             .AsNoTracking()
-            .FirstOrDefaultAsync(product => product.Id == id);
+            .FirstOrDefaultAsync(product => product.Id == id, ct);
     }
 
-    public async Task Delete(Product product)
+    public async Task Delete(Product product, CancellationToken ct = default)
     {
         context.Products.Remove(product);
-        await context.SaveChangesAsync();
+
+        await context.SaveChangesAsync(ct);
     }
 
-    public async Task Update(Product product, IEnumerable<string>? newImageUrls)
+    public async Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken ct = default)
     {
         context.Products.Update(product);
 
@@ -45,7 +46,7 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
         {
             var currentImages = await context.Set<ProductImage>()
                 .Where(p => p.ProductId == product.Id)
-                .ToListAsync();
+                .ToListAsync(ct);
 
             var newUrlSet = newImageUrls.Distinct().ToHashSet();
 
@@ -72,20 +73,22 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
                     Url = url
                 });
             }
+
+            await context.Entry(product).Reference(p => p.Category).LoadAsync(ct);
+            await context.Entry(product).Collection(p => p.Images).LoadAsync(ct);
         }
 
-        await context.SaveChangesAsync();
-
-        await context.Entry(product).Reference(p => p.Category).LoadAsync();
+        await context.SaveChangesAsync(ct);
     }
 
-    public async Task<Product> Add(Product product)
+    public async Task<Product> Add(Product product, CancellationToken ct = default)
     {
-        var newProduct = await context.Products.AddAsync(product);
-        await context.SaveChangesAsync();
+        var newProduct = await context.Products.AddAsync(product, ct);
 
-        await context.Entry(product).Reference(product => product.Category).LoadAsync();
-        await context.Entry(product).Reference(product => product.Seller).LoadAsync();
+        await context.SaveChangesAsync(ct);
+
+        await context.Entry(product).Reference(product => product.Category).LoadAsync(ct);
+        await context.Entry(product).Reference(product => product.Seller).LoadAsync(ct);
 
         return newProduct.Entity;
     }
