@@ -10,11 +10,9 @@ namespace ProductService.BLL.Services;
 
 public class ProductsService(IProductRepository repository) : IProductService
 {
-    public async Task<PagedResult<ProductViewModel>> GetAll(int limit, string? continuationToken, CancellationToken ct = default)
+    public async Task<PagedResult<ProductViewModel>> GetAll(int limit, Guid? continuationToken, CancellationToken ct = default)
     {
-        Guid? lastId = Guid.TryParse(continuationToken, out var parsed) ? parsed : null;
-
-        var entities = await repository.GetPaged(limit, lastId, ct);
+        var entities = await repository.GetPaged(limit, continuationToken, ct);
 
         var viewModels = entities.Select(productView => new ProductViewModel
         {
@@ -71,7 +69,6 @@ public class ProductsService(IProductRepository repository) : IProductService
 
             Category = null!,
             Seller = null!
-
         };
 
         var createdProduct = await repository.Add(entity, ct);
@@ -130,21 +127,19 @@ public class ProductsService(IProductRepository repository) : IProductService
         };
     }
 
-    public async Task<bool> Remove(Guid id, CancellationToken ct = default)
+    public async Task Remove(Guid id, CancellationToken ct = default)
     {
         var product = await repository.GetById(id, ct);
+
         if (product is null)
-        {
-            return false;
-        }
+            throw new KeyNotFoundException($"Product {id} not found");
 
         await repository.Delete(product, ct);
-        return true;
     }
 
-    public async Task<ProductViewModel?> Update(Guid id, UpdateProductModel model, CancellationToken ct = default)
+    public async Task<ProductViewModel?> Update(UpdateProductModel model, CancellationToken ct = default)
     {
-        var productView = await repository.GetById(id, ct);
+        var productView = await repository.GetById(model.Id, ct);
         if (productView is null) return null;
 
         productView.Title = model.Title;
@@ -160,7 +155,7 @@ public class ProductsService(IProductRepository repository) : IProductService
             Id = productView.Id,
             Title = productView.Title,
             Price = productView.Price,
-            CategoryName = productView.Category?.Name,
+            CategoryName = productView.Category.Name,
             Seller = new SellerViewModel
             {
                 Id = productView.Seller.Id,

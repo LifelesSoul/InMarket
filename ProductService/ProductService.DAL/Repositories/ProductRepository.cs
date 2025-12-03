@@ -42,43 +42,51 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
     {
         context.Products.Update(product);
 
-        if (newImageUrls != null)
+        if (newImageUrls is not null)
         {
+            var incomingUrls = newImageUrls.ToList();
+
             var currentImages = await context.Set<ProductImage>()
                 .Where(p => p.ProductId == product.Id)
                 .ToListAsync(ct);
 
-            var newUrlSet = newImageUrls.Distinct().ToHashSet();
+            var imagesToDelete = new List<ProductImage>();
 
-            var imagesToDelete = currentImages
-                .Where(img => !newUrlSet.Contains(img.Url))
-                .ToList();
+            foreach (var dbImage in currentImages)
+            {
+                var index = incomingUrls.IndexOf(dbImage.Url);
+
+                if (index is not -1)
+                {
+                    incomingUrls.RemoveAt(index);
+                }
+                else
+                {
+                    imagesToDelete.Add(dbImage);
+                }
+            }
 
             if (imagesToDelete.Count > 0)
             {
                 context.Set<ProductImage>().RemoveRange(imagesToDelete);
             }
 
-            var existingUrlSet = currentImages.Select(i => i.Url).ToHashSet();
-
-            var urlsToAdd = newUrlSet
-                .Where(url => !existingUrlSet.Contains(url))
-                .ToList();
-
-            foreach (var url in urlsToAdd)
+            if (incomingUrls.Count > 0)
             {
-                await context.Set<ProductImage>().AddAsync(new ProductImage
+                var imagesToAdd = incomingUrls.Select(url => new ProductImage
                 {
                     ProductId = product.Id,
                     Url = url
-                });
-            }
+                }).ToList();
 
-            await context.Entry(product).Reference(p => p.Category).LoadAsync(ct);
-            await context.Entry(product).Collection(p => p.Images).LoadAsync(ct);
+                await context.Set<ProductImage>().AddRangeAsync(imagesToAdd, ct);
+            }
         }
 
         await context.SaveChangesAsync(ct);
+
+        await context.Entry(product).Reference(p => p.Category).LoadAsync(ct);
+        await context.Entry(product).Collection(p => p.Images).LoadAsync(ct);
     }
 
     public async Task<Product> Add(Product product, CancellationToken ct = default)

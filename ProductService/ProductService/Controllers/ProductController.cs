@@ -19,7 +19,7 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProductViewModel>>> GetAll(
     [FromQuery] int limit = 10,
-    [FromQuery] string? continuationToken = null,
+    [FromQuery] Guid? continuationToken = null,
     CancellationToken ct = default
     )
     {
@@ -49,23 +49,24 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id, CancellationToken ct = default)
     {
-        var isDeleted = await _service.Remove(id, ct);
-
-        if (!isDeleted)
+        try
         {
-            return NotFound();
+            await _service.Remove(id, ct);
+            return NoContent();
         }
-
-        return NoContent();
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
-    [HttpPut("{id:guid}")]
-    public async Task<ActionResult<ProductViewModel>> Update(Guid id, [FromBody] UpdateProductModel model, CancellationToken ct = default)
+    [HttpPut]
+    public async Task<ActionResult<ProductViewModel>> Update([FromBody] UpdateProductModel model, CancellationToken ct = default)
     {
-        var updatedProduct = await _service.Update(id, model, ct);
+        var updatedProduct = await _service.Update(model, ct);
 
         if (updatedProduct is null)
-            return NotFound($"Product with id {id} not found");
+            return NotFound($"Product with id {model.Id} not found");
 
         return Ok(updatedProduct);
     }
