@@ -5,9 +5,13 @@ namespace ProductService.BLL.Models.Product;
 public class UpdateProductModel
 {
     public Guid Id { get; set; }
+
     public required string Title { get; set; }
+
     public required decimal Price { get; set; }
+
     public string? Description { get; set; }
+
     public required ProductStatus Status { get; set; }
 
     public ICollection<string>? ImageUrls { get; set; }

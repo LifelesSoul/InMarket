@@ -3,7 +3,9 @@
 public class CreateProductModel
 {
     public required string Title { get; set; }
+
     public required decimal Price { get; set; }
+
     public string? Description { get; set; }
 
     public List<string>? ImageUrls { get; set; }

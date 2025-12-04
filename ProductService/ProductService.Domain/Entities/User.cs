@@ -19,10 +19,12 @@ public class User
     public required string Email { get; set; }
 
     public required string PasswordHash { get; set; }
+
     public UserRole Role { get; set; }
 
     public DateTimeOffset RegistrationDate { get; set; } = TimeProvider.System.GetUtcNow();
 
     public virtual required UserProfile Profile { get; set; }
+
     public virtual IEnumerable<Product> Products { get; set; } = new List<Product>();
 }
