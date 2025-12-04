@@ -1,9 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.DAL.Interfaces;
 using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
 
 namespace ProductService.DAL.Repositories;
+
+public interface IProductRepository
+{
+    Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken ct = default);
+    Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken ct = default);
+    Task Delete(Product product, CancellationToken ct = default);
+    Task<Product> Add(Product product, CancellationToken ct = default);
+    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken ct = default);
+}
 
 public class ProductRepository(ProductDbContext context) : IProductRepository
 {

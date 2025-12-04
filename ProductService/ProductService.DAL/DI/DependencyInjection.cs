@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using ProductService.DAL.Interfaces;
 using ProductService.DAL.Repositories;
 
 namespace ProductService.DAL.DI;

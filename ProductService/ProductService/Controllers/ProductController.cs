@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductService.API.ViewModels.User;
-using ProductService.BLL.Interfaces;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Services;
 
 namespace ProductService.API.Controllers;
 

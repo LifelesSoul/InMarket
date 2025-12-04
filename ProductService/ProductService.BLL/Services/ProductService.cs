@@ -1,11 +1,19 @@
-﻿using ProductService.BLL.Interfaces;
-using ProductService.BLL.Models;
+﻿using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
-using ProductService.DAL.Interfaces;
+using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Enums;
 
 namespace ProductService.BLL.Services;
+
+public interface IProductService
+{
+    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken ct = default);
+    Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken ct = default);
+    Task<ProductModel?> GetById(Guid id, CancellationToken ct = default);
+    Task Remove(Guid id, CancellationToken ct = default);
+    Task<ProductModel?> Update(UpdateProductModel model, CancellationToken ct = default);
+}
 
 public class ProductsService(IProductRepository repository) : IProductService
 {
