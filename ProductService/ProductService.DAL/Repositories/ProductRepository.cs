@@ -6,11 +6,11 @@ namespace ProductService.DAL.Repositories;
 
 public interface IProductRepository
 {
-    Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken ct = default);
-    Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken ct = default);
-    Task Delete(Product product, CancellationToken ct = default);
-    Task<Product> Add(Product product, CancellationToken ct = default);
-    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken ct = default);
+    Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default);
+    Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
+    Task Delete(Product product, CancellationToken cancellationToken = default);
+    Task<Product> Add(Product product, CancellationToken cancellationToken = default);
+    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default);
 }
 
 public class ProductRepository(ProductDbContext context) : IProductRepository

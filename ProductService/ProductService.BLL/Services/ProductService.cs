@@ -8,42 +8,42 @@ namespace ProductService.BLL.Services;
 
 public interface IProductService
 {
-    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken ct = default);
-    Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken ct = default);
-    Task<ProductModel?> GetById(Guid id, CancellationToken ct = default);
-    Task Remove(Guid id, CancellationToken ct = default);
-    Task<ProductModel?> Update(UpdateProductModel model, CancellationToken ct = default);
+    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default);
+    Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default);
+    Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default);
+    Task Remove(Guid id, CancellationToken cancellationToken = default);
+    Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default);
 }
 
 public class ProductsService(IProductRepository repository) : IProductService
 {
-    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken ct = default)
+    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default)
     {
-        var entities = await repository.GetPaged(limit, continuationToken, ct);
+        var entities = await repository.GetPaged(limit, continuationToken, cancellationToken);
 
-        var models = entities.Select(e => new ProductModel
+        var models = entities.Select(entity => new ProductModel
         {
-            Id = e.Id,
-            Title = e.Title,
-            Price = e.Price,
-            Description = e.Description,
-            CreatedAt = e.CreationDate,
-            Priority = e.Priority,
-            Status = e.Status,
+            Id = entity.Id,
+            Title = entity.Title,
+            Price = entity.Price,
+            Description = entity.Description,
+            CreatedAt = entity.CreationDate,
+            Priority = entity.Priority,
+            Status = entity.Status,
 
             Category = new CategoryModel
             {
-                Id = e.Category.Id,
-                Name = e.Category.Name
+                Id = entity.Category.Id,
+                Name = entity.Category.Name
             },
             Seller = new SellerModel
             {
-                Id = e.Seller.Id,
-                Username = e.Seller.Username,
-                Email = e.Seller.Email
+                Id = entity.Seller.Id,
+                Username = entity.Seller.Username,
+                Email = entity.Seller.Email
             },
 
-            ImageUrls = e.Images.Select(i => i.Url).ToList()
+            ImageUrls = entity.Images.Select(i => i.Url).ToList()
         }).ToList();
 
         string? nextToken = null;
@@ -59,7 +59,7 @@ public class ProductsService(IProductRepository repository) : IProductService
         };
     }
 
-    public async Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken ct = default)
+    public async Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default)
     {
         var entity = new Product
         {
@@ -79,7 +79,7 @@ public class ProductsService(IProductRepository repository) : IProductService
             Seller = null!
         };
 
-        var createdProduct = await repository.Add(entity, ct)
+        var createdProduct = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create product.");
 
         return new ProductModel
@@ -106,9 +106,9 @@ public class ProductsService(IProductRepository repository) : IProductService
         };
     }
 
-    public async Task<ProductModel?> GetById(Guid id, CancellationToken ct = default)
+    public async Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await repository.GetById(id, disableTracking: true, ct);
+        var entity = await repository.GetById(id, disableTracking: true, cancellationToken);
 
         if (entity is null)
         {
@@ -139,17 +139,17 @@ public class ProductsService(IProductRepository repository) : IProductService
         };
     }
 
-    public async Task Remove(Guid id, CancellationToken ct = default)
+    public async Task Remove(Guid id, CancellationToken cancellationToken = default)
     {
-        var product = await repository.GetById(id, disableTracking: false, ct)
+        var product = await repository.GetById(id, disableTracking: false, cancellationToken)
             ?? throw new KeyNotFoundException($"Product {id} not found");
 
-        await repository.Delete(product, ct);
+        await repository.Delete(product, cancellationToken);
     }
 
-    public async Task<ProductModel?> Update(UpdateProductModel model, CancellationToken ct = default)
+    public async Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default)
     {
-        var product = await repository.GetById(model.Id, disableTracking: false, ct);
+        var product = await repository.GetById(model.Id, disableTracking: false, cancellationToken);
 
         if (product is null)
         {
@@ -162,7 +162,7 @@ public class ProductsService(IProductRepository repository) : IProductService
         product.CategoryId = model.CategoryId;
         product.Status = model.Status;
 
-        await repository.Update(product, model.ImageUrls, ct);
+        await repository.Update(product, model.ImageUrls, cancellationToken);
 
         return new ProductModel
         {
