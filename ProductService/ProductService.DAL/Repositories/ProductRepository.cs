@@ -7,7 +7,7 @@ namespace ProductService.DAL.Repositories;
 
 public class ProductRepository(ProductDbContext context) : IProductRepository
 {
-    public async Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default)
     {
         var query = context.Products
             .AsNoTracking()
@@ -21,34 +21,37 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
             query = (IOrderedQueryable<Product>)query.Where(product => product.Id > lastId.Value);
         }
 
-        return await query.Take(limit).ToListAsync(ct);
+        return await query.Take(limit).ToListAsync(cancellationToken);
     }
 
-    public async Task<Product?> GetById(Guid id, CancellationToken ct = default)
+    public async Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
-        return await context.Products
-            .AsNoTracking()
-            .FirstOrDefaultAsync(product => product.Id == id, ct);
+        var query = context.Products.AsQueryable();
+
+        if (disableTracking)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query.FirstOrDefaultAsync(product => product.Id == id, cancellationToken);
     }
 
-    public async Task Delete(Product product, CancellationToken ct = default)
+    public async Task Delete(Product product, CancellationToken cancellationToken = default)
     {
         context.Products.Remove(product);
 
-        await context.SaveChangesAsync(ct);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken ct = default)
+    public async Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default)
     {
-        context.Products.Update(product);
-
         if (newImageUrls is not null)
         {
             var incomingUrls = newImageUrls.ToList();
 
             var currentImages = await context.Set<ProductImage>()
                 .Where(p => p.ProductId == product.Id)
-                .ToListAsync(ct);
+                .ToListAsync(cancellationToken);
 
             var imagesToDelete = new List<ProductImage>();
 
@@ -79,24 +82,21 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
                     Url = url
                 }).ToList();
 
-                await context.Set<ProductImage>().AddRangeAsync(imagesToAdd, ct);
+                await context.Set<ProductImage>().AddRangeAsync(imagesToAdd, cancellationToken);
             }
         }
 
-        await context.SaveChangesAsync(ct);
-
-        await context.Entry(product).Reference(p => p.Category).LoadAsync(ct);
-        await context.Entry(product).Collection(p => p.Images).LoadAsync(ct);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Product> Add(Product product, CancellationToken ct = default)
+    public async Task<Product> Add(Product product, CancellationToken cancellationToken = default)
     {
-        var newProduct = await context.Products.AddAsync(product, ct);
+        var newProduct = await context.Products.AddAsync(product, cancellationToken);
 
-        await context.SaveChangesAsync(ct);
+        await context.SaveChangesAsync(cancellationToken);
 
-        await context.Entry(product).Reference(product => product.Category).LoadAsync(ct);
-        await context.Entry(product).Reference(product => product.Seller).LoadAsync(ct);
+        await context.Entry(product).Reference(product => product.Category).LoadAsync(cancellationToken);
+        await context.Entry(product).Reference(product => product.Seller).LoadAsync(cancellationToken);
 
         return newProduct.Entity;
     }

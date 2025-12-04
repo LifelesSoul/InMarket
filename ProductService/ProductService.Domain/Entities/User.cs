@@ -24,5 +24,5 @@ public class User
     public DateTimeOffset RegistrationDate { get; set; } = TimeProvider.System.GetUtcNow();
 
     public virtual required UserProfile Profile { get; set; }
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual IEnumerable<Product> Products { get; set; } = new List<Product>();
 }

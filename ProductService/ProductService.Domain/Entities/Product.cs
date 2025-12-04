@@ -28,5 +28,5 @@ public class Product
     public required Guid SellerId { get; set; }
     public virtual required User Seller { get; set; }
 
-    public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public virtual IEnumerable<ProductImage> Images { get; set; } = new List<ProductImage>();
 }

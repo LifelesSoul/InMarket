@@ -10,9 +10,9 @@ namespace ProductService.BLL.Services;
 
 public class ProductsService(IProductRepository repository) : IProductService
 {
-    public async Task<PagedResult<ProductViewModel>> GetAll(int limit, Guid? continuationToken, CancellationToken ct = default)
+    public async Task<PagedResult<ProductViewModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default)
     {
-        var entities = await repository.GetPaged(limit, continuationToken, ct);
+        var entities = await repository.GetPaged(limit, continuationToken, cancellationToken);
 
         var viewModels = entities.Select(productView => new ProductViewModel
         {
@@ -47,7 +47,7 @@ public class ProductsService(IProductRepository repository) : IProductService
         };
     }
 
-    public async Task<ProductViewModel> Create(CreateProductModel model, Guid sellerId, CancellationToken ct = default)
+    public async Task<ProductViewModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default)
     {
         var entity = new Product
         {
@@ -71,10 +71,8 @@ public class ProductsService(IProductRepository repository) : IProductService
             Seller = null!
         };
 
-        var createdProduct = await repository.Add(entity, ct);
-
-        if (createdProduct is null)
-            throw new InvalidOperationException("Failed to create product. The database did not return the entity.");
+        var createdProduct = await repository.Add(entity, cancellationToken)
+            ?? throw new InvalidOperationException("Failed to create product. The database did not return the entity.");
 
         return new ProductViewModel
         {
@@ -100,11 +98,14 @@ public class ProductsService(IProductRepository repository) : IProductService
         };
     }
 
-    public async Task<ProductViewModel?> GetById(Guid id, CancellationToken ct = default)
+    public async Task<ProductViewModel?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
-        var productView = await repository.GetById(id, ct);
+        var productView = await repository.GetById(id, disableTraсking: true, cancellationToken);
 
-        if (productView is null) return null;
+        if (productView is null)
+        {
+            return null;
+        }
 
         return new ProductViewModel
         {
@@ -127,20 +128,21 @@ public class ProductsService(IProductRepository repository) : IProductService
         };
     }
 
-    public async Task Remove(Guid id, CancellationToken ct = default)
+    public async Task Remove(Guid id, CancellationToken cancellationToken = default)
     {
-        var product = await repository.GetById(id, ct);
+        var product = await repository.GetById(id, disableTraсking: true, cancellationToken)
+            ?? throw new KeyNotFoundException($"Product {id} not found");
 
-        if (product is null)
-            throw new KeyNotFoundException($"Product {id} not found");
-
-        await repository.Delete(product, ct);
+        await repository.Delete(product, cancellationToken);
     }
 
-    public async Task<ProductViewModel?> Update(UpdateProductModel model, CancellationToken ct = default)
+    public async Task<ProductViewModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default)
     {
-        var productView = await repository.GetById(model.Id, ct);
-        if (productView is null) return null;
+        var productView = await repository.GetById(model.Id, disableTraсking: false, cancellationToken);
+        if (productView is null)
+        {
+            return null;
+        }
 
         productView.Title = model.Title;
         productView.Price = model.Price;
@@ -148,7 +150,7 @@ public class ProductsService(IProductRepository repository) : IProductService
         productView.CategoryId = model.CategoryId;
         productView.Status = model.Status;
 
-        await repository.Update(productView, model.ImageUrls, ct);
+        await repository.Update(productView, model.ImageUrls, cancellationToken);
 
         return new ProductViewModel
         {

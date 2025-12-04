@@ -15,7 +15,7 @@ public class ProductViewModel
 
     public string? ImageUrl { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = TimeProvider.System.GetUtcNow();
 
     public SellerViewModel Seller { get; set; } = null!;
 }
