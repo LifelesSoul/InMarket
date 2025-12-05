@@ -7,9 +7,10 @@ using ProductService.Domain.Enums;
 using UserService.Domain.Entities;
 
 namespace ProductService.BLL.Mappings;
-public class BllMappingProfile : Profile
+
+public class MappingProfile : Profile
 {
-    public BllMappingProfile()
+    public MappingProfile()
     {
         CreateMap<Category, CategoryModel>();
 
