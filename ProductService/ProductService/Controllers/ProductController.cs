@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ProductService.API.ViewModels.User;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
@@ -8,7 +8,7 @@ namespace ProductService.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IProductService service) : ControllerBase
+public class ProductsController(IProductService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProductViewModel>>> GetAll(
@@ -18,13 +18,7 @@ public class ProductsController(IProductService service) : ControllerBase
     {
         var pagedModels = await service.GetAll(limit, continuationToken, cancellationToken);
 
-        var viewModels = pagedModels.Items.Select(MapToViewModel).ToList();
-
-        var result = new PagedResult<ProductViewModel>
-        {
-            Items = viewModels,
-            ContinuationToken = pagedModels.ContinuationToken
-        };
+        var result = mapper.Map<PagedResult<ProductViewModel>>(pagedModels);
 
         return Ok(result);
     }
@@ -39,7 +33,7 @@ public class ProductsController(IProductService service) : ControllerBase
             return NotFound($"Product with id {id} not found");
         }
 
-        return Ok(MapToViewModel(model));
+        return Ok(mapper.Map<ProductViewModel>(model));
     }
 
     [HttpPost]
@@ -47,7 +41,7 @@ public class ProductsController(IProductService service) : ControllerBase
     {
         var createdModel = await service.Create(model, model.SellerId, cancellationToken);
 
-        return Ok(MapToViewModel(createdModel));
+        return Ok(mapper.Map<ProductViewModel>(createdModel));
     }
 
     [HttpDelete("{id}")]
@@ -74,28 +68,6 @@ public class ProductsController(IProductService service) : ControllerBase
             return NotFound($"Product with id {model.Id} not found");
         }
 
-        return Ok(MapToViewModel(updatedModel));
-    }
-
-    private static ProductViewModel MapToViewModel(ProductModel model)
-    {
-        return new ProductViewModel
-        {
-            Id = model.Id,
-            Title = model.Title,
-            Price = model.Price,
-            CategoryName = model.Category.Name,
-            Description = model.Description,
-            Priority = model.Priority,
-            Status = model.Status,
-            ImageUrl = model.ImageUrls.FirstOrDefault(),
-            CreatedAt = model.CreatedAt,
-            Seller = new SellerViewModel
-            {
-                Id = model.Seller.Id,
-                Username = model.Seller.Username,
-                Email = model.Seller.Email,
-            }
-        };
+        return Ok(mapper.Map<ProductViewModel>(updatedModel));
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ProductService.Domain.Enums;
 
 namespace ProductService.BLL.Models.Product;
+
 public class ProductModel
 {
     public Guid Id { get; set; }

@@ -1,4 +1,5 @@
 ﻿namespace ProductService.BLL.Models.Product;
+
 public class SellerModel
 {
     public Guid Id { get; set; }

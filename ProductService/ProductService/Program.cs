@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.BLL.DI;
 using ProductService.Infrastructure;
+using ProductService.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
 
     options.UseSqlServer(connectionString);
 });
+
+builder.Services.AddAutoMapper(typeof(ApiMappingProfile));
 
 builder.Services.AddServices();
 
