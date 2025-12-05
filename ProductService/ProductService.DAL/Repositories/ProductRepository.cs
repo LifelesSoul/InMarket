@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
 
@@ -6,7 +7,7 @@ namespace ProductService.DAL.Repositories;
 
 public interface IProductRepository
 {
-    Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default);
+    Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken ct = default);
     Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
     Task Delete(Product product, CancellationToken cancellationToken = default);
     Task<Product> Add(Product product, CancellationToken cancellationToken = default);
@@ -15,21 +16,27 @@ public interface IProductRepository
 
 public class ProductRepository(ProductDbContext context) : IProductRepository
 {
-    public async Task<IReadOnlyList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default)
+    public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken ct = default)
     {
         var query = context.Products
             .AsNoTracking()
-            .Include(product => product.Category)
-            .Include(product => product.Seller)
-            .Include(product => product.Images)
-            .OrderBy(product => product.Id);
+            .Include(p => p.Category)
+            .Include(p => p.Seller)
+            .Include(p => p.Images)
+            .OrderBy(p => p.Id);
 
         if (lastId.HasValue)
         {
-            query = (IOrderedQueryable<Product>)query.Where(product => product.Id > lastId.Value);
+            query = (IOrderedQueryable<Product>)query.Where(p => p.Id > lastId.Value);
         }
 
-        return await query.Take(limit).ToListAsync(cancellationToken);
+        var items = await query.Take(limit).ToListAsync(ct);
+
+        return new PagedList<Product>
+        {
+            Items = items,
+            LastId = items.Count > 0 ? items.Last().Id : null
+        };
     }
 
     public async Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default)

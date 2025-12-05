@@ -1,8 +1,8 @@
-﻿using ProductService.BLL.Models;
+﻿using AutoMapper;
+using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
-using ProductService.Domain.Enums;
 
 namespace ProductService.BLL.Services;
 
@@ -15,95 +15,25 @@ public interface IProductService
     Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default);
 }
 
-public class ProductsService(IProductRepository repository) : IProductService
+public class ProductsService(IProductRepository repository, IMapper mapper) : IProductService
 {
-    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken ct = default)
     {
-        var entities = await repository.GetPaged(limit, continuationToken, cancellationToken);
+        var pagedEntities = await repository.GetPaged(limit, continuationToken, ct);
 
-        var models = entities.Select(entity => new ProductModel
-        {
-            Id = entity.Id,
-            Title = entity.Title,
-            Price = entity.Price,
-            Description = entity.Description,
-            CreatedAt = entity.CreationDate,
-            Priority = entity.Priority,
-            Status = entity.Status,
-
-            Category = new CategoryModel
-            {
-                Id = entity.Category.Id,
-                Name = entity.Category.Name
-            },
-            Seller = new SellerModel
-            {
-                Id = entity.Seller.Id,
-                Username = entity.Seller.Username,
-                Email = entity.Seller.Email
-            },
-
-            ImageUrls = entity.Images.Select(i => i.Url).ToList()
-        }).ToList();
-
-        string? nextToken = null;
-        if (models.Count > 0)
-        {
-            nextToken = models.Last().Id.ToString();
-        }
-
-        return new PagedResult<ProductModel>
-        {
-            Items = models,
-            ContinuationToken = nextToken
-        };
+        return mapper.Map<PagedResult<ProductModel>>(pagedEntities);
     }
 
     public async Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default)
     {
-        var entity = new Product
-        {
-            Title = model.Title,
-            Price = model.Price,
-            Description = model.Description,
-            Priority = Priority.Low,
-            Status = ProductStatus.Available,
-            CreationDate = TimeProvider.System.GetUtcNow(),
-            CategoryId = model.CategoryId,
-            SellerId = sellerId,
-            Images = model.ImageUrls?.Select(url => new ProductImage
-            {
-                Url = url
-            }).ToList() ?? new List<ProductImage>(),
-            Category = null!,
-            Seller = null!
-        };
+        var entity = mapper.Map<Product>(model);
+
+        entity.SellerId = sellerId;
 
         var createdProduct = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create product.");
 
-        return new ProductModel
-        {
-            Id = createdProduct.Id,
-            Title = createdProduct.Title,
-            Price = createdProduct.Price,
-            Description = createdProduct.Description,
-            CreatedAt = createdProduct.CreationDate,
-            Priority = createdProduct.Priority,
-            Status = createdProduct.Status,
-            Category = new CategoryModel
-            {
-                Id = createdProduct.Category.Id,
-                Name = createdProduct.Category.Name
-            },
-            Seller = new SellerModel
-            {
-                Id = createdProduct.Seller.Id,
-                Username = createdProduct.Seller.Username,
-                Email = createdProduct.Seller.Email
-            },
-            ImageUrls = createdProduct.Images.Select(i => i.Url).ToList()
-        };
+        return mapper.Map<ProductModel>(createdProduct);
     }
 
     public async Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default)
@@ -115,28 +45,7 @@ public class ProductsService(IProductRepository repository) : IProductService
             return null;
         }
 
-        return new ProductModel
-        {
-            Id = entity.Id,
-            Title = entity.Title,
-            Price = entity.Price,
-            Description = entity.Description,
-            CreatedAt = entity.CreationDate,
-            Priority = entity.Priority,
-            Status = entity.Status,
-            Category = new CategoryModel
-            {
-                Id = entity.Category.Id,
-                Name = entity.Category.Name
-            },
-            Seller = new SellerModel
-            {
-                Id = entity.Seller.Id,
-                Username = entity.Seller.Username,
-                Email = entity.Seller.Email
-            },
-            ImageUrls = entity.Images.Select(i => i.Url).ToList()
-        };
+        return mapper.Map<ProductModel>(entity);
     }
 
     public async Task Remove(Guid id, CancellationToken cancellationToken = default)
@@ -156,35 +65,10 @@ public class ProductsService(IProductRepository repository) : IProductService
             return null;
         }
 
-        product.Title = model.Title;
-        product.Price = model.Price;
-        product.Description = model.Description;
-        product.CategoryId = model.CategoryId;
-        product.Status = model.Status;
+        mapper.Map(model, product);
 
         await repository.Update(product, model.ImageUrls, cancellationToken);
 
-        return new ProductModel
-        {
-            Id = product.Id,
-            Title = product.Title,
-            Price = product.Price,
-            Description = product.Description,
-            CreatedAt = product.CreationDate,
-            Priority = product.Priority,
-            Status = product.Status,
-            Category = new CategoryModel
-            {
-                Id = product.Category.Id,
-                Name = product.Category.Name
-            },
-            Seller = new SellerModel
-            {
-                Id = product.Seller.Id,
-                Username = product.Seller.Username,
-                Email = product.Seller.Email
-            },
-            ImageUrls = product.Images.Select(i => i.Url).ToList()
-        };
+        return mapper.Map<ProductModel>(product);
     }
 }
