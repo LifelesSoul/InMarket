@@ -5,9 +5,9 @@ using ProductService.BLL.Models.Product;
 
 namespace ProductService.Mappings;
 
-public class ApiMappingProfile : Profile
+public class MappingProfile : Profile
 {
-    public ApiMappingProfile()
+    public MappingProfile()
     {
         CreateMap<SellerModel, SellerViewModel>();
 
