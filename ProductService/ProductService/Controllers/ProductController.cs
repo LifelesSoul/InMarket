@@ -26,7 +26,8 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProductViewModel>> GetById(Guid id, CancellationToken cancellationToken = default)
     {
-        var model = await service.GetById(id, cancellationToken);
+        var model = await service.GetById(id, cancellationToken)
+            ?? throw new KeyNotFoundException($"Product {id} not found");
 
         return Ok(mapper.Map<ProductViewModel>(model));
     }
