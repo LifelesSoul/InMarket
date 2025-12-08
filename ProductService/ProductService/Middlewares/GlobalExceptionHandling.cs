@@ -12,12 +12,9 @@ public class GlobalExceptionHandling(ILogger<GlobalExceptionHandling> logger) : 
         {
             await next(context);
 
-            if (context.Response.StatusCode == StatusCodes.Status404NotFound)
+            if (context.Response.StatusCode == StatusCodes.Status404NotFound && !context.Response.HasStarted)
             {
-                if (!context.Response.HasStarted)
-                {
-                    await HandleExceptionAsync(context, new KeyNotFoundException("The requested resource was not found."));
-                }
+                throw new KeyNotFoundException("The requested resource was not found.");
             }
         }
         catch (Exception exception)
