@@ -20,10 +20,10 @@ public class GlobalExceptionHandling(ILogger<GlobalExceptionHandling> logger) : 
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogError(ex, "An unhandled error occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, ex);
+            logger.LogError(exception, "An unhandled error occurred: {Message}", exception.Message);
+            await HandleExceptionAsync(context, exception);
         }
     }
 
@@ -47,14 +47,14 @@ public class GlobalExceptionHandling(ILogger<GlobalExceptionHandling> logger) : 
         await context.Response.WriteAsync(json);
     }
 
-    private static (int StatusCode, string Title, string Detail) MapExceptionToResponse(Exception exception)
+    private static (int StatusCode, string Title, string Detail) MapExceptionToResponse(Exception resultException)
     {
-        return exception switch
+        return resultException switch
         {
-            KeyNotFoundException ex => (StatusCodes.Status404NotFound, "Resource Not Found", ex.Message),
-            ArgumentException ex => (StatusCodes.Status400BadRequest, "Invalid Argument", ex.Message),
-            DbUpdateException dbEx => (StatusCodes.Status409Conflict, "Database Conflict", "Unique constraint violation or database error"),
-            InvalidOperationException ex => (StatusCodes.Status400BadRequest, "Operation Failed", ex.Message),
+            KeyNotFoundException exception => (StatusCodes.Status404NotFound, "Resource Not Found", exception.Message),
+            ArgumentException exception => (StatusCodes.Status400BadRequest, "Invalid Argument", exception.Message),
+            DbUpdateException exception => (StatusCodes.Status409Conflict, "Database Conflict", "Unique constraint violation or database error"),
+            InvalidOperationException exception => (StatusCodes.Status400BadRequest, "Operation Failed", exception.Message),
             _ => (StatusCodes.Status500InternalServerError, "Internal Server Error", "An unexpected error occurred.")
         };
     }
