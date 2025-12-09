@@ -42,9 +42,9 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
         await context.Response.WriteAsync(json);
     }
 
-    private static ExceptionResponse MapExceptionToResponse(Exception Finalexception)
+    private static ExceptionResponse MapExceptionToResponse(Exception exceptionResponse)
     {
-        return Finalexception switch
+        return exceptionResponse switch
         {
             KeyNotFoundException exception => new ExceptionResponse(
                 StatusCodes.Status404NotFound,
