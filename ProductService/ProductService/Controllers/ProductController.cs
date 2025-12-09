@@ -26,12 +26,8 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProductViewModel>> GetById(Guid id, CancellationToken cancellationToken = default)
     {
-        var model = await service.GetById(id, cancellationToken);
-
-        if (model is null)
-        {
-            return NotFound($"Product with id {id} not found");
-        }
+        var model = await service.GetById(id, cancellationToken)
+            ?? throw new KeyNotFoundException($"Product with id {id} not found");
 
         return Ok(mapper.Map<ProductViewModel>(model));
     }
@@ -47,26 +43,15 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await service.Remove(id, cancellationToken);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await service.Remove(id, cancellationToken);
+
+        return NoContent();
     }
 
     [HttpPut]
     public async Task<ActionResult<ProductViewModel>> Update([FromBody] UpdateProductModel model, CancellationToken cancellationToken = default)
     {
         var updatedModel = await service.Update(model, cancellationToken);
-
-        if (updatedModel is null)
-        {
-            return NotFound($"Product with id {model.Id} not found");
-        }
 
         return Ok(mapper.Map<ProductViewModel>(updatedModel));
     }

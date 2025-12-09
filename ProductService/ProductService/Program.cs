@@ -2,12 +2,15 @@
 using ProductService.BLL.DI;
 using ProductService.Infrastructure;
 using ProductService.Mappings;
+using ProductService.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
+
+builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -23,6 +26,8 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddServices();
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {

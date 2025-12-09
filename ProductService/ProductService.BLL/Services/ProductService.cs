@@ -10,7 +10,7 @@ public interface IProductService
 {
     Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default);
     Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default);
-    Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default);
+    Task<ProductModel> GetById(Guid id, CancellationToken cancellationToken = default);
     Task Remove(Guid id, CancellationToken cancellationToken = default);
     Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default);
 }
@@ -36,14 +36,9 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
         return mapper.Map<ProductModel>(createdProduct);
     }
 
-    public async Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ProductModel> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await repository.GetById(id, disableTracking: true, cancellationToken);
-
-        if (entity is null)
-        {
-            return null;
-        }
 
         return mapper.Map<ProductModel>(entity);
     }
@@ -58,12 +53,8 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
 
     public async Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default)
     {
-        var product = await repository.GetById(model.Id, disableTracking: false, cancellationToken);
-
-        if (product is null)
-        {
-            return null;
-        }
+        var product = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
+            ?? throw new KeyNotFoundException($"Product {model.Id} not found");
 
         mapper.Map(model, product);
 
