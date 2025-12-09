@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace ProductService.Middlewares;
 
-public class GlobalExceptionHandling(ILogger<GlobalExceptionHandling> logger) : IMiddleware
+public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMiddleware> logger) : IMiddleware
 {
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {

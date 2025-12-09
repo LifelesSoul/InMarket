@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddTransient<GlobalExceptionHandling>();
+builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -27,7 +27,7 @@ builder.Services.AddServices();
 
 var app = builder.Build();
 
-app.UseMiddleware<GlobalExceptionHandling>();
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
