@@ -21,11 +21,6 @@ public class MappingProfile : Profile
             .ForMember(destination => destination.CreatedAt, option => option.MapFrom(source => source.CreationDate));
 
         CreateMap<CreateProductModel, Product>()
-            .ForMember(destination => destination.Id, option => option.Ignore())
-            .ForMember(destination => destination.CreationDate, option => option.Ignore())
-            .ForMember(destination => destination.Images, option => option.Ignore())
-            .ForMember(destination => destination.Category, option => option.Ignore())
-            .ForMember(destination => destination.Seller, option => option.Ignore())
             .ForMember(destination => destination.Priority, option => option.MapFrom(source => Priority.Low))
             .ForMember(destination => destination.Status, option => option.MapFrom(source => ProductStatus.Available))
             .ForMember(destination => destination.Images, option => option.MapFrom(source =>
@@ -33,13 +28,10 @@ public class MappingProfile : Profile
                     ? source.ImageUrls.Select(url => new ProductImage { Url = url }).ToList()
                     : new List<ProductImage>()));
 
-        CreateMap<UpdateProductModel, Product>()
-            .ForMember(destination => destination.Id, option => option.Ignore())
-            .ForMember(destination => destination.CreationDate, option => option.Ignore())
-            .ForMember(destination => destination.SellerId, option => option.Ignore())
-            .ForMember(destination => destination.Images, option => option.Ignore());
+        CreateMap<UpdateProductModel, Product>();
 
         CreateMap(typeof(PagedList<>), typeof(PagedResult<>))
-        .ForMember("ContinuationToken", option => option.MapFrom("LastId"));
+            .ForMember(nameof(PagedResult<object>.ContinuationToken),
+                option => option.MapFrom(nameof(PagedList<object>.LastId)));
     }
 }
