@@ -13,34 +13,21 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
         try
         {
             await next(context);
-
-            if (context.Response.StatusCode == StatusCodes.Status404NotFound)
-            {
-                await WriteErrorResponse(
-                    context,
-                    StatusCodes.Status404NotFound,
-                    "Resource Not Found",
-                    "The requested resource was not found.");
-            }
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "An unhandled error occurred: {Message}", exception.Message);
 
-            await HandleException(context, exception);
+            await HandleExceptionAsync(context, exception);
         }
     }
 
-    private static async Task HandleException(HttpContext context, Exception exception)
-    {
-        var response = MapExceptionToResponse(exception);
-
-        await WriteErrorResponse(context, response.StatusCode, response.Title, response.Detail);
-    }
-
-    private static async Task WriteErrorResponse(HttpContext context, int statusCode, string title, string detail)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
+
+        var (statusCode, title, detail) = MapExceptionToResponse(exception);
+
         context.Response.StatusCode = statusCode;
 
         var problemDetails = new ProblemDetails
