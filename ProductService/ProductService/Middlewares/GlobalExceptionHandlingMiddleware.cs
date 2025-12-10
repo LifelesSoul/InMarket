@@ -42,34 +42,52 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
         await context.Response.WriteAsync(json);
     }
 
-    private static ExceptionResponse MapExceptionToResponse(Exception exceptionResponse)
+    private static ExceptionResponse MapExceptionToResponse(Exception exception)
     {
-        return exceptionResponse switch
+        return exception switch
         {
-            KeyNotFoundException exception => new ExceptionResponse(
+            KeyNotFoundException ex => new ExceptionResponse(
                 StatusCodes.Status404NotFound,
-                "Resource Not Found",
-                exception.Message),
+                ErrorMessages.Titles.NotFound,
+                ex.Message),
 
-            ArgumentException exception => new ExceptionResponse(
+            ArgumentException ex => new ExceptionResponse(
                 StatusCodes.Status400BadRequest,
-                "Invalid Argument",
-                exception.Message),
+                ErrorMessages.Titles.InvalidArgument,
+                ex.Message),
 
             DbUpdateException => new ExceptionResponse(
                 StatusCodes.Status409Conflict,
-                "Database Conflict",
-                "Unique constraint violation or database error"),
+                ErrorMessages.Titles.Conflict,
+                ErrorMessages.Details.DbConflict),
 
-            InvalidOperationException exception => new ExceptionResponse(
+            InvalidOperationException ex => new ExceptionResponse(
                 StatusCodes.Status400BadRequest,
-                "Operation Failed",
-                exception.Message),
+                ErrorMessages.Titles.OperationFailed,
+                ex.Message),
 
             _ => new ExceptionResponse(
                 StatusCodes.Status500InternalServerError,
-                "Internal Server Error",
-                "An unexpected error occurred.")
+                ErrorMessages.Titles.InternalServer,
+                ErrorMessages.Details.InternalServer)
         };
+    }
+
+    private static class ErrorMessages
+    {
+        public static class Titles
+        {
+            public const string NotFound = "Resource Not Found";
+            public const string InvalidArgument = "Invalid Argument";
+            public const string Conflict = "Database Conflict";
+            public const string OperationFailed = "Operation Failed";
+            public const string InternalServer = "Internal Server Error";
+        }
+
+        public static class Details
+        {
+            public const string DbConflict = "Unique constraint violation or database error";
+            public const string InternalServer = "An unexpected error occurred.";
+        }
     }
 }
