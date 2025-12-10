@@ -38,12 +38,8 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
 
     public async Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await repository.GetById(id, disableTracking: true, cancellationToken);
-
-        if (entity is null)
-        {
-            return null;
-        }
+        var entity = await repository.GetById(id, disableTracking: true, cancellationToken)
+            ?? throw new KeyNotFoundException($"Product {id} not found");
 
         return mapper.Map<ProductModel>(entity);
     }
@@ -58,12 +54,8 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
 
     public async Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default)
     {
-        var product = await repository.GetById(model.Id, disableTracking: false, cancellationToken);
-
-        if (product is null)
-        {
-            return null;
-        }
+        var product = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
+            ?? throw new KeyNotFoundException($"Product {model.Id} not found");
 
         mapper.Map(model, product);
 
