@@ -35,8 +35,7 @@ public class CategoryRepository(ProductDbContext context) : ICategoryRepository
 
     public async Task<Category> Add(Category category, CancellationToken cancellationToken = default)
     {
-        var result = await context.Set<Category>().AddAsync(category, cancellationToken)
-            ?? throw new InvalidOperationException("Failed to add category.");
+        var result = await context.Set<Category>().AddAsync(category, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
 
