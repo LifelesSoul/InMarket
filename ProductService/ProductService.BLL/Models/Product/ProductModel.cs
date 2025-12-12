@@ -18,7 +18,7 @@ public class ProductModel
 
     public ProductStatus Status { get; set; }
 
-    public required CategoryModel Category { get; set; }
+    public required ProductCategoryModel Category { get; set; }
 
     public required SellerModel Seller { get; set; }
 

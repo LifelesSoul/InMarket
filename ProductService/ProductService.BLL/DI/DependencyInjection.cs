@@ -13,6 +13,8 @@ public static class DependencyInjection
 
         services.AddScoped<IProductService, ProductsService>();
 
+        services.AddScoped<ICategoryService, CategoryService>();
+
         services.AddRepositories();
 
         return services;
