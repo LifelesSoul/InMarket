@@ -24,8 +24,14 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
 
     public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
+        }
+
         var entity = mapper.Map<Category>(model);
 
+        entity.Name = model.Name.Trim();
         entity.Id = Guid.NewGuid();
 
         var createdEntity = await repository.Add(entity, cancellationToken)
@@ -39,6 +45,12 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
         var entity = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
              ?? throw new KeyNotFoundException($"Category with id {model.Id} not found");
 
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
+        }
+
+        entity.Name = model.Name.Trim();
         entity.Name = model.Name;
 
         await repository.Update(entity, cancellationToken);
