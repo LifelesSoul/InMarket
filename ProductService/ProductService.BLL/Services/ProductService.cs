@@ -6,15 +6,6 @@ using ProductService.Domain.Entities;
 
 namespace ProductService.BLL.Services;
 
-public interface IProductService
-{
-    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default);
-    Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default);
-    Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default);
-    Task Remove(Guid id, CancellationToken cancellationToken = default);
-    Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default);
-}
-
 public class ProductsService(IProductRepository repository, IMapper mapper) : IProductService
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default)
@@ -63,4 +54,13 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
 
         return mapper.Map<ProductModel>(product);
     }
+}
+
+public interface IProductService
+{
+    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default);
+    Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default);
+    Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default);
+    Task Remove(Guid id, CancellationToken cancellationToken = default);
+    Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default);
 }
