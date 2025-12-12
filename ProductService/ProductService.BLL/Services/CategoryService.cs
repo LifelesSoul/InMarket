@@ -29,13 +29,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
             throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
         }
 
-        var cleanName = model.Name.Trim();
-
-        var isTaken = await repository.IsNameTaken(cleanName, excludeId: null, cancellationToken);
-        if (isTaken)
-        {
-            throw new InvalidOperationException($"Category with name '{cleanName}' already exists.");
-        }
+        var cleanName = NormalizeName(model.Name);
 
         var entity = mapper.Map<Category>(model);
 
@@ -58,13 +52,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
             throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
         }
 
-        var cleanName = model.Name.Trim();
-
-        var isTaken = await repository.IsNameTaken(cleanName, excludeId: model.Id, cancellationToken);
-        if (isTaken)
-        {
-            throw new InvalidOperationException($"Category with name '{cleanName}' already exists.");
-        }
+        var cleanName = NormalizeName(model.Name);
 
         entity.Name = cleanName;
         entity.Name = model.Name;
@@ -80,6 +68,19 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
              ?? throw new KeyNotFoundException($"Category with id {id} not found");
 
         await repository.Delete(entity, cancellationToken);
+    }
+    private static string NormalizeName(string inputName)
+    {
+        if (string.IsNullOrWhiteSpace(inputName))
+        {
+            throw new ArgumentException("Category name cannot be empty.", nameof(inputName));
+        }
+
+        var trimmed = inputName.Trim();
+
+        var lowerCased = trimmed.ToLower();
+
+        return char.ToUpper(lowerCased[0]) + lowerCased[1..];
     }
 }
 
