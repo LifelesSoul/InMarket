@@ -3,17 +3,10 @@ using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
 
 namespace ProductService.DAL.Repositories;
-public interface ICategoryRepository
-{
-    Task<List<Category>> GetAll(CancellationToken cancellationToken = default);
-    Task<Category?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
-    Task<Category> Add(Category category, CancellationToken cancellationToken = default);
-    Task Update(Category category, CancellationToken cancellationToken = default);
-    Task Delete(Category category, CancellationToken cancellationToken = default);
-}
+
 public class CategoryRepository(ProductDbContext context) : ICategoryRepository
 {
-    public async Task<List<Category>> GetAll(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken = default)
     {
         return await context.Set<Category>()
             .AsNoTracking()
@@ -55,4 +48,13 @@ public class CategoryRepository(ProductDbContext context) : ICategoryRepository
 
         await context.SaveChangesAsync(cancellationToken);
     }
+}
+
+public interface ICategoryRepository
+{
+    Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken = default);
+    Task<Category?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
+    Task<Category> Add(Category category, CancellationToken cancellationToken = default);
+    Task Update(Category category, CancellationToken cancellationToken = default);
+    Task Delete(Category category, CancellationToken cancellationToken = default);
 }

@@ -4,14 +4,6 @@ using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
 
 namespace ProductService.BLL.Services;
-public interface ICategoryService
-{
-    Task<List<CategoryModel>> GetAll(CancellationToken cancellationToken = default);
-    Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken = default);
-    Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default);
-    Task<CategoryModel> Update(UpdateCategoryModel model, CancellationToken cancellationToken = default);
-    Task Remove(Guid id, CancellationToken cancellationToken = default);
-}
 
 public class CategoryService(ICategoryRepository repository, IMapper mapper) : ICategoryService
 {
@@ -61,4 +53,13 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
 
         await repository.Delete(entity, cancellationToken);
     }
+}
+
+public interface ICategoryService
+{
+    Task<List<CategoryModel>> GetAll(CancellationToken cancellationToken = default);
+    Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken = default);
+    Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default);
+    Task<CategoryModel> Update(UpdateCategoryModel model, CancellationToken cancellationToken = default);
+    Task Remove(Guid id, CancellationToken cancellationToken = default);
 }
