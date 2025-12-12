@@ -34,7 +34,6 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
         var entity = mapper.Map<Category>(model);
 
         entity.Name = cleanName;
-        entity.Id = Guid.NewGuid();
 
         var createdEntity = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create category.");
@@ -55,7 +54,6 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
         var cleanName = NormalizeName(model.Name);
 
         entity.Name = cleanName;
-        entity.Name = model.Name;
 
         await repository.Update(entity, cancellationToken);
 
@@ -69,6 +67,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
 
         await repository.Delete(entity, cancellationToken);
     }
+
     private static string NormalizeName(string inputName)
     {
         if (string.IsNullOrWhiteSpace(inputName))

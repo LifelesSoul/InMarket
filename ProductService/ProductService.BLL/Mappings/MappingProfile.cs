@@ -36,9 +36,7 @@ public class MappingProfile : Profile
                 option => option.MapFrom(nameof(PagedList<object>.LastId)));
 
         CreateMap<Category, CategoryModel>();
-
         CreateMap<CreateCategoryModel, Category>();
-
         CreateMap<UpdateCategoryModel, Category>();
     }
 }
