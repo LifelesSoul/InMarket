@@ -29,9 +29,17 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
             throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
         }
 
+        var cleanName = model.Name.Trim();
+
+        var isTaken = await repository.IsNameTaken(cleanName, excludeId: null, cancellationToken);
+        if (isTaken)
+        {
+            throw new InvalidOperationException($"Category with name '{cleanName}' already exists.");
+        }
+
         var entity = mapper.Map<Category>(model);
 
-        entity.Name = model.Name.Trim();
+        entity.Name = cleanName;
         entity.Id = Guid.NewGuid();
 
         var createdEntity = await repository.Add(entity, cancellationToken)
@@ -50,7 +58,15 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
             throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
         }
 
-        entity.Name = model.Name.Trim();
+        var cleanName = model.Name.Trim();
+
+        var isTaken = await repository.IsNameTaken(cleanName, excludeId: model.Id, cancellationToken);
+        if (isTaken)
+        {
+            throw new InvalidOperationException($"Category with name '{cleanName}' already exists.");
+        }
+
+        entity.Name = cleanName;
         entity.Name = model.Name;
 
         await repository.Update(entity, cancellationToken);
