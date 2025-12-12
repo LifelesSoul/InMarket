@@ -29,9 +29,9 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
             throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
         }
 
-        var cleanName = NormalizeName(model.Name);
-
         var entity = mapper.Map<Category>(model);
+
+        var cleanName = NormalizeName(model.Name);
 
         entity.Name = cleanName;
 
