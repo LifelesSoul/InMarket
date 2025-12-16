@@ -31,9 +31,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
 
         var entity = mapper.Map<Category>(model);
 
-        var cleanName = NormalizeName(model.Name);
-
-        entity.Name = cleanName;
+        entity.Name = NormalizeName(model.Name);
 
         var createdEntity = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create category.");
