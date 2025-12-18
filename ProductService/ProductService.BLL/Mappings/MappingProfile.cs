@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ProductService.BLL.Models;
+using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
@@ -12,7 +13,7 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Category, CategoryModel>();
+        CreateMap<Category, ProductCategoryModel>();
 
         CreateMap<User, SellerModel>();
 
@@ -33,5 +34,9 @@ public class MappingProfile : Profile
         CreateMap(typeof(PagedList<>), typeof(PagedResult<>))
             .ForMember(nameof(PagedResult<object>.ContinuationToken),
                 option => option.MapFrom(nameof(PagedList<object>.LastId)));
+
+        CreateMap<Category, CategoryModel>();
+        CreateMap<CreateCategoryModel, Category>();
+        CreateMap<CategoryModel, Category>();
     }
 }

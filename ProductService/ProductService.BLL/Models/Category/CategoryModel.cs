@@ -1,6 +1,6 @@
-﻿namespace ProductService.BLL.Models.Product;
+﻿namespace ProductService.BLL.Models.Category;
 
-public class ProductCategoryModel
+public class CategoryModel
 {
     public Guid Id { get; set; }
 

@@ -5,15 +5,6 @@ using ProductService.Infrastructure;
 
 namespace ProductService.DAL.Repositories;
 
-public interface IProductRepository
-{
-    Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default);
-    Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
-    Task Delete(Product product, CancellationToken cancellationToken = default);
-    Task<Product> Add(Product product, CancellationToken cancellationToken = default);
-    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default);
-}
-
 public class ProductRepository(ProductDbContext context) : IProductRepository
 {
     public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default)
@@ -115,4 +106,13 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
 
         return newProduct.Entity;
     }
+}
+
+public interface IProductRepository
+{
+    Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default);
+    Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
+    Task Delete(Product product, CancellationToken cancellationToken = default);
+    Task<Product> Add(Product product, CancellationToken cancellationToken = default);
+    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default);
 }
