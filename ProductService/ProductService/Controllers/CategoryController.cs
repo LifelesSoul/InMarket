@@ -37,7 +37,7 @@ public class CategoryController(ICategoryService service, IMapper mapper) : Cont
     }
 
     [HttpPut]
-    public async Task<ActionResult<CategoryViewModel>> Update([FromBody] UpdateCategoryModel updateModel, CancellationToken cancellationToken)
+    public async Task<ActionResult<CategoryViewModel>> Update([FromBody] CategoryModel updateModel, CancellationToken cancellationToken)
     {
         var updatedModel = await service.Update(updateModel, cancellationToken);
 

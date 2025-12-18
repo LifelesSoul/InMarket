@@ -7,7 +7,7 @@ namespace ProductService.BLL.Services;
 
 public class CategoryService(ICategoryRepository repository, IMapper mapper) : ICategoryService
 {
-    public async Task<List<CategoryModel>> GetAll(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken = default)
     {
         var entities = await repository.GetAll(cancellationToken);
 
@@ -31,7 +31,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
 
         var entity = mapper.Map<Category>(model);
 
-        entity.Name = NormalizeName(model.Name);
+        entity.Name = Name(model.Name);
 
         var createdEntity = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create category.");
@@ -39,7 +39,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
         return mapper.Map<CategoryModel>(createdEntity);
     }
 
-    public async Task<CategoryModel> Update(UpdateCategoryModel model, CancellationToken cancellationToken = default)
+    public async Task<CategoryModel> Update(CategoryModel model, CancellationToken cancellationToken = default)
     {
         var entity = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
              ?? throw new KeyNotFoundException($"Category with id {model.Id} not found");
@@ -49,9 +49,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
             throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
         }
 
-        var cleanName = NormalizeName(model.Name);
-
-        entity.Name = cleanName;
+        entity.Name = Name(model.Name);
 
         await repository.Update(entity, cancellationToken);
 
@@ -66,7 +64,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
         await repository.Delete(entity, cancellationToken);
     }
 
-    private static string NormalizeName(string inputName)
+    private static string Name(string inputName)
     {
         if (string.IsNullOrWhiteSpace(inputName))
         {
@@ -83,9 +81,9 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
 
 public interface ICategoryService
 {
-    Task<List<CategoryModel>> GetAll(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken = default);
     Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken = default);
     Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default);
-    Task<CategoryModel> Update(UpdateCategoryModel model, CancellationToken cancellationToken = default);
+    Task<CategoryModel> Update(CategoryModel model, CancellationToken cancellationToken = default);
     Task Remove(Guid id, CancellationToken cancellationToken = default);
 }

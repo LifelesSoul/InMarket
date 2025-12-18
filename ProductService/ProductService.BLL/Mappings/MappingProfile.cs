@@ -37,6 +37,6 @@ public class MappingProfile : Profile
 
         CreateMap<Category, CategoryModel>();
         CreateMap<CreateCategoryModel, Category>();
-        CreateMap<UpdateCategoryModel, Category>();
+        CreateMap<CategoryModel, Category>();
     }
 }
