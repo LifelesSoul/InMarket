@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ProductService.BLL.Extensions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
@@ -36,7 +37,11 @@ public class MappingProfile : Profile
                 option => option.MapFrom(nameof(PagedList<object>.LastId)));
 
         CreateMap<Category, CategoryModel>();
-        CreateMap<CreateCategoryModel, Category>();
-        CreateMap<CategoryModel, Category>();
+
+        CreateMap<CreateCategoryModel, Category>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToTitleCase()));
+
+        CreateMap<CategoryModel, Category>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToTitleCase()));
     }
 }

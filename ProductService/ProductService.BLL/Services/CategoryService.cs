@@ -2,10 +2,16 @@
 using ProductService.BLL.Models.Category;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
+using FluentValidation;
 
 namespace ProductService.BLL.Services;
 
-public class CategoryService(ICategoryRepository repository, IMapper mapper) : ICategoryService
+public class CategoryService(
+    ICategoryRepository repository,
+    IMapper mapper,
+    IValidator<CreateCategoryModel> createValidator,
+    IValidator<CategoryModel> updateValidator
+    ) : ICategoryService
 {
     public async Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken = default)
     {
@@ -22,16 +28,11 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
         return mapper.Map<CategoryModel>(entity);
     }
 
-    public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default)
+    public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken     cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(model.Name))
-        {
-            throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
-        }
+        await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         var entity = mapper.Map<Category>(model);
-
-        entity.Name = Name(model.Name);
 
         var createdEntity = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create category.");
@@ -44,12 +45,7 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
         var entity = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
              ?? throw new KeyNotFoundException($"Category with id {model.Id} not found");
 
-        if (string.IsNullOrWhiteSpace(model.Name))
-        {
-            throw new ArgumentException("Category name cannot be empty.", nameof(model.Name));
-        }
-
-        entity.Name = Name(model.Name);
+        await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         await repository.Update(entity, cancellationToken);
 
@@ -62,20 +58,6 @@ public class CategoryService(ICategoryRepository repository, IMapper mapper) : I
              ?? throw new KeyNotFoundException($"Category with id {id} not found");
 
         await repository.Delete(entity, cancellationToken);
-    }
-
-    private static string Name(string inputName)
-    {
-        if (string.IsNullOrWhiteSpace(inputName))
-        {
-            throw new ArgumentException("Category name cannot be empty.", nameof(inputName));
-        }
-
-        var trimmed = inputName.Trim();
-
-        var lowerCased = trimmed.ToLower();
-
-        return char.ToUpper(lowerCased[0]) + lowerCased[1..];
     }
 }
 

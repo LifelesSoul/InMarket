@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using ProductService.BLL.DI;
+using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
 using ProductService.Mappings;
 using ProductService.Middlewares;
@@ -12,6 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryModelValidator>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 

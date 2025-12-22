@@ -48,6 +48,20 @@ public class CategoryRepository(ProductDbContext context) : ICategoryRepository
 
         await context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<bool> IsNameTaken(string name, Guid? excludeId = null, CancellationToken cancellationToken = default)
+    {
+        var lowerName = name.ToLower();
+
+        var query = context.Set<Category>().AsNoTracking();
+
+        if (excludeId.HasValue)
+        {
+            query = query.Where(c => c.Id != excludeId.Value);
+        }
+
+        return await query.AnyAsync(c => c.Name.ToLower() == lowerName, cancellationToken);
+    }
 }
 
 public interface ICategoryRepository
@@ -57,4 +71,5 @@ public interface ICategoryRepository
     Task<Category> Add(Category category, CancellationToken cancellationToken = default);
     Task Update(Category category, CancellationToken cancellationToken = default);
     Task Delete(Category category, CancellationToken cancellationToken = default);
+    Task<bool> IsNameTaken(string name, Guid? excludeId = null, CancellationToken cancellationToken = default);
 }
