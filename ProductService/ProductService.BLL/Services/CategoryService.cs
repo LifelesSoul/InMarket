@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using ProductService.BLL.Models.Category;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
-using FluentValidation;
 
 namespace ProductService.BLL.Services;
 
@@ -28,7 +28,7 @@ public class CategoryService(
         return mapper.Map<CategoryModel>(entity);
     }
 
-    public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken     cancellationToken = default)
+    public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default)
     {
         await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
