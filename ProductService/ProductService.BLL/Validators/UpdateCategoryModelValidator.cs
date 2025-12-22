@@ -13,10 +13,7 @@ public class UpdateCategoryModelValidator : AbstractValidator<CategoryModel>
 
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Category name is required.")
-            .MustAsync(async (model, name, cancellation) =>
-            {
-                return !await repository.IsNameTaken(name.Trim(), excludeId: model.Id, cancellation);
-            })
-            .WithMessage("Category with this name already exists.");
+            .MinimumLength(2).WithMessage("Category name must be at least 2 characters long.")
+            .MaximumLength(50).WithMessage("Category name must not exceed 50 characters.");
     }
 }
