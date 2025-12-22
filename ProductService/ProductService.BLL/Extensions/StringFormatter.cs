@@ -2,7 +2,7 @@
 
 public static class StringFormatter
 {
-    public static string ToTitleCase(this string? input)
+    public static string ToSentenceCase(this string? input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return string.Empty;

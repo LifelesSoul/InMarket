@@ -39,9 +39,9 @@ public class MappingProfile : Profile
         CreateMap<Category, CategoryModel>();
 
         CreateMap<CreateCategoryModel, Category>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToTitleCase()));
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToSentenceCase()));
 
         CreateMap<CategoryModel, Category>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToTitleCase()));
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToSentenceCase()));
     }
 }
