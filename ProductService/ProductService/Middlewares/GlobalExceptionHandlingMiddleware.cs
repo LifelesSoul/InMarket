@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using FluentValidation;
 
 namespace ProductService.Middlewares;
 
@@ -46,6 +47,11 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
     {
         return exception switch
         {
+            ValidationException ex => new ExceptionResponse(
+                StatusCodes.Status400BadRequest,
+                ErrorMessages.Titles.ValidationError,
+                ex.Message),
+
             KeyNotFoundException ex => new ExceptionResponse(
                 StatusCodes.Status404NotFound,
                 ErrorMessages.Titles.NotFound,
@@ -77,6 +83,7 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
     {
         public static class Titles
         {
+            public const string ValidationError = "Validation Error";
             public const string NotFound = "Resource Not Found";
             public const string InvalidArgument = "Invalid Argument";
             public const string Conflict = "Database Conflict";
