@@ -47,6 +47,8 @@ public class CategoryService(
 
         await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
 
+        mapper.Map(model, entity);
+
         await repository.Update(entity, cancellationToken);
 
         return mapper.Map<CategoryModel>(entity);

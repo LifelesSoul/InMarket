@@ -5,11 +5,11 @@ using ProductService.Infrastructure;
 
 namespace ProductService.DAL.Repositories;
 
-public class ProductRepository(ProductDbContext context) : IProductRepository
+public class ProductRepository(ProductDbContext context) : Repository<Product>(context), IProductRepository
 {
     public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default)
     {
-        var query = context.Products
+        var query = DbSet
             .AsNoTracking()
             .Include(product => product.Category)
             .Include(product => product.Seller)
@@ -30,23 +30,14 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
         };
     }
 
-    public async Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default)
+    public override async Task<Product> Add(Product product, CancellationToken cancellationToken = default)
     {
-        var query = context.Products.AsQueryable();
+        var addedProduct = await base.Add(product, cancellationToken);
 
-        if (disableTracking)
-        {
-            query = query.AsNoTracking();
-        }
+        await Context.Entry(addedProduct).Reference(p => p.Category).LoadAsync(cancellationToken);
+        await Context.Entry(addedProduct).Reference(p => p.Seller).LoadAsync(cancellationToken);
 
-        return await query.FirstOrDefaultAsync(product => product.Id == id, cancellationToken);
-    }
-
-    public async Task Delete(Product product, CancellationToken cancellationToken = default)
-    {
-        context.Products.Remove(product);
-
-        await context.SaveChangesAsync(cancellationToken);
+        return addedProduct;
     }
 
     public async Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default)
@@ -55,7 +46,7 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
         {
             var incomingUrls = newImageUrls.ToList();
 
-            var currentImages = await context.Set<ProductImage>()
+            var currentImages = await Context.Set<ProductImage>()
                 .Where(p => p.ProductId == product.Id)
                 .ToListAsync(cancellationToken);
 
@@ -77,7 +68,7 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
 
             if (imagesToDelete.Count > 0)
             {
-                context.Set<ProductImage>().RemoveRange(imagesToDelete);
+                Context.Set<ProductImage>().RemoveRange(imagesToDelete);
             }
 
             if (incomingUrls.Count > 0)
@@ -88,31 +79,15 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
                     Url = url
                 }).ToList();
 
-                await context.Set<ProductImage>().AddRangeAsync(imagesToAdd, cancellationToken);
+                await Context.Set<ProductImage>().AddRangeAsync(imagesToAdd, cancellationToken);
             }
         }
-
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<Product> Add(Product product, CancellationToken cancellationToken = default)
-    {
-        var newProduct = await context.Products.AddAsync(product, cancellationToken);
-
-        await context.SaveChangesAsync(cancellationToken);
-
-        await context.Entry(product).Reference(product => product.Category).LoadAsync(cancellationToken);
-        await context.Entry(product).Reference(product => product.Seller).LoadAsync(cancellationToken);
-
-        return newProduct.Entity;
+        await base.Update(product, cancellationToken);
     }
 }
 
-public interface IProductRepository
+public interface IProductRepository : IRepository<Product>
 {
     Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default);
-    Task<Product?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
-    Task Delete(Product product, CancellationToken cancellationToken = default);
-    Task<Product> Add(Product product, CancellationToken cancellationToken = default);
     Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default);
 }

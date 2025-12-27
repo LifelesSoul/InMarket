@@ -19,8 +19,7 @@ public class MappingProfile : Profile
         CreateMap<User, SellerModel>();
 
         CreateMap<Product, ProductModel>()
-            .ForMember(destination => destination.ImageUrls, option => option.MapFrom(source => source.Images.Select(image => image.Url)))
-            .ForMember(destination => destination.CreatedAt, option => option.MapFrom(source => source.CreationDate));
+            .ForMember(destination => destination.ImageUrls, option => option.MapFrom(source => source.Images.Select(image => image.Url)));
 
         CreateMap<CreateProductModel, Product>()
             .ForMember(destination => destination.Priority, option => option.MapFrom(source => Priority.Low))

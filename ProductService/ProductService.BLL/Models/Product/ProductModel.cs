@@ -12,7 +12,7 @@ public class ProductModel
 
     public string? Description { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreationDate { get; set; }
 
     public Priority Priority { get; set; }
 
