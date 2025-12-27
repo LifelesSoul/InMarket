@@ -14,10 +14,10 @@ public abstract class Repository<T>(ProductDbContext context) : IRepository<T> w
         {
             return await DbSet
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id, cancellationToken);
+                .FirstOrDefaultAsync(entity => EF.Property<Guid>(entity, "Id") == id, cancellationToken);
         }
 
-        return await DbSet.FindAsync([id], cancellationToken);
+        return await DbSet.FindAsync(id, cancellationToken);
     }
 
     public virtual async Task<T> Add(T entity, CancellationToken cancellationToken = default)
