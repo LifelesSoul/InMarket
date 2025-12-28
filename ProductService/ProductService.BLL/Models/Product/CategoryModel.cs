@@ -1,8 +1,6 @@
 ﻿namespace ProductService.BLL.Models.Product;
 
-public class ProductCategoryModel
+public class ProductCategoryModel : BaseModel
 {
-    public Guid Id { get; set; }
-
     public required string Name { get; set; }
 }

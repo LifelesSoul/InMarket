@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
 
 namespace ProductService.DAL.Repositories;
 
-public abstract class Repository<T>(ProductDbContext context) : IRepository<T> where T : class
+public abstract class Repository<T>(ProductDbContext context) : IRepository<T> where T : BaseEntity
 {
     protected readonly ProductDbContext Context = context;
     protected readonly DbSet<T> DbSet = context.Set<T>();
@@ -14,7 +15,7 @@ public abstract class Repository<T>(ProductDbContext context) : IRepository<T> w
         {
             return await DbSet
                 .AsNoTracking()
-                .FirstOrDefaultAsync(entity => EF.Property<Guid>(entity, "Id") == id, cancellationToken);
+                .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
         }
 
         return await DbSet.FindAsync(id, cancellationToken);
@@ -40,7 +41,7 @@ public abstract class Repository<T>(ProductDbContext context) : IRepository<T> w
     }
 }
 
-public interface IRepository<T> where T : class
+public interface IRepository<T> where T : BaseEntity
 {
     Task<T?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
     Task<T> Add(T entity, CancellationToken cancellationToken = default);

@@ -1,9 +1,7 @@
 ﻿namespace ProductService.Domain.Entities;
 
-public class ProductImage
+public class ProductImage : BaseEntity
 {
-    public Guid Id { get; set; }
-
     public required string Url { get; set; }
 
     public Guid ProductId { get; set; }

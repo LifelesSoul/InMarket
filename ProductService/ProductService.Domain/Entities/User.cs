@@ -8,10 +8,8 @@ namespace UserService.Domain.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
 [Index(nameof(Email), IsUnique = true)]
-public class User
+public class User : BaseEntity
 {
-    public required Guid Id { get; set; }
-
     [MaxLength(DbConstants.NameTextLength)]
     public required string Username { get; set; }
 
