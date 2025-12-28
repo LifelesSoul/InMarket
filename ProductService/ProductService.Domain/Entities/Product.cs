@@ -6,10 +6,8 @@ using UserService.Domain.Entities;
 
 namespace ProductService.Domain.Entities;
 
-public class Product
+public class Product : BaseEntity
 {
-    public Guid Id { get; set; }
-
     [MaxLength(DbConstants.TitleTextLength)]
     public required string Title { get; set; }
 

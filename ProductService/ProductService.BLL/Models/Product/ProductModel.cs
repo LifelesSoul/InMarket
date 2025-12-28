@@ -2,10 +2,8 @@
 
 namespace ProductService.BLL.Models.Product;
 
-public class ProductModel
+public class ProductModel : BaseModel
 {
-    public Guid Id { get; set; }
-
     public required string Title { get; set; }
 
     public required decimal Price { get; set; }
