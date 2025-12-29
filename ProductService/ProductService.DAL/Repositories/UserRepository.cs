@@ -14,6 +14,7 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
             .AsNoTracking()
