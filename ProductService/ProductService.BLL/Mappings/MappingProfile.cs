@@ -3,6 +3,7 @@ using ProductService.BLL.Extensions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.User;
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Enums;
@@ -35,6 +36,10 @@ public class MappingProfile : Profile
             .ForMember(nameof(PagedResult<object>.ContinuationToken),
                 option => option.MapFrom(nameof(PagedList<object>.LastId)));
 
+        CreateMap<User, SellerModel>();
+        CreateMap<User, UserModel>();
+
+        CreateMap<CreateUserModel, User>();
         CreateMap<Category, CategoryModel>();
 
         CreateMap<CreateCategoryModel, Category>()
