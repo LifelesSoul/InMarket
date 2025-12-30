@@ -8,10 +8,14 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
 {
     public override async Task<User?> GetById(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
-        return await DbSet
-            .Include(u => u.Profile)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        IQueryable<User> query = DbSet.Include(u => u.Profile);
+
+        if (disableTracking)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken = default)
@@ -35,6 +39,5 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
 public interface IUserRepository : IRepository<User>
 {
     Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken = default);
-
     Task<User?> GetByEmail(string email, CancellationToken cancellationToken = default);
 }

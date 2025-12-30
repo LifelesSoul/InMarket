@@ -37,9 +37,14 @@ public class MappingProfile : Profile
                 option => option.MapFrom(nameof(PagedList<object>.LastId)));
 
         CreateMap<User, SellerModel>();
-        CreateMap<User, UserModel>();
+
+        CreateMap<User, UserModel>()
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : null))
+            .ForMember(dest => dest.Biography, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Biography : null))
+            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0));
 
         CreateMap<CreateUserModel, User>();
+
         CreateMap<Category, CategoryModel>();
 
         CreateMap<CreateCategoryModel, Category>()

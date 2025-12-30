@@ -29,7 +29,7 @@ public class UsersService(
     {
         var entity = await repository.GetById(id, disableTracking: true, cancellationToken);
 
-        if (entity == null) return null;
+        if (entity is null) return null;
 
         return mapper.Map<UserModel>(entity);
     }
@@ -39,7 +39,7 @@ public class UsersService(
         await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         var existingUser = await repository.GetByEmail(model.Email, cancellationToken);
-        if (existingUser != null)
+        if (existingUser is not null)
         {
             throw new InvalidOperationException($"User with email {model.Email} already exists.");
         }
@@ -74,10 +74,10 @@ public class UsersService(
         var entity = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
                      ?? throw new KeyNotFoundException($"User {model.Id} not found");
 
-        if (!string.IsNullOrWhiteSpace(model.Email) && model.Email != entity.Email)
+        if (string.IsNullOrWhiteSpace(model.Email) && model.Email != entity.Email)
         {
             var emailTaken = await repository.GetByEmail(model.Email, cancellationToken);
-            if (emailTaken != null) throw new InvalidOperationException("Email is taken");
+            if (emailTaken is not null) throw new InvalidOperationException("Email is taken");
             entity.Email = model.Email;
         }
 
