@@ -4,6 +4,7 @@ using ProductService.API.ViewModels.User;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.User;
 
 namespace ProductService.Mappings;
 
@@ -18,6 +19,8 @@ public class MappingProfile : Profile
             .ForMember(destination => destination.ImageUrl, option => option.MapFrom(source => source.ImageUrls.FirstOrDefault()));
 
         CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
+
+        CreateMap<UserModel, UserViewModel>();
 
         CreateMap<CategoryModel, CategoryViewModel>();
     }
