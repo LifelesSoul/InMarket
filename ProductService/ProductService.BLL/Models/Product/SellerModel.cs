@@ -1,9 +1,7 @@
 ﻿namespace ProductService.BLL.Models.Product;
 
-public class SellerModel
+public class SellerModel : BaseModel
 {
-    public Guid Id { get; set; }
-
     public required string Username { get; set; }
 
     public required string Email { get; set; }

@@ -5,10 +5,8 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductService.Domain.Entities;
 
 [Index(nameof(Name), IsUnique = true)]
-public class Category
+public class Category : BaseEntity
 {
-    public required Guid Id { get; set; }
-
     [MaxLength(DbConstants.NameTextLength)]
     public required string Name { get; set; }
 
