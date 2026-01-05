@@ -15,6 +15,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install SonarQube Cloud scanner
+        shell: powershell
+        run: |
+          New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
+          dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
+
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -22,5 +28,7 @@ jobs:
         shell: powershell
         run: |
           ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"LifelesSoul_InMarket" /o:"lifelessoul" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io"
+          
           dotnet build ./ProductService/ProductService.sln
+          
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
