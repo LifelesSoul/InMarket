@@ -15,7 +15,7 @@ public class UsersService(
     IValidator<UpdateUserModel> updateValidator
     ) : IUserService
 {
-    public async Task<IReadOnlyList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken)
     {
         if (page < 1) page = PaginationConstants.DefaultPageNumber;
         if (pageSize < 1) pageSize = PaginationConstants.DefaultPageSize;
@@ -25,16 +25,16 @@ public class UsersService(
         return mapper.Map<IReadOnlyList<UserModel>>(entities);
     }
 
-    public async Task<UserModel?> GetById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<UserModel?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(id, disableTracking: true, cancellationToken);
+        var entity = await repository.GetById(id, cancellationToken, disableTracking: true);
 
         if (entity is null) return null;
 
         return mapper.Map<UserModel>(entity);
     }
 
-    public async Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken = default)
+    public async Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken)
     {
         await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
@@ -67,11 +67,11 @@ public class UsersService(
         return mapper.Map<UserModel>(entity);
     }
 
-    public async Task<UserModel> Update(UpdateUserModel model, CancellationToken cancellationToken = default)
+    public async Task<UserModel> Update(UpdateUserModel model, CancellationToken cancellationToken)
     {
         await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
 
-        var entity = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
+        var entity = await repository.GetById(model.Id, cancellationToken, disableTracking: false)
                      ?? throw new KeyNotFoundException($"User {model.Id} not found");
 
         if (string.IsNullOrWhiteSpace(model.Email) && model.Email != entity.Email)
@@ -86,9 +86,9 @@ public class UsersService(
         return mapper.Map<UserModel>(entity);
     }
 
-    public async Task Delete(Guid id, CancellationToken cancellationToken = default)
+    public async Task Delete(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(id, disableTracking: false, cancellationToken)
+        var entity = await repository.GetById(id, cancellationToken, disableTracking: false)
             ?? throw new KeyNotFoundException($"User {id} not found");
 
         await repository.Delete(entity, cancellationToken);
@@ -97,9 +97,9 @@ public class UsersService(
 
 public interface IUserService
 {
-    Task<IReadOnlyList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken = default);
-    Task<UserModel?> GetById(Guid id, CancellationToken cancellationToken = default);
-    Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken = default);
-    Task<UserModel> Update(UpdateUserModel model, CancellationToken cancellationToken = default);
-    Task Delete(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken);
+    Task<UserModel?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken);
+    Task<UserModel> Update(UpdateUserModel model, CancellationToken cancellationToken);
+    Task Delete(Guid id, CancellationToken cancellationToken);
 }

@@ -13,22 +13,22 @@ public class CategoryService(
     IValidator<CategoryModel> updateValidator
     ) : ICategoryService
 {
-    public async Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken)
     {
         var entities = await repository.GetAll(cancellationToken);
 
         return mapper.Map<List<CategoryModel>>(entities);
     }
 
-    public async Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(id, disableTracking: true, cancellationToken)
+        var entity = await repository.GetById(id, cancellationToken, disableTracking: true)
             ?? throw new KeyNotFoundException($"Category with id {id} not found");
 
         return mapper.Map<CategoryModel>(entity);
     }
 
-    public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default)
+    public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken)
     {
         await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
@@ -40,9 +40,9 @@ public class CategoryService(
         return mapper.Map<CategoryModel>(createdEntity);
     }
 
-    public async Task<CategoryModel> Update(CategoryModel model, CancellationToken cancellationToken = default)
+    public async Task<CategoryModel> Update(CategoryModel model, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
+        var entity = await repository.GetById(model.Id, cancellationToken, disableTracking: false)
              ?? throw new KeyNotFoundException($"Category with id {model.Id} not found");
 
         await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
@@ -54,9 +54,9 @@ public class CategoryService(
         return mapper.Map<CategoryModel>(entity);
     }
 
-    public async Task Remove(Guid id, CancellationToken cancellationToken = default)
+    public async Task Remove(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(id, disableTracking: false, cancellationToken)
+        var entity = await repository.GetById(id, cancellationToken, disableTracking: false)
              ?? throw new KeyNotFoundException($"Category with id {id} not found");
 
         await repository.Delete(entity, cancellationToken);
@@ -65,9 +65,9 @@ public class CategoryService(
 
 public interface ICategoryService
 {
-    Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken = default);
-    Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken = default);
-    Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default);
-    Task<CategoryModel> Update(CategoryModel model, CancellationToken cancellationToken = default);
-    Task Remove(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken);
+    Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken);
+    Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken);
+    Task<CategoryModel> Update(CategoryModel model, CancellationToken cancellationToken);
+    Task Remove(Guid id, CancellationToken cancellationToken);
 }
