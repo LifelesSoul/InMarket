@@ -31,11 +31,15 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.INMARKETSONAR }}
         run: |
-          # Запуск сканера
-          dotnet-sonarscanner begin /k:"${{ vars.SONAR_PROJECT_KEY }}" /o:"${{ vars.SONAR_ORGANIZATION_KEY }}" /d:sonar.token="${{ secrets.INMARKETSONAR }}" /d:sonar.host.url="https://sonarcloud.io"
+          # 1. Начинаем анализ
+          dotnet-sonarscanner begin /k:"${{ vars.SONAR_PROJECT_KEY }}" /o:"${{ vars.SONAR_ORGANIZATION_KEY }}" /d:sonar.token="${{ secrets.INMARKETSONAR }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
           
-          # Сборка вашего проекта (укажите путь к sln, если он не в корне)
+          # 2. Собираем проект
           dotnet build ./ProductService/ProductService.sln
           
-          # Отправка отчета
+          # 3. ЗАПУСКАЕМ ТЕСТЫ (Это соберет покрытие кода)
+          # Важно: В тестовых проектах должен быть пакет coverlet.collector
+          dotnet test ./ProductService/ProductService.sln --no-build --collect:"XPlat Code Coverage;Format=opencover"
+          
+          # 4. Завершаем анализ и отправляем отчет
           dotnet-sonarscanner end /d:sonar.token="${{ secrets.INMARKETSONAR }}"
