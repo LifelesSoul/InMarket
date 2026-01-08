@@ -29,14 +29,13 @@ jobs:
       # 5. Анализ: BEGIN -> BUILD -> END
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.INMARKETSONAR }}
         run: |
           # Запуск сканера
-          dotnet-sonarscanner begin /k:"${{ vars.SONAR_PROJECT_KEY }}" /o:"${{ vars.SONAR_ORGANIZATION_KEY }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          dotnet-sonarscanner begin /k:"${{ vars.SONAR_PROJECT_KEY }}" /o:"${{ vars.SONAR_ORGANIZATION_KEY }}" /d:sonar.token="${{ secrets.INMARKETSONAR }}" /d:sonar.host.url="https://sonarcloud.io"
           
           # Сборка вашего проекта (укажите путь к sln, если он не в корне)
           dotnet build ./ProductService/ProductService.sln
           
           # Отправка отчета
-          dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet-sonarscanner end /d:sonar.token="${{ secrets.INMARKETSONAR }}"
