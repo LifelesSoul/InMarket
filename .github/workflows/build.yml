@@ -15,31 +15,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. ОБЯЗАТЕЛЬНО: Скачиваем код репозитория
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Важно для правильного определения "Нового кода" в Sonar
+          fetch-depth: 0 
 
-      # 4. Устанавливаем правильный сканер для .NET (глобально)
       - name: Install SonarCloud scanner
         run: |
           dotnet tool install --global dotnet-sonarscanner
 
-      # 5. Анализ: BEGIN -> BUILD -> END
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.INMARKETSONAR }}
         run: |
-          # 1. Начинаем анализ
           dotnet-sonarscanner begin /k:"${{ vars.SONAR_PROJECT_KEY }}" /o:"${{ vars.SONAR_ORGANIZATION_KEY }}" /d:sonar.token="${{ secrets.INMARKETSONAR }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
           
-          # 2. Собираем проект
           dotnet build ./ProductService/ProductService.sln
-          
-          # 3. ЗАПУСКАЕМ ТЕСТЫ (Это соберет покрытие кода)
-          # Важно: В тестовых проектах должен быть пакет coverlet.collector
+      
           dotnet test ./ProductService/ProductService.sln --no-build --collect:"XPlat Code Coverage;Format=opencover"
-          
-          # 4. Завершаем анализ и отправляем отчет
+
           dotnet-sonarscanner end /d:sonar.token="${{ secrets.INMARKETSONAR }}"
+          

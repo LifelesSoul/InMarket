@@ -125,11 +125,11 @@ public class CategoryServiceTests : ServiceTestsBase
     public async Task Create_WhenValidationFails_ThrowsValidationException()
     {
         var createModel = new CreateCategoryModel { Name = "" };
-        var failedResult = new ValidationResult(new[] { new ValidationFailure("Name", "Required") });
+        var validationException = new ValidationException(new[] { new ValidationFailure("Name", "Required") });
 
         _createValidatorMock
             .Setup(v => v.ValidateAsync(createModel, Ct))
-            .ReturnsAsync(failedResult);
+            .ThrowsAsync(validationException);
 
         await Should.ThrowAsync<ValidationException>(() => _service.Create(createModel, Ct));
 
@@ -213,11 +213,11 @@ public class CategoryServiceTests : ServiceTestsBase
             .Setup(r => r.GetById(id, false, Ct))
             .ReturnsAsync(existingEntity);
 
-        var validationResultWithErrors = new ValidationResult(new[] { new ValidationFailure("Name", "Name is too short") });
+        var validationResultWithErrors = new ValidationException(new[] { new ValidationFailure("Name", "Name is too short") });
 
         _updateValidatorMock
             .Setup(v => v.ValidateAsync(updateModel, Ct))
-            .ReturnsAsync(new ValidationResult());
+            .ThrowsAsync(validationResultWithErrors);
 
         await Should.ThrowAsync<ValidationException>(() => _service.Update(updateModel, Ct));
 
