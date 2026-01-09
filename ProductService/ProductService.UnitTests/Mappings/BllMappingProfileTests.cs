@@ -243,7 +243,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         result.Items.ShouldBeEmpty();
     }
 
-    private Product CreateValidProduct()
+    private static Product CreateValidProduct()
     {
         var sellerId = Guid.NewGuid();
         var seller = new User

@@ -277,7 +277,7 @@ public class ProductServiceTests : ServiceTestsBase
             Ct), Times.Never);
     }
 
-    private Domain.Entities.Product CreateProductEntity()
+    private static Domain.Entities.Product CreateProductEntity()
     {
         return new Domain.Entities.Product
         {
