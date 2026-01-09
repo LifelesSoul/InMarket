@@ -63,7 +63,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         viewModel.ImageUrl.ShouldBe("http://FIRST.com");
         viewModel.ImageUrl.ShouldNotBe("http://SECOND.com");
 
-        model.ImageUrls.ShouldBe(new[] { "http://FIRST.com", "http://SECOND.com", "http://THIRD.com" });
+        model.ImageUrls.ShouldBe(["http://FIRST.com", "http://SECOND.com", "http://THIRD.com"]);
     }
 
     [Fact]
