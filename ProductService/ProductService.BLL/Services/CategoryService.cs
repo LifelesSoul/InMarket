@@ -30,7 +30,7 @@ public class CategoryService(
 
     public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken = default)
     {
-        await createValidator.ValidateAndThrowAsync(model, cancellationToken);
+        await createValidator.ValidateAsync(model, cancellationToken);
 
         var entity = mapper.Map<Category>(model);
 
@@ -45,7 +45,7 @@ public class CategoryService(
         var entity = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
              ?? throw new KeyNotFoundException($"Category with id {model.Id} not found");
 
-        await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
+        await updateValidator.ValidateAsync(model, cancellationToken);
 
         mapper.Map(model, entity);
 
