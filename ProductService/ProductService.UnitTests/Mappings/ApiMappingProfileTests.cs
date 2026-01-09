@@ -188,8 +188,8 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         var result = Mapper.Map<PagedResult<ProductViewModel>>(sourcePagedResult);
 
         result.Items.Count.ShouldBe(1);
-        result.Items.[0].Title.ShouldBe("P1");
-        result.Items.[0].CategoryName.ShouldBe("C1");
+        result.Items[0].Title.ShouldBe("P1");
+        result.Items[0].CategoryName.ShouldBe("C1");
     }
 
     [Fact]

@@ -65,7 +65,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 
         model.ShouldNotBeNull();
         model.ImageUrls.ShouldNotBeNull();
-        model.ImageUrls.Count().ShouldBe(2);
+        model.ImageUrls.Count.ShouldBe(2);
 
         model.ImageUrls.ShouldContain("http://img1.com");
         model.ImageUrls.ShouldContain("http://img2.com");
@@ -205,7 +205,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 
         result.Items.Count.ShouldBe(1);
 
-        var item = result.Items.First();
+        var item = result.Items[0];
 
         item.Id.ShouldBe(product.Id);
         item.Title.ShouldBe("Specific Title");
