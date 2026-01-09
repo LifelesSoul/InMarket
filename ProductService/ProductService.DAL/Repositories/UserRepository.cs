@@ -36,6 +36,7 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 }
+
 public interface IUserRepository : IRepository<User>
 {
     Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken);

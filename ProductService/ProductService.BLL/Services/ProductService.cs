@@ -8,9 +8,9 @@ namespace ProductService.BLL.Services;
 
 public class ProductsService(IProductRepository repository, IMapper mapper) : IProductService
 {
-    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken)
+    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
-        var pagedEntities = await repository.GetPaged(limit, continuationToken, cancellationToken);
+        var pagedEntities = await repository.GetPaged(limit, lastId, cancellationToken);
 
         return mapper.Map<PagedResult<ProductModel>>(pagedEntities);
     }
@@ -58,7 +58,7 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
 
 public interface IProductService
 {
-    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken);
+    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken);
     Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken);
     Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken);
     Task Remove(Guid id, CancellationToken cancellationToken);

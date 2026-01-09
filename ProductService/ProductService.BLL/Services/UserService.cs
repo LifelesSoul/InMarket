@@ -53,8 +53,8 @@ public class UsersService(
             UserId = entity.Id,
             User = entity,
             RatingScore = 1,
-            Biography = null,
-            AvatarUrl = null
+            Biography = default,
+            AvatarUrl = default
         };
 
         if (model.Role == UserRole.None)
