@@ -26,13 +26,11 @@ jobs:
 
       - name: Build and analyze
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
           SONAR_TOKEN: ${{ secrets.INMARKETSONAR }}
         run: |
-          dotnet-sonarscanner begin /k:"${{ vars.SONAR_PROJECT_KEY }}" /o:"${{ vars.SONAR_ORGANIZATION_KEY }}" /d:sonar.token="${{ secrets.INMARKETSONAR }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          dotnet-sonarscanner begin /k:"${{ vars.SONAR_PROJECT_KEY }}" /o:"${{ vars.SONAR_ORGANIZATION_KEY }}" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
           
           dotnet build ./ProductService/ProductService.sln
       
           dotnet test ./ProductService/ProductService.sln --no-build --collect:"XPlat Code Coverage;Format=opencover"
-
-          dotnet-sonarscanner end /d:sonar.token="${{ secrets.INMARKETSONAR }}"
-          
