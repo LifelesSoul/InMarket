@@ -34,6 +34,4 @@ jobs:
           dotnet build ./ProductService/ProductService.sln
       
           dotnet test ./ProductService/ProductService.sln --no-build --collect:"XPlat Code Coverage;Format=opencover"
-
-          dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
           
