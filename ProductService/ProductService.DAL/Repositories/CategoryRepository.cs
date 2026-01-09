@@ -6,7 +6,7 @@ namespace ProductService.DAL.Repositories;
 
 public class CategoryRepository(ProductDbContext context) : Repository<Category>(context), ICategoryRepository
 {
-    public async Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken)
     {
         return await DbSet
             .AsNoTracking()
@@ -17,5 +17,5 @@ public class CategoryRepository(ProductDbContext context) : Repository<Category>
 
 public interface ICategoryRepository : IRepository<Category>
 {
-    Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken);
 }

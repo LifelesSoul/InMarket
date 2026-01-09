@@ -7,7 +7,7 @@ namespace ProductService.DAL.Repositories;
 
 public class ProductRepository(ProductDbContext context) : Repository<Product>(context), IProductRepository
 {
-    public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default)
+    public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
         var query = DbSet
             .AsNoTracking()
@@ -30,7 +30,7 @@ public class ProductRepository(ProductDbContext context) : Repository<Product>(c
         };
     }
 
-    public override async Task<Product> Add(Product product, CancellationToken cancellationToken = default)
+    public override async Task<Product> Add(Product product, CancellationToken cancellationToken)
     {
         var addedProduct = await base.Add(product, cancellationToken);
 
@@ -40,7 +40,7 @@ public class ProductRepository(ProductDbContext context) : Repository<Product>(c
         return addedProduct;
     }
 
-    public async Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default)
+    public async Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken)
     {
         if (newImageUrls is not null)
         {
@@ -88,6 +88,6 @@ public class ProductRepository(ProductDbContext context) : Repository<Product>(c
 
 public interface IProductRepository : IRepository<Product>
 {
-    Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken = default);
-    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken = default);
+    Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken);
+    Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken);
 }

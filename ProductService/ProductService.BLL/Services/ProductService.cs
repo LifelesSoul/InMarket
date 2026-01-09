@@ -8,14 +8,14 @@ namespace ProductService.BLL.Services;
 
 public class ProductsService(IProductRepository repository, IMapper mapper) : IProductService
 {
-    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
-        var pagedEntities = await repository.GetPaged(limit, continuationToken, cancellationToken);
+        var pagedEntities = await repository.GetPaged(limit, lastId, cancellationToken);
 
         return mapper.Map<PagedResult<ProductModel>>(pagedEntities);
     }
 
-    public async Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default)
+    public async Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken)
     {
         var entity = mapper.Map<Product>(model);
 
@@ -27,25 +27,25 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
         return mapper.Map<ProductModel>(createdProduct);
     }
 
-    public async Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(id, disableTracking: true, cancellationToken)
+        var entity = await repository.GetById(id, cancellationToken, disableTracking: true)
             ?? throw new KeyNotFoundException($"Product {id} not found");
 
         return mapper.Map<ProductModel>(entity);
     }
 
-    public async Task Remove(Guid id, CancellationToken cancellationToken = default)
+    public async Task Remove(Guid id, CancellationToken cancellationToken)
     {
-        var product = await repository.GetById(id, disableTracking: false, cancellationToken)
+        var product = await repository.GetById(id, cancellationToken, disableTracking: false)
             ?? throw new KeyNotFoundException($"Product {id} not found");
 
         await repository.Delete(product, cancellationToken);
     }
 
-    public async Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default)
+    public async Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken)
     {
-        var product = await repository.GetById(model.Id, disableTracking: false, cancellationToken)
+        var product = await repository.GetById(model.Id, cancellationToken, disableTracking: false)
             ?? throw new KeyNotFoundException($"Product {model.Id} not found");
 
         mapper.Map(model, product);
@@ -58,9 +58,9 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
 
 public interface IProductService
 {
-    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? continuationToken, CancellationToken cancellationToken = default);
-    Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken = default);
-    Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken = default);
-    Task Remove(Guid id, CancellationToken cancellationToken = default);
-    Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken = default);
+    Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken);
+    Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken);
+    Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken);
+    Task Remove(Guid id, CancellationToken cancellationToken);
+    Task<ProductModel?> Update(UpdateProductModel model, CancellationToken cancellationToken);
 }
