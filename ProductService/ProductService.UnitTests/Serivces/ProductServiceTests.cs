@@ -154,7 +154,7 @@ public class ProductServiceTests : ServiceTestsBase
         };
 
         _repositoryMock
-            .Setup(r => r.GetById(id, true, Ct))
+            .Setup(r => r.GetById(id, Ct, true))
             .ReturnsAsync(entity);
 
         MapperMock.Setup(m => m.Map<ProductModel>(entity)).Returns(model);
@@ -169,7 +169,7 @@ public class ProductServiceTests : ServiceTestsBase
     {
         var id = Guid.NewGuid();
         _repositoryMock
-            .Setup(r => r.GetById(id, true, Ct))
+            .Setup(r => r.GetById(id, Ct, true))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         await Should.ThrowAsync<KeyNotFoundException>(() => _service.GetById(id, Ct));
@@ -183,7 +183,7 @@ public class ProductServiceTests : ServiceTestsBase
         entity.Id = id;
 
         _repositoryMock
-            .Setup(r => r.GetById(id, false, Ct))
+            .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync(entity);
 
         await _service.Remove(id, Ct);
@@ -196,7 +196,7 @@ public class ProductServiceTests : ServiceTestsBase
     {
         var id = Guid.NewGuid();
         _repositoryMock
-            .Setup(r => r.GetById(id, false, Ct))
+            .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         await Should.ThrowAsync<KeyNotFoundException>(() => _service.Remove(id, Ct));
@@ -232,7 +232,7 @@ public class ProductServiceTests : ServiceTestsBase
         };
 
         _repositoryMock
-            .Setup(r => r.GetById(id, false, Ct))
+            .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync(existingEntity);
 
         MapperMock
@@ -266,7 +266,7 @@ public class ProductServiceTests : ServiceTestsBase
         };
 
         _repositoryMock
-            .Setup(r => r.GetById(updateModel.Id, false, Ct))
+            .Setup(r => r.GetById(updateModel.Id, Ct, false))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, Ct));

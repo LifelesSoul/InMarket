@@ -67,7 +67,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var expectedModel = new CategoryModel { Id = id, Name = "Tech" };
 
         _repositoryMock
-            .Setup(r => r.GetById(id, true, Ct))
+            .Setup(r => r.GetById(id, Ct, true))
             .ReturnsAsync(entity);
 
         MapperMock
@@ -85,7 +85,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var id = Guid.NewGuid();
 
         _repositoryMock
-            .Setup(r => r.GetById(id, true, Ct))
+            .Setup(r => r.GetById(id, Ct, true))
             .ReturnsAsync((Domain.Entities.Category?)null);
 
         await Should.ThrowAsync<KeyNotFoundException>(() => _service.GetById(id, Ct));
@@ -163,7 +163,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var existingEntity = new Domain.Entities.Category { Id = id, Name = "Old" };
 
         _repositoryMock
-            .Setup(r => r.GetById(id, false, Ct))
+            .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync(existingEntity);
 
         _updateValidatorMock
@@ -194,7 +194,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var updateModel = new CategoryModel { Id = Guid.NewGuid(), Name = "U" };
 
         _repositoryMock
-            .Setup(r => r.GetById(updateModel.Id, false, Ct))
+            .Setup(r => r.GetById(updateModel.Id, Ct, false))
             .ReturnsAsync((Domain.Entities.Category?)null);
 
         await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, Ct));
@@ -210,7 +210,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var existingEntity = new Domain.Entities.Category { Id = id, Name = "Old" };
 
         _repositoryMock
-            .Setup(r => r.GetById(id, false, Ct))
+            .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync(existingEntity);
 
         var validationResultWithErrors = new ValidationException(new[] { new ValidationFailure("Name", "Name is too short") });
@@ -231,7 +231,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var entity = new Domain.Entities.Category { Id = id, Name = "To Delete" };
 
         _repositoryMock
-            .Setup(r => r.GetById(id, false, Ct))
+            .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync(entity);
 
         await _service.Remove(id, Ct);
@@ -245,7 +245,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var id = Guid.NewGuid();
 
         _repositoryMock
-            .Setup(r => r.GetById(id, false, Ct))
+            .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync((Domain.Entities.Category?)null);
 
         await Should.ThrowAsync<KeyNotFoundException>(() => _service.Remove(id, Ct));
