@@ -9,29 +9,29 @@ public class CreateUserModelValidator : AbstractValidator<CreateUserModel>
     public CreateUserModelValidator()
     {
         RuleFor(x => x.Username)
-            .NotEmpty().WithMessage("{PropertyName} is required.")
+            .NotEmpty().WithMessage(ValidationMessages.Required)
             .Length(ValidationConstants.User.UsernameMinLength, ValidationConstants.User.UsernameMaxLength)
-                .WithMessage("{PropertyName} must be between {MinLength} and {MaxLength} characters.")
+                .WithMessage(ValidationMessages.LengthRange)
             .Matches(ValidationConstants.User.UsernameRegex)
-                .WithMessage("{PropertyName} can only contain letters, numbers, underscores, dots, and hyphens.");
+                .WithMessage(ValidationMessages.UsernameRegex);
 
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("{PropertyName} is required.")
-            .EmailAddress().WithMessage("Invalid email format.")
+            .NotEmpty().WithMessage(ValidationMessages.Required)
+            .EmailAddress().WithMessage(ValidationMessages.InvalidEmail)
             .MaximumLength(ValidationConstants.User.EmailMaxLength)
-                .WithMessage("{PropertyName} must not exceed {MaxLength} characters.");
+                .WithMessage(ValidationMessages.MaxLength);
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("{PropertyName} is required.")
+            .NotEmpty().WithMessage(ValidationMessages.Required)
             .MinimumLength(ValidationConstants.User.PasswordMinLength)
-                .WithMessage("{PropertyName} must be at least {MinLength} characters long.")
+                .WithMessage(ValidationMessages.MinLength)
             .MaximumLength(ValidationConstants.User.PasswordMaxLength)
-                .WithMessage("{PropertyName} must not exceed {MaxLength} characters.")
+                .WithMessage(ValidationMessages.MaxLength)
             .Matches(ValidationConstants.User.PasswordUpperCaseRegex)
-                .WithMessage("{PropertyName} must contain at least one uppercase letter.")
+                .WithMessage(ValidationMessages.PasswordUpperCase)
             .Matches(ValidationConstants.User.PasswordLowerCaseRegex)
-                .WithMessage("{PropertyName} must contain at least one lowercase letter.")
+                .WithMessage(ValidationMessages.PasswordLowerCase)
             .Matches(ValidationConstants.User.PasswordDigitRegex)
-                .WithMessage("{PropertyName} must contain at least one number.");
+                .WithMessage(ValidationMessages.PasswordDigit);
     }
 }

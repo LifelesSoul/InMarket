@@ -15,21 +15,30 @@ public class UsersService(
     IValidator<UpdateUserModel> updateValidator
     ) : IUserService
 {
-    public async Task<IReadOnlyList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<IList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken)
     {
-        if (page < 1) page = PaginationConstants.DefaultPageNumber;
-        if (pageSize < 1) pageSize = PaginationConstants.DefaultPageSize;
+        if (page < 1)
+        {
+            page = PaginationConstants.DefaultPageNumber;
+        }
+        if (pageSize < 1)
+        {
+            pageSize = PaginationConstants.DefaultPageSize;
+        }
 
         var entities = await repository.GetPaged(page, pageSize, cancellationToken);
 
-        return mapper.Map<IReadOnlyList<UserModel>>(entities);
+        return mapper.Map<IList<UserModel>>(entities);
     }
 
     public async Task<UserModel?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var entity = await repository.GetById(id, cancellationToken, disableTracking: true);
 
-        if (entity is null) return null;
+        if (entity is null)
+        {
+            return null;
+        }
 
         return mapper.Map<UserModel>(entity);
     }
@@ -52,9 +61,7 @@ public class UsersService(
         {
             UserId = entity.Id,
             User = entity,
-            RatingScore = 1,
-            Biography = default,
-            AvatarUrl = default
+            RatingScore = 1
         };
 
         if (model.Role == UserRole.None)
@@ -72,12 +79,15 @@ public class UsersService(
         await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         var entity = await repository.GetById(model.Id, cancellationToken, disableTracking: false)
-                     ?? throw new KeyNotFoundException($"User {model.Id} not found");
+            ?? throw new KeyNotFoundException($"User {model.Id} not found");
 
         if (string.IsNullOrWhiteSpace(model.Email) && model.Email != entity.Email)
         {
             var emailTaken = await repository.GetByEmail(model.Email, cancellationToken);
-            if (emailTaken is not null) throw new InvalidOperationException("Email is taken");
+            if (emailTaken is not null)
+            {
+                throw new InvalidOperationException("Email is taken");
+            }
             entity.Email = model.Email;
         }
 
@@ -97,7 +107,7 @@ public class UsersService(
 
 public interface IUserService
 {
-    Task<IReadOnlyList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken);
+    Task<IList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken);
     Task<UserModel?> GetById(Guid id, CancellationToken cancellationToken);
     Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken);
     Task<UserModel> Update(UpdateUserModel model, CancellationToken cancellationToken);

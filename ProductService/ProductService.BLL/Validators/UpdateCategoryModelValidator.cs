@@ -10,13 +10,13 @@ public class UpdateCategoryModelValidator : AbstractValidator<CategoryModel>
     public UpdateCategoryModelValidator(ICategoryRepository repository)
     {
         RuleFor(x => x.Id)
-            .NotEmpty();
+            .NotEmpty().WithMessage(ValidationMessages.Required);
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("{PropertyName} is required.")
+            .NotEmpty().WithMessage(ValidationMessages.Required)
             .MinimumLength(ValidationConstants.Category.NameMinLength)
-                .WithMessage("Category name must be at least {MinLength} characters long.")
+                .WithMessage(ValidationMessages.MinLength)
             .MaximumLength(ValidationConstants.Category.NameMaxLength)
-                .WithMessage("Category name must not exceed {MaxLength} characters.");
+                .WithMessage(ValidationMessages.MaxLength);
     }
 }

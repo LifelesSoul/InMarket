@@ -13,7 +13,7 @@ public class CategoryService(
     IValidator<CategoryModel> updateValidator
     ) : ICategoryService
 {
-    public async Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken)
+    public async Task<IList<CategoryModel>> GetAll(CancellationToken cancellationToken)
     {
         var entities = await repository.GetAll(cancellationToken);
 
@@ -65,7 +65,7 @@ public class CategoryService(
 
 public interface ICategoryService
 {
-    Task<IReadOnlyList<CategoryModel>> GetAll(CancellationToken cancellationToken);
+    Task<IList<CategoryModel>> GetAll(CancellationToken cancellationToken);
     Task<CategoryModel> GetById(Guid id, CancellationToken cancellationToken);
     Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken);
     Task<CategoryModel> Update(CategoryModel model, CancellationToken cancellationToken);

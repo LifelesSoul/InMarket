@@ -11,9 +11,9 @@ public static class DependencyInjection
     {
         services.AddAutoMapper(typeof(MappingProfile));
 
-        services.AddScoped<IProductService, ProductsService>();
-        services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<IUserService, UsersService>();
+        services.AddScoped<IProductService, ProductsService>()
+                .AddScoped<ICategoryService, CategoryService>()
+                .AddScoped<IUserService, UsersService>();
 
         services.AddRepositories();
 
