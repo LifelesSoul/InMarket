@@ -45,7 +45,7 @@ public class UsersService(
 
     public async Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken)
     {
-        await createValidator.ValidateAndThrowAsync(model, cancellationToken);
+        await createValidator.ValidateAsync(model, cancellationToken);
 
         var existingUser = await repository.GetByEmail(model.Email, cancellationToken);
         if (existingUser is not null)
@@ -76,7 +76,7 @@ public class UsersService(
 
     public async Task<UserModel> Update(UpdateUserModel model, CancellationToken cancellationToken)
     {
-        await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
+        await updateValidator.ValidateAsync(model, cancellationToken);
 
         var entity = await repository.GetById(model.Id, cancellationToken, disableTracking: false)
             ?? throw new KeyNotFoundException($"User {model.Id} not found");

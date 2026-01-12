@@ -3,8 +3,10 @@ using ProductService.API.ViewModels.User;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.User;
 using ProductService.Mappings;
 using Shouldly;
+using UserService.Domain.Enums;
 using Xunit;
 
 namespace ProductService.Tests.Mappings;
@@ -163,6 +165,33 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
 
         viewModel.Id.ShouldBe(model.Id);
         viewModel.Name.ShouldBe("Laptops");
+    }
+
+    //User
+    [Fact]
+    public void Map_UserModel_To_UserViewModel_ShouldMap()
+    {
+        var model = new UserModel
+        {
+            Id = Guid.NewGuid(),
+            Username = "ApiUser",
+            Email = "api@test.com",
+            Role = UserRole.Admin,
+            AvatarUrl = "http://api-avatar.com",
+            Biography = "Api Bio",
+            RatingScore = 5.0,
+            RegistrationDate = DateTimeOffset.UtcNow
+        };
+
+        var viewModel = Mapper.Map<UserViewModel>(model);
+
+        viewModel.Id.ShouldBe(model.Id);
+        viewModel.Username.ShouldBe("ApiUser");
+        viewModel.Email.ShouldBe("api@test.com");
+        viewModel.AvatarUrl.ShouldBe("http://api-avatar.com");
+        viewModel.Biography.ShouldBe("Api Bio");
+        viewModel.RatingScore.ShouldBe(5.0);
+        viewModel.RegistrationDate.ShouldBe(model.RegistrationDate);
     }
 
     //Paged

@@ -1,4 +1,6 @@
-﻿namespace ProductService.BLL.Models.User;
+﻿using UserService.Domain.Enums;
+
+namespace ProductService.BLL.Models.User;
 
 public class UserModel : BaseModel
 {
@@ -6,7 +8,7 @@ public class UserModel : BaseModel
 
     public required string Email { get; set; }
 
-    public required string Role { get; set; }
+    public required UserRole Role { get; set; }
 
     public DateTimeOffset RegistrationDate { get; set; }
 

@@ -2,11 +2,13 @@
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.User;
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Enums;
 using Shouldly;
 using UserService.Domain.Entities;
+using UserService.Domain.Enums;
 using Xunit;
 
 namespace ProductService.Tests.Mappings;
@@ -181,6 +183,83 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         var entity = Mapper.Map<Category>(model);
 
         entity.Name.ShouldBe("Gaming laptops");
+    }
+
+    //User
+    [Fact]
+    public void Map_User_WithProfile_To_UserModel_ShouldFlattenProfileData()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Username = "User",
+            PasswordHash = "Password",
+            Email = "user@test.com",
+            Role = UserRole.Buyer,
+            RegistrationDate = DateTimeOffset.UtcNow,
+            Profile = null!
+        };
+
+        user.Profile = new UserProfile
+        {
+            UserId = userId,
+            User = user,
+            Biography = "testing",
+            AvatarUrl = "http://avatar.jpg",
+            RatingScore = 4.5
+        };
+
+        var result = Mapper.Map<UserModel>(user);
+
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(userId);
+        result.Username.ShouldBe("User");
+
+        result.Biography.ShouldBe("testing");
+        result.AvatarUrl.ShouldBe("http://avatar.jpg");
+        result.RatingScore.ShouldBe(4.5);
+    }
+
+    [Fact]
+    public void Map_User_WithoutProfile_To_UserModel_ShouldSetDefaults()
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = "NoProfileUser",
+            PasswordHash = "Password",
+            Email = "noprofile@test.com",
+            Profile = null!
+        };
+
+        var result = Mapper.Map<UserModel>(user);
+
+        result.ShouldNotBeNull();
+        result.Username.ShouldBe("NoProfileUser");
+
+        result.Biography.ShouldBeNull();
+        result.AvatarUrl.ShouldBeNull();
+        result.RatingScore.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Map_CreateUserModel_To_User_ShouldMapBasicFields()
+    {
+        var model = new CreateUserModel
+        {
+            Username = "NewUser",
+            Email = "new@test.com",
+            Password = "Password123!",
+            Role = UserRole.Seller
+        };
+
+        var result = Mapper.Map<User>(model);
+
+        result.Username.ShouldBe("NewUser");
+        result.Email.ShouldBe("new@test.com");
+        result.Role.ShouldBe(UserRole.Seller);
     }
 
     //Pagination
