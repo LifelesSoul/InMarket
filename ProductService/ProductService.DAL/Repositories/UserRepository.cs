@@ -18,15 +18,20 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
         return await query.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken, bool disableTracking = false)
     {
-        return await DbSet
-            .AsNoTracking()
-            .Include(u => u.Profile)
-            .OrderBy(u => u.RegistrationDate)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        IQueryable<User> query = DbSet.Include(u => u.Profile);
+
+        if (disableTracking)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query
+        .OrderBy(u => u.RegistrationDate)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync(cancellationToken);
     }
 
     public async Task<User?> GetByEmail(string email, CancellationToken cancellationToken)
@@ -39,6 +44,6 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
 
 public interface IUserRepository : IRepository<User>
 {
-    Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken);
+    Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken, bool disableTracking = false);
     Task<User?> GetByEmail(string email, CancellationToken cancellationToken);
 }
