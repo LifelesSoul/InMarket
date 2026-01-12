@@ -2,7 +2,7 @@
 
 public class PagedResult<T>
 {
-    public IReadOnlyList<T> Items { get; init; } = [];
+    public IList<T> Items { get; init; } = [];
 
     public string? ContinuationToken { get; init; }
 }

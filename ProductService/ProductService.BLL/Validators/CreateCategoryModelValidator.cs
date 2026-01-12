@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using ProductService.BLL.Models.Category;
+using ProductService.Domain.Constants;
 
 namespace ProductService.BLL.Validators;
 
@@ -8,8 +9,10 @@ public class CreateCategoryModelValidator : AbstractValidator<CreateCategoryMode
     public CreateCategoryModelValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("{PropertyName} is required.")
-            .MinimumLength(2).WithMessage("Category name must be at least {MinLength} characters long.")
-            .MaximumLength(50).WithMessage("Category name must not exceed {MaxLength} characters.");
+            .NotEmpty().WithMessage(ValidationMessages.Required)
+            .MinimumLength(ValidationConstants.Category.NameMinLength)
+                .WithMessage(ValidationMessages.MinLength)
+            .MaximumLength(ValidationConstants.Category.NameMaxLength)
+                .WithMessage(ValidationMessages.MaxLength);
     }
 }
