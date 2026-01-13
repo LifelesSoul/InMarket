@@ -88,7 +88,10 @@ public class CategoryServiceTests : ServiceTestsBase
             .Setup(r => r.GetById(id, Ct, true))
             .ReturnsAsync((Domain.Entities.Category?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.GetById(id, Ct));
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
+        _service.GetById(id, Ct));
+
+        exception.Message.ShouldBe($"Category with id {id} not found");
     }
 
     [Fact]
@@ -131,7 +134,10 @@ public class CategoryServiceTests : ServiceTestsBase
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(validationException);
 
-        await Should.ThrowAsync<ValidationException>(() => _service.Create(createModel, Ct));
+        var exception = await Should.ThrowAsync<ValidationException>(() =>
+        _service.Create(createModel, Ct));
+
+        exception.Errors.ShouldContain(e => e.PropertyName == "Name" && e.ErrorMessage == "Required");
 
         _repositoryMock.Verify(r => r.Add(It.IsAny<Domain.Entities.Category>(), Ct), Times.Never);
     }
@@ -152,7 +158,10 @@ public class CategoryServiceTests : ServiceTestsBase
             .Setup(r => r.Add(entity, Ct))
             .ReturnsAsync((Domain.Entities.Category)null!);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => _service.Create(createModel, Ct));
+        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+        _service.Create(createModel, Ct));
+
+        exception.Message.ShouldBe("Failed to create category.");
     }
 
     [Fact]
@@ -197,7 +206,10 @@ public class CategoryServiceTests : ServiceTestsBase
             .Setup(r => r.GetById(updateModel.Id, Ct, false))
             .ReturnsAsync((Domain.Entities.Category?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, Ct));
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
+        _service.Update(updateModel, Ct));
+
+        exception.Message.ShouldBe($"Category with id {updateModel.Id} not found");
 
         _updateValidatorMock.Verify(v => v.ValidateAsync(It.IsAny<CategoryModel>(), Ct), Times.Never);
     }
@@ -219,7 +231,10 @@ public class CategoryServiceTests : ServiceTestsBase
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(validationResultWithErrors);
 
-        await Should.ThrowAsync<ValidationException>(() => _service.Update(updateModel, Ct));
+        var exception = await Should.ThrowAsync<ValidationException>(() =>
+        _service.Update(updateModel, Ct));
+
+        exception.Message.ShouldContain("Name is too short");
 
         _repositoryMock.Verify(r => r.Update(It.IsAny<Domain.Entities.Category>(), Ct), Times.Never);
     }
@@ -248,7 +263,10 @@ public class CategoryServiceTests : ServiceTestsBase
             .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync((Domain.Entities.Category?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Remove(id, Ct));
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
+        _service.Remove(id, Ct));
+
+        exception.Message.ShouldBe($"Category with id {id} not found");
 
         _repositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Entities.Category>(), Ct), Times.Never);
     }

@@ -15,7 +15,6 @@ namespace ProductService.Tests.Mappings;
 
 public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 {
-    //Product
     [Fact]
     public void Map_Product_To_ProductModel_ShouldFlattenImages()
     {
@@ -141,7 +140,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         entity.Images.ShouldBeEmpty();
     }
 
-    //Seller
     [Fact]
     public void Map_User_To_SellerModel_ShouldMap()
     {
@@ -171,7 +169,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         model.Email.ShouldBe("seller@test.com");
     }
 
-    //Category
     [Fact]
     public void Map_CreateCategoryModel_To_Category_ShouldApplySentenceCase()
     {
@@ -185,7 +182,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         entity.Name.ShouldBe("Gaming laptops");
     }
 
-    //User
     [Fact]
     public void Map_User_WithProfile_To_UserModel_ShouldFlattenProfileData()
     {
@@ -262,7 +258,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         result.Role.ShouldBe(UserRole.Seller);
     }
 
-    //Pagination
     [Fact]
     public void Map_PagedList_To_PagedResult_ShouldMapItemsDeeply()
     {

@@ -234,8 +234,10 @@ public class UserServiceTests : ServiceTestsBase
         _repositoryMock.Setup(r => r.GetByEmail(model.Email, Ct))
             .ReturnsAsync(existingUser);
 
-        await Should.ThrowAsync<InvalidOperationException>(() =>
+        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
             _service.Create(model, Ct));
+
+        exception.Message.ShouldBe($"User with email {model.Email} already exists.");
 
         _repositoryMock.Verify(r => r.Add(It.IsAny<User>(), Ct), Times.Never);
     }
@@ -256,8 +258,10 @@ public class UserServiceTests : ServiceTestsBase
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(validationResult);
 
-        await Should.ThrowAsync<ValidationException>(() =>
+        var exception = await Should.ThrowAsync<ValidationException>(() =>
             _service.Create(model, Ct));
+
+        exception.Errors.ShouldContain(e => e.PropertyName == "Email" && e.ErrorMessage == "Error");
     }
 
     [Fact]
@@ -313,8 +317,10 @@ public class UserServiceTests : ServiceTestsBase
         _repositoryMock.Setup(r => r.GetById(model.Id, Ct, false))
             .ReturnsAsync((User?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() =>
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
             _service.Update(model, Ct));
+
+        exception.Message.ShouldBe($"User {model.Id} not found");
     }
 
     [Fact]
@@ -338,8 +344,10 @@ public class UserServiceTests : ServiceTestsBase
         _repositoryMock.Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync((User?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() =>
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
             _service.Delete(id, Ct));
+
+        exception.Message.ShouldBe($"User {id} not found");
     }
 
     private static User CreateUser(

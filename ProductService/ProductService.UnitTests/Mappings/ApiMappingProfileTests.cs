@@ -13,7 +13,6 @@ namespace ProductService.Tests.Mappings;
 
 public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
 {
-    //Product
     [Fact]
     public void Map_ProductModel_To_ProductViewModel_ShouldMapCustomFields()
     {
@@ -134,7 +133,6 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         viewModel.ImageUrl.ShouldBeNull();
     }
 
-    //Seller
     [Fact]
     public void Map_SellerModel_To_SellerViewModel_ShouldMap()
     {
@@ -148,10 +146,8 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         var viewModel = Mapper.Map<SellerViewModel>(model);
 
         viewModel.Id.ShouldBe(model.Id);
-
     }
 
-    //Category
     [Fact]
     public void Map_CategoryModel_To_CategoryViewModel_ShouldMap()
     {
@@ -167,7 +163,6 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         viewModel.Name.ShouldBe("Laptops");
     }
 
-    //User
     [Fact]
     public void Map_UserModel_To_UserViewModel_ShouldMap()
     {
@@ -194,7 +189,6 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         viewModel.RegistrationDate.ShouldBe(model.RegistrationDate);
     }
 
-    //Paged
     [Fact]
     public void Map_PagedResult_ProductModel_To_PagedResult_ProductViewModel_ShouldMap()
     {
@@ -216,7 +210,8 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
 
         var result = Mapper.Map<PagedResult<ProductViewModel>>(sourcePagedResult);
 
-        result.Items.Count.ShouldBe(1);
+        result.Items.ShouldHaveSingleItem();
+
         result.Items[0].Title.ShouldBe("P1");
         result.Items[0].CategoryName.ShouldBe("C1");
     }
@@ -233,7 +228,6 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         var result = Mapper.Map<PagedResult<ProductViewModel>>(sourcePagedResult);
 
         result.ShouldNotBeNull();
-        result.Items.ShouldNotBeNull();
-        result.Items.Count.ShouldBe(0);
+        result.Items.ShouldBeEmpty();
     }
 }

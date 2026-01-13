@@ -133,8 +133,10 @@ public class ProductServiceTests : ServiceTestsBase
         .Setup(r => r.Add(entity, Ct))
         .ReturnsAsync((Domain.Entities.Product)null!);
 
-        await Should.ThrowAsync<InvalidOperationException>(() =>
-            _service.Create(createModel, Guid.NewGuid(), Ct));
+        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+        _service.Create(createModel, Guid.NewGuid(), Ct));
+
+        exception.Message.ShouldBe("Failed to create product.");
     }
 
     [Fact]
@@ -172,7 +174,10 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(r => r.GetById(id, Ct, true))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.GetById(id, Ct));
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
+        _service.GetById(id, Ct));
+
+        exception.Message.ShouldBe($"Product {id} not found");
     }
 
     [Fact]
@@ -199,7 +204,10 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Remove(id, Ct));
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
+        _service.Remove(id, Ct));
+
+        exception.Message.ShouldBe($"Product {id} not found");
 
         _repositoryMock.Verify(r => r.Delete(It.IsAny<ProductService.Domain.Entities.Product>(), Ct), Times.Never);
     }
@@ -269,7 +277,10 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(r => r.GetById(updateModel.Id, Ct, false))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, Ct));
+        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
+        _service.Update(updateModel, Ct));
+
+        exception.Message.ShouldBe($"Product {updateModel.Id} not found");
 
         _repositoryMock.Verify(r => r.Update(
             It.IsAny<Domain.Entities.Product>(),
