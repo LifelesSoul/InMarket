@@ -30,7 +30,7 @@ public class CategoryService(
 
     public async Task<CategoryModel> Create(CreateCategoryModel model, CancellationToken cancellationToken)
     {
-        await createValidator.ValidateAsync(model, cancellationToken);
+        await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         var entity = mapper.Map<Category>(model);
 
