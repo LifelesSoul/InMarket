@@ -134,7 +134,7 @@ public class ProductServiceTests : ServiceTestsBase
         .ReturnsAsync((Domain.Entities.Product)null!);
 
         var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
-        _service.Create(createModel, Guid.NewGuid(), Ct));
+            _service.Create(createModel, Guid.NewGuid(), Ct));
 
         exception.Message.ShouldBe("Failed to create product.");
     }
@@ -175,7 +175,7 @@ public class ProductServiceTests : ServiceTestsBase
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-        _service.GetById(id, Ct));
+            _service.GetById(id, Ct));
 
         exception.Message.ShouldBe($"Product {id} not found");
     }
@@ -205,7 +205,7 @@ public class ProductServiceTests : ServiceTestsBase
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-        _service.Remove(id, Ct));
+            _service.Remove(id, Ct));
 
         exception.Message.ShouldBe($"Product {id} not found");
 
@@ -278,7 +278,7 @@ public class ProductServiceTests : ServiceTestsBase
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-        _service.Update(updateModel, Ct));
+            _service.Update(updateModel, Ct));
 
         exception.Message.ShouldBe($"Product {updateModel.Id} not found");
 

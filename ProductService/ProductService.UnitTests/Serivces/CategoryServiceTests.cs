@@ -135,7 +135,7 @@ public class CategoryServiceTests : ServiceTestsBase
             .ThrowsAsync(validationException);
 
         var exception = await Should.ThrowAsync<ValidationException>(() =>
-        _service.Create(createModel, Ct));
+            _service.Create(createModel, Ct));
 
         exception.Errors.ShouldContain(e => e.PropertyName == "Name" && e.ErrorMessage == "Required");
 
@@ -159,7 +159,7 @@ public class CategoryServiceTests : ServiceTestsBase
             .ReturnsAsync((Domain.Entities.Category)null!);
 
         var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
-        _service.Create(createModel, Ct));
+            _service.Create(createModel, Ct));
 
         exception.Message.ShouldBe("Failed to create category.");
     }
@@ -207,7 +207,7 @@ public class CategoryServiceTests : ServiceTestsBase
             .ReturnsAsync((Domain.Entities.Category?)null);
 
         var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-        _service.Update(updateModel, Ct));
+            _service.Update(updateModel, Ct));
 
         exception.Message.ShouldBe($"Category with id {updateModel.Id} not found");
 
@@ -232,7 +232,7 @@ public class CategoryServiceTests : ServiceTestsBase
             .ThrowsAsync(validationResultWithErrors);
 
         var exception = await Should.ThrowAsync<ValidationException>(() =>
-        _service.Update(updateModel, Ct));
+            _service.Update(updateModel, Ct));
 
         exception.Message.ShouldContain("Name is too short");
 
@@ -264,7 +264,7 @@ public class CategoryServiceTests : ServiceTestsBase
             .ReturnsAsync((Domain.Entities.Category?)null);
 
         var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-        _service.Remove(id, Ct));
+            _service.Remove(id, Ct));
 
         exception.Message.ShouldBe($"Category with id {id} not found");
 
