@@ -253,7 +253,7 @@ public class UserServiceTests : ServiceTestsBase
         var validationResult = new ValidationException(new[] { new ValidationFailure("Email", "Error") });
 
         _createValidatorMock
-            .Setup(v => v.ValidateAsync(model, Ct))
+            .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(validationResult);
 
         await Should.ThrowAsync<ValidationException>(() =>

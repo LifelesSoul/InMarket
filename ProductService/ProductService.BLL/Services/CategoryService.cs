@@ -45,7 +45,7 @@ public class CategoryService(
         var entity = await repository.GetById(model.Id, cancellationToken, disableTracking: false)
              ?? throw new KeyNotFoundException($"Category with id {model.Id} not found");
 
-        await updateValidator.ValidateAsync(model, cancellationToken);
+        await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         mapper.Map(model, entity);
 

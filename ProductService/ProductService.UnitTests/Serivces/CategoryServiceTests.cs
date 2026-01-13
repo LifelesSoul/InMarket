@@ -128,7 +128,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var validationException = new ValidationException(new[] { new ValidationFailure("Name", "Required") });
 
         _createValidatorMock
-            .Setup(v => v.ValidateAsync(createModel, Ct))
+            .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(validationException);
 
         await Should.ThrowAsync<ValidationException>(() => _service.Create(createModel, Ct));
@@ -216,7 +216,7 @@ public class CategoryServiceTests : ServiceTestsBase
         var validationResultWithErrors = new ValidationException(new[] { new ValidationFailure("Name", "Name is too short") });
 
         _updateValidatorMock
-            .Setup(v => v.ValidateAsync(updateModel, Ct))
+            .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(validationResultWithErrors);
 
         await Should.ThrowAsync<ValidationException>(() => _service.Update(updateModel, Ct));
