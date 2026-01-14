@@ -40,8 +40,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.INMARKETSONAR }}
         run: |
           dotnet-sonarscanner begin \
-            /k:"lifelessoul" \
-            /o:"LifelesSoul_InMarket" \
+            /k:"LifelesSoul_InMarket" \
+            /o:"lifelessoul" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
