@@ -14,7 +14,7 @@ namespace ProductService.Tests.Mappings;
 public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
 {
     [Fact]
-    public void Map_ProductModel_To_ProductViewModel_ShouldMapCustomFields()
+    public void MapProductModelToProductViewModel_ShouldMapCustomFields()
     {
         var model = new ProductModel
         {
@@ -46,7 +46,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_ProductModel_WithMultipleImages_ShouldPickStrictlyTheFirstUrl()
+    public void MapProductModelWithMultipleImages_ShouldPickStrictlyTheFirstUrl()
     {
         var model = new ProductModel
         {
@@ -68,7 +68,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_ProductModel_WithNoImages_To_ProductViewModel_ShouldHaveNullImage()
+    public void MapProductModelWithNoImagesToProductViewModel_ShouldHaveNullImage()
     {
         var model = new ProductModel
         {
@@ -96,7 +96,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_ProductModel_WithNullCategory_ShouldMapCategoryNameToNull()
+    public void MapProductModelWithNullCategory_ShouldMapCategoryNameToNull()
     {
         var model = new ProductModel
         {
@@ -115,7 +115,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_ProductModel_WithNullImageUrlsList_ShouldMapImageUrlToNull()
+    public void MapProductModelWithNullImageUrlsList_ShouldMapImageUrlToNull()
     {
         var model = new ProductModel
         {
@@ -134,7 +134,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_SellerModel_To_SellerViewModel_ShouldMap()
+    public void MapSellerModelToSellerViewModel_ShouldMap()
     {
         var model = new SellerModel
         {
@@ -149,7 +149,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_CategoryModel_To_CategoryViewModel_ShouldMap()
+    public void MapCategoryModelToCategoryViewModel_ShouldMap()
     {
         var model = new CategoryModel
         {
@@ -164,7 +164,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_UserModel_To_UserViewModel_ShouldMap()
+    public void MapUserModelToUserViewModel_ShouldMap()
     {
         var model = new UserModel
         {
@@ -190,7 +190,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_PagedResult_ProductModel_To_PagedResult_ProductViewModel_ShouldMap()
+    public void MapPagedResultProductModelToPagedResultProductViewModel_ShouldMap()
     {
         var productModel = new ProductModel
         {
@@ -217,7 +217,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_EmptyPagedResult_ShouldReturnEmptyViewModelList_NotThrow()
+    public void MapEmptyPagedResult_ShouldReturnEmptyViewModelListNotThrow()
     {
         var sourcePagedResult = new PagedResult<ProductModel>
         {

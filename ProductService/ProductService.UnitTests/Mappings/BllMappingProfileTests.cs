@@ -16,7 +16,7 @@ namespace ProductService.Tests.Mappings;
 public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 {
     [Fact]
-    public void Map_Product_To_ProductModel_ShouldFlattenImages()
+    public void MapProductToProductModel_ShouldFlattenImages()
     {
         var sellerId = Guid.NewGuid();
         var categoryId = Guid.NewGuid();
@@ -73,7 +73,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_CreateProductModel_WithImages_ShouldMapImagesAndSetDefaults()
+    public void MapCreateProductModelWithImages_ShouldMapImagesAndSetDefaults()
     {
         var model = new CreateProductModel
         {
@@ -100,7 +100,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_CreateProductModel_WithNullImageUrls_ShouldReturnEmptyList_NotThrow()
+    public void MapCreateProductModelWithNullImageUrls_ShouldReturnEmptyListNotThrow()
     {
         var model = new CreateProductModel
         {
@@ -122,7 +122,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_CreateProductModel_WithEmptyImageUrls_ShouldReturnEmptyList()
+    public void MapCreateProductModelWithEmptyImageUrls_ShouldReturnEmptyList()
     {
         var model = new CreateProductModel
         {
@@ -141,7 +141,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_User_To_SellerModel_ShouldMap()
+    public void MapUserToSellerModel_ShouldMap()
     {
         var userId = Guid.NewGuid();
         var user = new User
@@ -170,7 +170,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_CreateCategoryModel_To_Category_ShouldApplySentenceCase()
+    public void MapCreateCategoryModelToCategory_ShouldApplySentenceCase()
     {
         var model = new CreateCategoryModel
         {
@@ -183,9 +183,8 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_User_WithProfile_To_UserModel_ShouldFlattenProfileData()
+    public void MapUserWithProfileToUserModel_ShouldFlattenProfileData()
     {
-        // Arrange
         var userId = Guid.NewGuid();
         var user = new User
         {
@@ -219,7 +218,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_User_WithoutProfile_To_UserModel_ShouldSetDefaults()
+    public void MapUserWithoutProfileToUserModel_ShouldSetDefaults()
     {
         var user = new User
         {
@@ -241,7 +240,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_CreateUserModel_To_User_ShouldMapBasicFields()
+    public void MapCreateUserModelToUser_ShouldMapBasicFields()
     {
         var model = new CreateUserModel
         {
@@ -259,7 +258,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_PagedList_To_PagedResult_ShouldMapItemsDeeply()
+    public void MapPagedListToPagedResult_ShouldMapItemsDeeply()
     {
         var product = CreateValidProduct();
         product.Title = "Specific Title";
@@ -287,7 +286,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_PagedList_WithNullLastId_ShouldMapContinuationTokenToNull()
+    public void MapPagedListWithNullLastId_ShouldMapContinuationTokenToNull()
     {
         var pagedList = new PagedList<Product>
         {
@@ -302,7 +301,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
-    public void Map_EmptyPagedList_ShouldReturnEmptyResult()
+    public void MapEmptyPagedList_ShouldReturnEmptyResult()
     {
         var pagedList = new PagedList<Product>
         {
