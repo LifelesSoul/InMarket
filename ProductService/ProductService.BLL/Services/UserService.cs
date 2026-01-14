@@ -23,7 +23,6 @@ public class UsersService(
         }
         if (pageSize < 1)
         {
-
             pageSize = PaginationConstants.DefaultPageSize;
         }
 
