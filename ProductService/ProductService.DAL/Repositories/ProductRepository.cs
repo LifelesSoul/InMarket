@@ -26,7 +26,7 @@ public class ProductRepository(ProductDbContext context) : Repository<Product>(c
         return new PagedList<Product>
         {
             Items = items,
-            LastId = items.Count > 0 ? items.Last().Id : null
+            LastId = items.Count > 0 ? items[^1].Id : null
         };
     }
 

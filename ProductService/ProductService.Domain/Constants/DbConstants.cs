@@ -1,6 +1,6 @@
 ﻿namespace ProductService.Domain.Constants;
 
-public sealed class DbConstants
+public static class DbConstants
 {
     public const string MoneyType = "decimal(18,2)";
 

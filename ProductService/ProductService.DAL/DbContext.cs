@@ -13,9 +13,4 @@ public class ProductDbContext : DbContext
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-    }
 }

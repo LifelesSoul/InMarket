@@ -40,9 +40,9 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ProductDbContext>();
 
-        if (!context.Database.CanConnect())
+        if (!await context.Database.CanConnectAsync())
         {
-            context.Database.Migrate();
+            await context.Database.MigrateAsync();
         }
 
         if (app.Environment.IsDevelopment())
@@ -75,4 +75,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

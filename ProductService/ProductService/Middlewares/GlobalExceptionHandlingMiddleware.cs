@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using FluentValidation;
 
 namespace ProductService.Middlewares;
 
 public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMiddleware> logger) : IMiddleware
 {
-    private record ExceptionResponse(int StatusCode, string Title, string Detail);
+    private sealed record ExceptionResponse(int StatusCode, string Title, string Detail);
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
