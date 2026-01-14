@@ -7,10 +7,12 @@ namespace ProductService.Tests.Extensions;
 public class StringFormatterTests
 {
     [Theory]
-    [InlineData(null, "")]
-    [InlineData("", "")]
-    [InlineData("   ", "")]
-    public void ToSentenceCase_ShouldReturnEmpty_WhenInputIsNullOrWhiteSpace(string? input, string expected)
+    [InlineData(".", "")]
+    [InlineData(",", "")]
+    [InlineData(":", "")]
+    [InlineData("...", "")]
+    [InlineData(" . , : ", "")]
+    public void ToSentenceCase_ShouldReturnEmpty_WhenInputContainsOnlySeparators(string input, string expected)
     {
         var result = input.ToSentenceCase();
 
