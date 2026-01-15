@@ -3,7 +3,7 @@
 namespace UserService.Domain.Enums;
 
 [Flags]
-public enum UserRole
+public enum UserRoles
 {
     None = 0,
     Buyer = 1,
@@ -12,9 +12,9 @@ public enum UserRole
 }
 
 [ExcludeFromCodeCoverage]
-public static class UserRoles
+public static class UserRolePresets
 {
-    public const UserRole BuyerOnly = UserRole.Buyer;
-    public const UserRole SellerWithBuying = UserRole.Buyer | UserRole.Seller;
-    public const UserRole AdminAll = UserRole.Buyer | UserRole.Seller | UserRole.Admin;
+    public const UserRoles BuyerOnly = UserRoles.Buyer;
+    public const UserRoles SellerWithBuying = UserRoles.Buyer | UserRoles.Seller;
+    public const UserRoles AdminAll = UserRoles.Buyer | UserRoles.Seller | UserRoles.Admin;
 }

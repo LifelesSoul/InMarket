@@ -3,6 +3,7 @@
 namespace ProductService.Domain.Constants;
 
 [ExcludeFromCodeCoverage]
+[SuppressMessage("Security", "S2068:Hard-coded credentials", Justification = "Validation messages are not secrets.")]
 public static class ValidationMessages
 {
     public const string Required = "{PropertyName} is required.";
