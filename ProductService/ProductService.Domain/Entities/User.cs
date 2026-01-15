@@ -20,7 +20,7 @@ public class User : BaseEntity
 
     public required string PasswordHash { get; set; }
 
-    public UserRole Role { get; set; }
+    public UserRoles Role { get; set; }
 
     public DateTimeOffset RegistrationDate { get; set; } = TimeProvider.System.GetUtcNow();
 

@@ -10,7 +10,7 @@ public class UserModel : BaseModel
 
     public required string Email { get; set; }
 
-    public required UserRole Role { get; set; }
+    public required UserRoles Role { get; set; }
 
     public DateTimeOffset RegistrationDate { get; set; }
 

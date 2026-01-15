@@ -12,5 +12,5 @@ public class CreateUserModel
 
     public required string Password { get; set; }
 
-    public UserRole Role { get; set; } = UserRoles.BuyerOnly;
+    public UserRoles Role { get; set; } = UserRolePresets.BuyerOnly;
 }
