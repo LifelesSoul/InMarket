@@ -101,7 +101,7 @@ public class UserServiceTests : ServiceTestsBase
             Id = id,
             Username = "TestUser",
             Email = "test@test.com",
-            Role = UserRole.Seller,
+            Role = UserRoles.Seller,
 
             RegistrationDate = DateTimeOffset.UtcNow,
 
@@ -143,7 +143,7 @@ public class UserServiceTests : ServiceTestsBase
             Email = "test@test.com",
             Password = "Password123",
             Username = "TestUser",
-            Role = UserRole.Seller
+            Role = UserRoles.Seller
         };
 
         var userEntity = CreateUser(email: model.Email, role: model.Role);
@@ -153,7 +153,7 @@ public class UserServiceTests : ServiceTestsBase
             Id = userEntity.Id,
             Username = "TestUser",
             Email = "test@test.com",
-            Role = UserRole.Seller,
+            Role = UserRoles.Seller,
 
             RegistrationDate = DateTimeOffset.UtcNow,
 
@@ -188,12 +188,12 @@ public class UserServiceTests : ServiceTestsBase
         var model = new CreateUserModel
         {
             Email = "new@test.com",
-            Role = UserRole.None,
+            Role = UserRoles.None,
             Username = "TestUser",
             Password = "Password123"
         };
 
-        var userEntity = CreateUser(role: UserRole.None);
+        var userEntity = CreateUser(role: UserRoles.None);
 
         _createValidatorMock.Setup(v => v.ValidateAsync(model, Ct))
             .ReturnsAsync(new ValidationResult());
@@ -209,12 +209,12 @@ public class UserServiceTests : ServiceTestsBase
                 Id = userEntity.Id,
                 Username = model.Username,
                 Email = model.Email,
-                Role = UserRoles.BuyerOnly
+                Role = UserRolePresets.BuyerOnly
             });
 
         await _service.Create(model, Ct);
 
-        userEntity.Role.ShouldBe(UserRoles.BuyerOnly);
+        userEntity.Role.ShouldBe(UserRolePresets.BuyerOnly);
     }
 
     [Fact]
@@ -353,7 +353,7 @@ public class UserServiceTests : ServiceTestsBase
     private static User CreateUser(
         Guid? id = null,
         string? email = null,
-        UserRole role = UserRole.Buyer)
+        UserRoles role = UserRoles.Buyer)
     {
         return new User
         {
