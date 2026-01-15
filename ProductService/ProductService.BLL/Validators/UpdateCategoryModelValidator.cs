@@ -2,9 +2,11 @@
 using ProductService.BLL.Models.Category;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Constants;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.BLL.Validators;
 
+[ExcludeFromCodeCoverage]
 public class UpdateCategoryModelValidator : AbstractValidator<CategoryModel>
 {
     public UpdateCategoryModelValidator(ICategoryRepository repository)

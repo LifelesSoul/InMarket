@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using ProductService.DAL.Repositories;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.DAL.DI;
 
+[ExcludeFromCodeCoverage]
 public static class DependencyInjection
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)

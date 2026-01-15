@@ -2,6 +2,8 @@
 
 public static class StringFormatter
 {
+    private static readonly char[] _separators = { ' ', ',', '.', ':' };
+
     public static string ToSentenceCase(this string? input)
     {
         if (string.IsNullOrWhiteSpace(input))
@@ -9,7 +11,7 @@ public static class StringFormatter
             return string.Empty;
         }
 
-        var words = input.Split(new[] { ' ', ',', '.', ':' }, StringSplitOptions.RemoveEmptyEntries);
+        var words = input.Split(_separators, StringSplitOptions.RemoveEmptyEntries);
 
         if (words.Length == 0)
         {

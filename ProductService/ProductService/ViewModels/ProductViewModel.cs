@@ -1,8 +1,10 @@
 ﻿using ProductService.API.ViewModels.User;
 using ProductService.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.BLL.Models.Product;
 
+[ExcludeFromCodeCoverage]
 public class ProductViewModel
 {
     public Guid Id { get; set; }

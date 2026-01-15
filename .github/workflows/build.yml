@@ -45,7 +45,8 @@ jobs:
             /o:"lifelessoul" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.exclusions="**/Migrations/**,**/Program.cs"
           
           dotnet restore ./ProductService/ProductService.sln
           

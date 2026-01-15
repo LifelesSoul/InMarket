@@ -1,5 +1,8 @@
-﻿namespace ProductService.BLL.Models.User;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.BLL.Models.User;
+
+[ExcludeFromCodeCoverage]
 public class UpdateUserModel : BaseModel
 {
     public string? Biography { get; set; }

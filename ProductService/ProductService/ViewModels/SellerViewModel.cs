@@ -1,5 +1,8 @@
-﻿namespace ProductService.API.ViewModels.User;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.API.ViewModels.User;
+
+[ExcludeFromCodeCoverage]
 public class SellerViewModel
 {
     public Guid Id { get; set; }

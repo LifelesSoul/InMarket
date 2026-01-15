@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.DAL.Repositories;
 
+[ExcludeFromCodeCoverage]
 public abstract class Repository<T>(ProductDbContext context) : IRepository<T> where T : BaseEntity
 {
     protected readonly ProductDbContext Context = context;

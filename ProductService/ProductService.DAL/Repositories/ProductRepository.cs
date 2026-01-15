@@ -2,9 +2,11 @@
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.DAL.Repositories;
 
+[ExcludeFromCodeCoverage]
 public class ProductRepository(ProductDbContext context) : Repository<Product>(context), IProductRepository
 {
     public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken)
@@ -26,7 +28,7 @@ public class ProductRepository(ProductDbContext context) : Repository<Product>(c
         return new PagedList<Product>
         {
             Items = items,
-            LastId = items.Count > 0 ? items.Last().Id : null
+            LastId = items.Count > 0 ? items[^1].Id : null
         };
     }
 

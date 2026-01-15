@@ -1,7 +1,9 @@
-﻿namespace UserService.Domain.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace UserService.Domain.Enums;
 
 [Flags]
-public enum UserRole
+public enum UserRoles
 {
     None = 0,
     Buyer = 1,
@@ -9,9 +11,10 @@ public enum UserRole
     Admin = 4
 }
 
-public static class UserRoles
+[ExcludeFromCodeCoverage]
+public static class UserRolePresets
 {
-    public const UserRole BuyerOnly = UserRole.Buyer;
-    public const UserRole SellerWithBuying = UserRole.Buyer | UserRole.Seller;
-    public const UserRole AdminAll = UserRole.Buyer | UserRole.Seller | UserRole.Admin;
+    public const UserRoles BuyerOnly = UserRoles.Buyer;
+    public const UserRoles SellerWithBuying = UserRoles.Buyer | UserRoles.Seller;
+    public const UserRoles AdminAll = UserRoles.Buyer | UserRoles.Seller | UserRoles.Admin;
 }

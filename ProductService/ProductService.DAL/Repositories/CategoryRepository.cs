@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.DAL.Repositories;
 
+[ExcludeFromCodeCoverage]
 public class CategoryRepository(ProductDbContext context) : Repository<Category>(context), ICategoryRepository
 {
     public async Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken)

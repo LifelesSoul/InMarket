@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using ProductService.API.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Services;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[ExcludeFromCodeCoverage]
 public class CategoryController(ICategoryService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]

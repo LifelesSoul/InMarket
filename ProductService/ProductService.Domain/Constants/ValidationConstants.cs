@@ -1,5 +1,9 @@
-﻿namespace ProductService.Domain.Constants;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.Domain.Constants;
+
+[ExcludeFromCodeCoverage]
+[SuppressMessage("Security", "S2068:Hard-coded credentials", Justification = "These are validation messages, not secrets.")]
 public static class ValidationConstants
 {
     public static class Category

@@ -171,7 +171,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
             Id = Guid.NewGuid(),
             Username = "ApiUser",
             Email = "api@test.com",
-            Role = UserRole.Admin,
+            Role = UserRoles.Admin,
             AvatarUrl = "http://api-avatar.com",
             Biography = "Api Bio",
             RatingScore = 5.0,

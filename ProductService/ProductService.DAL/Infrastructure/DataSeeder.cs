@@ -1,11 +1,13 @@
 ﻿using Bogus;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 using UserService.Domain.Entities;
 using UserService.Domain.Enums;
 
 namespace ProductService.Infrastructure;
 
+[ExcludeFromCodeCoverage]
 public static class DataSeeder
 {
     public static void SeedData(this ProductDbContext context)
@@ -31,7 +33,7 @@ public static class DataSeeder
                 .RuleFor(u => u.Username, f => f.Internet.UserName())
                 .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.Username))
                 .RuleFor(u => u.PasswordHash, f => f.Internet.Password())
-                .RuleFor(u => u.Role, f => f.PickRandom<UserRole>())
+                .RuleFor(u => u.Role, f => f.PickRandom<UserRoles>())
                 .RuleFor(u => u.RegistrationDate, f => f.Date.PastOffset(2))
                 .FinishWith((f, u) =>
                 {

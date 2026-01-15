@@ -1,14 +1,16 @@
-﻿using UserService.Domain.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
+using UserService.Domain.Enums;
 
 namespace ProductService.BLL.Models.User;
 
+[ExcludeFromCodeCoverage]
 public class UserModel : BaseModel
 {
     public required string Username { get; set; }
 
     public required string Email { get; set; }
 
-    public required UserRole Role { get; set; }
+    public required UserRoles Role { get; set; }
 
     public DateTimeOffset RegistrationDate { get; set; }
 

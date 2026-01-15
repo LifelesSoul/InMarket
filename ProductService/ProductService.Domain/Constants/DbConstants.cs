@@ -1,6 +1,9 @@
-﻿namespace ProductService.Domain.Constants;
+﻿using System.Diagnostics.CodeAnalysis;
 
-public sealed class DbConstants
+namespace ProductService.Domain.Constants;
+
+[ExcludeFromCodeCoverage]
+public static class DbConstants
 {
     public const string MoneyType = "decimal(18,2)";
 

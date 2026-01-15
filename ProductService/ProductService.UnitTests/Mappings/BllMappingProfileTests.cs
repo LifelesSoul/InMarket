@@ -192,7 +192,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Username = "User",
             PasswordHash = "Password",
             Email = "user@test.com",
-            Role = UserRole.Buyer,
+            Role = UserRoles.Buyer,
             RegistrationDate = DateTimeOffset.UtcNow,
             Profile = null!
         };
@@ -247,14 +247,14 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Username = "NewUser",
             Email = "new@test.com",
             Password = "Password123!",
-            Role = UserRole.Seller
+            Role = UserRoles.Seller
         };
 
         var result = Mapper.Map<User>(model);
 
         result.Username.ShouldBe("NewUser");
         result.Email.ShouldBe("new@test.com");
-        result.Role.ShouldBe(UserRole.Seller);
+        result.Role.ShouldBe(UserRoles.Seller);
     }
 
     [Fact]

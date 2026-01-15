@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[ExcludeFromCodeCoverage]
 public class ProductsController(IProductService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]

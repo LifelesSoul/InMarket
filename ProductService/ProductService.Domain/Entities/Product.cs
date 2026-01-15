@@ -2,10 +2,12 @@
 using ProductService.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using UserService.Domain.Entities;
 
 namespace ProductService.Domain.Entities;
 
+[ExcludeFromCodeCoverage]
 public class Product : BaseEntity
 {
     [MaxLength(DbConstants.TitleTextLength)]
