@@ -64,9 +64,9 @@ public class UsersService(
             RatingScore = 1
         };
 
-        if (model.Role == UserRole.None)
+        if (model.Role == UserRoles.None)
         {
-            entity.Role = UserRoles.BuyerOnly;
+            entity.Role = UserRolePresets.BuyerOnly;
         }
 
         await repository.Add(entity, cancellationToken);
