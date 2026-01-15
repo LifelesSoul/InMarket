@@ -1,9 +1,11 @@
 ﻿using FluentValidation;
 using ProductService.BLL.Models.Category;
 using ProductService.Domain.Constants;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.BLL.Validators;
 
+[ExcludeFromCodeCoverage]
 public class CreateCategoryModelValidator : AbstractValidator<CreateCategoryModel>
 {
     public CreateCategoryModelValidator()

@@ -1,5 +1,8 @@
-﻿namespace ProductService.Domain.Constants;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.Domain.Constants;
+
+[ExcludeFromCodeCoverage]
 public static class ValidationConstants
 {
     public static class Category

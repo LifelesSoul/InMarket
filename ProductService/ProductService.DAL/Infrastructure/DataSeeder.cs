@@ -1,11 +1,13 @@
 ﻿using Bogus;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 using UserService.Domain.Entities;
 using UserService.Domain.Enums;
 
 namespace ProductService.Infrastructure;
 
+[ExcludeFromCodeCoverage]
 public static class DataSeeder
 {
     public static void SeedData(this ProductDbContext context)

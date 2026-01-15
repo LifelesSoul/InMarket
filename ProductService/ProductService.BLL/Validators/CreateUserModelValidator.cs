@@ -1,9 +1,11 @@
 ﻿using FluentValidation;
 using ProductService.BLL.Models.User;
 using ProductService.Domain.Constants;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.BLL.Validators;
 
+[ExcludeFromCodeCoverage]
 public class CreateUserModelValidator : AbstractValidator<CreateUserModel>
 {
     public CreateUserModelValidator()

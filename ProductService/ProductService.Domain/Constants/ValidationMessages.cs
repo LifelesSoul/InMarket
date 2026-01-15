@@ -1,5 +1,8 @@
-﻿namespace ProductService.Domain.Constants;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.Domain.Constants;
+
+[ExcludeFromCodeCoverage]
 public static class ValidationMessages
 {
     public const string Required = "{PropertyName} is required.";

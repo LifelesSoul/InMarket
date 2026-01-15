@@ -2,9 +2,11 @@
 using ProductService.BLL.Mappings;
 using ProductService.BLL.Services;
 using ProductService.DAL.DI;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.BLL.DI;
 
+[ExcludeFromCodeCoverage]
 public static class DependencyInjection
 {
     public static IServiceCollection AddServices(this IServiceCollection services)

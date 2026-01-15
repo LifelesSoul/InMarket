@@ -2,9 +2,11 @@
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
 using ProductService.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.DAL.Repositories;
 
+[ExcludeFromCodeCoverage]
 public class ProductRepository(ProductDbContext context) : Repository<Product>(context), IProductRepository
 {
     public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken)

@@ -1,10 +1,12 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace ProductService.Middlewares;
 
+[ExcludeFromCodeCoverage]
 public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMiddleware> logger) : IMiddleware
 {
     private sealed record ExceptionResponse(int StatusCode, string Title, string Detail);

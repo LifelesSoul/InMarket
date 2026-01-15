@@ -1,5 +1,8 @@
-﻿namespace ProductService.BLL.Models.Product;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.BLL.Models.Product;
+
+[ExcludeFromCodeCoverage]
 public class CreateProductModel
 {
     public required string Title { get; set; }

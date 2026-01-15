@@ -1,7 +1,9 @@
 ﻿using ProductService.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.BLL.Models.Product;
 
+[ExcludeFromCodeCoverage]
 public class ProductModel : BaseModel
 {
     public required string Title { get; set; }

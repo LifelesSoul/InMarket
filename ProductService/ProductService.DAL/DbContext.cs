@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Entities;
+using System.Diagnostics.CodeAnalysis;
 using UserService.Domain.Entities;
 
 namespace ProductService.Infrastructure;
 
+[ExcludeFromCodeCoverage]
 public class ProductDbContext : DbContext
 {
     public ProductDbContext(DbContextOptions<ProductDbContext> options) : base(options) { }

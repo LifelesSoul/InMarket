@@ -1,7 +1,9 @@
-﻿using UserService.Domain.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
+using UserService.Domain.Enums;
 
 namespace ProductService.BLL.Models.User;
 
+[ExcludeFromCodeCoverage]
 public class CreateUserModel
 {
     public required string Username { get; set; }

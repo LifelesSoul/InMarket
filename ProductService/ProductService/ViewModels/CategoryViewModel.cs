@@ -1,5 +1,8 @@
-﻿namespace ProductService.API.Models;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.API.Models;
+
+[ExcludeFromCodeCoverage]
 public class CategoryViewModel
 {
     public Guid Id { get; set; }

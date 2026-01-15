@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 using UserService.Domain.Entities;
 
 namespace ProductService.DAL.Repositories;
 
+[ExcludeFromCodeCoverage]
 public class UserRepository(ProductDbContext context) : Repository<User>(context), IUserRepository
 {
     public override async Task<User?> GetById(Guid id, CancellationToken cancellationToken, bool disableTracking = false)

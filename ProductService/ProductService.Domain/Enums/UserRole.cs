@@ -1,4 +1,6 @@
-﻿namespace UserService.Domain.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace UserService.Domain.Enums;
 
 [Flags]
 public enum UserRole
@@ -9,6 +11,7 @@ public enum UserRole
     Admin = 4
 }
 
+[ExcludeFromCodeCoverage]
 public static class UserRoles
 {
     public const UserRole BuyerOnly = UserRole.Buyer;

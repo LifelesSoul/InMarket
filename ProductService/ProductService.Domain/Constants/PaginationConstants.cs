@@ -1,5 +1,8 @@
-﻿namespace ProductService.Domain.Constants;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.Domain.Constants;
+
+[ExcludeFromCodeCoverage]
 public static class PaginationConstants
 {
     public const int DefaultPageNumber = 1;

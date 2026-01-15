@@ -2,12 +2,14 @@
 using ProductService.Domain.Constants;
 using ProductService.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using UserService.Domain.Enums;
 
 namespace UserService.Domain.Entities;
 
 [Index(nameof(Username), IsUnique = true)]
 [Index(nameof(Email), IsUnique = true)]
+[ExcludeFromCodeCoverage]
 public class User : BaseEntity
 {
     [MaxLength(DbConstants.NameTextLength)]

@@ -1,5 +1,8 @@
-﻿namespace ProductService.Domain.Constants;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.Domain.Constants;
+
+[ExcludeFromCodeCoverage]
 public static class DbConstants
 {
     public const string MoneyType = "decimal(18,2)";
