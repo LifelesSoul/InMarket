@@ -18,5 +18,11 @@ RUN dotnet publish "ProductService.csproj" -c Release -o /app/publish /p:UseAppH
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
+
 COPY --from=publish /app/publish .
+
+EXPOSE 8080
+
+USER app
+
 ENTRYPOINT ["dotnet", "ProductService.dll"]
