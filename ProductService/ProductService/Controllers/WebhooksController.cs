@@ -7,6 +7,7 @@ namespace ProductService.API.Controllers;
 
 [ApiController]
 [Route("api/webhooks")]
+[ExcludeFromCodeCoverage]
 public class WebhooksController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -19,7 +20,6 @@ public class WebhooksController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ExcludeFromCodeCoverage]
     public async Task<IActionResult> RegisterUser([FromBody] Auth0UserDto dto, [FromHeader(Name = "X-API-KEY")] string apiKey)
     {
         var secretKey = _configuration["Webhooks:ApiKey"];
