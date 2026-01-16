@@ -134,7 +134,6 @@ public class UsersService(
             await repository.Add(newUser, cancellationToken);
         }
     }
-
 }
 
 public interface IUserService
