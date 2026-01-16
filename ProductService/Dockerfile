@@ -1,28 +1,30 @@
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+USER app
+WORKDIR /app
+EXPOSE 8080
+
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
 
 COPY ["ProductService/ProductService.csproj", "ProductService/"]
 COPY ["ProductService.BLL/ProductService.BLL.csproj", "ProductService.BLL/"]
 COPY ["ProductService.DAL/ProductService.DAL.csproj", "ProductService.DAL/"]
 COPY ["ProductService.Domain/ProductService.Domain.csproj", "ProductService.Domain/"]
 
-RUN dotnet restore "ProductService/ProductService.csproj"
+RUN dotnet restore "./ProductService/ProductService.csproj"
 
 COPY . .
 
 WORKDIR "/src/ProductService"
-RUN dotnet build "ProductService.csproj" -c Release -o /app/build
+RUN dotnet build "./ProductService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "ProductService.csproj" -c Release -o /app/publish /p:UseAppHost=false
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./ProductService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM base AS final
 WORKDIR /app
-
 COPY --from=publish /app/publish .
-
-EXPOSE 8080
-
-USER app
-
 ENTRYPOINT ["dotnet", "ProductService.dll"]
