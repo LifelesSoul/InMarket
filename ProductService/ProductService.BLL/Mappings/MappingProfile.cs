@@ -8,6 +8,7 @@ using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Enums;
 using UserService.Domain.Entities;
+using UserService.Domain.Enums;
 
 namespace ProductService.BLL.Mappings;
 
@@ -52,5 +53,10 @@ public class MappingProfile : Profile
 
         CreateMap<CategoryModel, Category>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToSentenceCase()));
+
+        CreateMap<Auth0SyncModel, User>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Email.Substring(0, src.Email.IndexOf('@'))))
+            .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => TimeProvider.System.GetUtcNow()))
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRoles.Buyer));
     }
 }

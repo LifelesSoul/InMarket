@@ -177,7 +177,6 @@ public class UserServiceTests : ServiceTestsBase
 
         userEntity.Profile.ShouldNotBeNull();
         userEntity.Profile.RatingScore.ShouldBe(1);
-        userEntity.PasswordHash.ShouldBe(model.Password);
 
         _repositoryMock.Verify(r => r.Add(userEntity, Ct), Times.Once);
     }
@@ -350,6 +349,71 @@ public class UserServiceTests : ServiceTestsBase
         exception.Message.ShouldBe($"User {id} not found");
     }
 
+    [Fact]
+    public async Task SyncUserAsync_ShouldDoNothing_WhenUserExistsByExternalId()
+    {
+        var externalId = "auth0|123456";
+        var email = "test@test.com";
+        var existingUser = CreateUser(email: email);
+        existingUser.ExternalId = externalId;
+
+        _repositoryMock.Setup(r => r.GetByExternalId(externalId, Ct))
+            .ReturnsAsync(existingUser);
+
+        await _service.SyncUserAsync(externalId, email, Ct);
+
+        _repositoryMock.Verify(r => r.GetByEmail(It.IsAny<string>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.Update(It.IsAny<User>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.Add(It.IsAny<User>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task SyncUserAsync_ShouldLinkUser_WhenUserExistsByEmailOnly()
+    {
+        var externalId = "auth0|new_link";
+        var email = "old_user@test.com";
+        var existingUser = CreateUser(email: email);
+        existingUser.ExternalId = null;
+
+        _repositoryMock.Setup(r => r.GetByExternalId(externalId, Ct))
+            .ReturnsAsync((User?)null);
+
+        _repositoryMock.Setup(r => r.GetByEmail(email, Ct))
+            .ReturnsAsync(existingUser);
+
+        await _service.SyncUserAsync(externalId, email, Ct);
+
+        existingUser.ExternalId.ShouldBe(externalId);
+        _repositoryMock.Verify(r => r.Update(existingUser, Ct), Times.Once);
+        _repositoryMock.Verify(r => r.Add(It.IsAny<User>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task SyncUserAsync_ShouldCreateUser_WhenUserDoesNotExist()
+    {
+        var externalId = "auth0|brand_new";
+        var email = "new_user@test.com";
+
+        _repositoryMock.Setup(r => r.GetByExternalId(externalId, Ct))
+            .ReturnsAsync((User?)null);
+        _repositoryMock.Setup(r => r.GetByEmail(email, Ct))
+            .ReturnsAsync((User?)null);
+
+        var mappedUser = CreateUser(email: email);
+
+        MapperMock.Setup(m => m.Map<User>(It.Is<Auth0SyncModel>(x => x.Email == email && x.ExternalId == externalId)))
+            .Returns(mappedUser);
+
+        await _service.SyncUserAsync(externalId, email, Ct);
+
+        mappedUser.Profile.ShouldNotBeNull();
+        mappedUser.Profile.User.ShouldBe(mappedUser);
+        mappedUser.Profile.RatingScore.ShouldBe(0);
+
+        _repositoryMock.Verify(r => r.Add(mappedUser, Ct), Times.Once);
+        _repositoryMock.Verify(r => r.Update(It.IsAny<User>(), Ct), Times.Never);
+    }
+
     private static User CreateUser(
         Guid? id = null,
         string? email = null,
@@ -360,7 +424,6 @@ public class UserServiceTests : ServiceTestsBase
             Id = id ?? Guid.NewGuid(),
             Username = $"User_{id ?? Guid.NewGuid()}",
             Email = email ?? $"user_{id ?? Guid.NewGuid()}@test.com",
-            PasswordHash = "default_hash",
             Role = role,
             RegistrationDate = DateTimeOffset.UtcNow,
 

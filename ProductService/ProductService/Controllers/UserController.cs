@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.API.Models;
 using ProductService.BLL.Models.User;
@@ -34,6 +35,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserViewModel>> Create([FromBody] CreateUserModel createModel, CancellationToken cancellationToken)
     {
         var createdModel = await service.Create(createModel, cancellationToken);
@@ -42,6 +44,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
 
     [HttpPut]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserViewModel>> Update([FromBody] UpdateUserModel updateModel, CancellationToken cancellationToken)
     {
         var updatedModel = await service.Update(updateModel, cancellationToken);
@@ -50,6 +53,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await service.Delete(id, cancellationToken);

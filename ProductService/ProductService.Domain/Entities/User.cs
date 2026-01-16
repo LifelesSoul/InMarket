@@ -12,13 +12,13 @@ namespace UserService.Domain.Entities;
 [ExcludeFromCodeCoverage]
 public class User : BaseEntity
 {
+    public string? ExternalId { get; set; }
+
     [MaxLength(DbConstants.NameTextLength)]
     public required string Username { get; set; }
 
     [MaxLength(DbConstants.EmailTextLength)]
     public required string Email { get; set; }
-
-    public required string PasswordHash { get; set; }
 
     public UserRoles Role { get; set; }
 

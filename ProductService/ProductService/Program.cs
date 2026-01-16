@@ -1,5 +1,8 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using ProductService.API.Configurations;
 using ProductService.BLL.DI;
 using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
@@ -28,6 +31,26 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddServices();
+
+builder.Services.Configure<WebhookSettings>(builder.Configuration.GetSection("Webhooks"));
+
+builder.Services.Configure<Auth0Settings>(builder.Configuration.GetSection("Auth0"));
+var auth0Settings = builder.Configuration.GetSection("Auth0").Get<Auth0Settings>()
+    ?? throw new InvalidOperationException("Auth0 settings are missing in Configuration!");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://{auth0Settings.Domain}/";
+        options.Audience = auth0Settings.Audience;
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            RoleClaimType = "https://schemas.dev-lifelesssoul.com/roles"
+        };
+    });
 
 var app = builder.Build();
 
@@ -71,6 +94,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
@@ -34,6 +35,7 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateProductModel model, CancellationToken cancellationToken = default)
     {
         var createdModel = await service.Create(model, model.SellerId, cancellationToken);
@@ -42,6 +44,7 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
     {
         await service.Remove(id, cancellationToken);
@@ -50,6 +53,7 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     }
 
     [HttpPut]
+    [Authorize]
     public async Task<ActionResult<ProductViewModel>> Update([FromBody] UpdateProductModel model, CancellationToken cancellationToken = default)
     {
         var updatedModel = await service.Update(model, cancellationToken);

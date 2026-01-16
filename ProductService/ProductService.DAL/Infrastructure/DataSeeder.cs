@@ -32,7 +32,6 @@ public static class DataSeeder
                 .RuleFor(u => u.Id, f => Guid.NewGuid())
                 .RuleFor(u => u.Username, f => f.Internet.UserName())
                 .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.Username))
-                .RuleFor(u => u.PasswordHash, f => f.Internet.Password())
                 .RuleFor(u => u.Role, f => f.PickRandom<UserRoles>())
                 .RuleFor(u => u.RegistrationDate, f => f.Date.PastOffset(2))
                 .FinishWith((f, u) =>

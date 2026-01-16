@@ -26,7 +26,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Id = sellerId,
             Username = "SellerBob",
             Email = "bob@test.com",
-            PasswordHash = "hash",
             Profile = null!
         };
         seller.Profile = new UserProfile
@@ -149,7 +148,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Id = userId,
             Username = "SellerOne",
             Email = "seller@test.com",
-            PasswordHash = "hash",
             Profile = null!
         };
         user.Profile = new UserProfile
@@ -190,7 +188,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         {
             Id = userId,
             Username = "User",
-            PasswordHash = "Password",
             Email = "user@test.com",
             Role = UserRoles.Buyer,
             RegistrationDate = DateTimeOffset.UtcNow,
@@ -224,7 +221,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         {
             Id = Guid.NewGuid(),
             Username = "NoProfileUser",
-            PasswordHash = "Password",
             Email = "noprofile@test.com",
             Profile = null!
         };
@@ -324,7 +320,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Id = sellerId,
             Username = "U",
             Email = "E",
-            PasswordHash = "P",
             Profile = null!
         };
         seller.Profile = new UserProfile { UserId = sellerId, User = seller };
