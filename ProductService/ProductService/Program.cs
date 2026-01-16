@@ -21,8 +21,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryModelValidato
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.Configure<WebhookSettings>(builder.Configuration.GetSection("Webhooks"));
-
 builder.Services.AddDbContext<ProductDbContext>(options =>
 {
     options.UseLazyLoadingProxies();
@@ -33,6 +31,8 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddServices();
+
+builder.Services.Configure<WebhookSettings>(builder.Configuration.GetSection("Webhooks"));
 
 builder.Services.Configure<Auth0Settings>(builder.Configuration.GetSection("Auth0"));
 var auth0Settings = builder.Configuration.GetSection("Auth0").Get<Auth0Settings>()
