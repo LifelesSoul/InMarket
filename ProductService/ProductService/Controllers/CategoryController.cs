@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.API.Models;
 using ProductService.BLL.Models.Category;
@@ -31,14 +32,17 @@ public class CategoryController(ICategoryService service, IMapper mapper) : Cont
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CategoryViewModel>> Create([FromBody] CreateCategoryModel createModel, CancellationToken cancellationToken)
     {
+
         var createdModel = await service.Create(createModel, cancellationToken);
 
         return Ok(mapper.Map<CategoryViewModel>(createdModel));
     }
 
     [HttpPut]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CategoryViewModel>> Update([FromBody] CategoryModel updateModel, CancellationToken cancellationToken)
     {
         var updatedModel = await service.Update(updateModel, cancellationToken);
@@ -47,6 +51,7 @@ public class CategoryController(ICategoryService service, IMapper mapper) : Cont
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await service.Remove(id, cancellationToken);

@@ -177,7 +177,6 @@ public class UserServiceTests : ServiceTestsBase
 
         userEntity.Profile.ShouldNotBeNull();
         userEntity.Profile.RatingScore.ShouldBe(1);
-        userEntity.PasswordHash.ShouldBe(model.Password);
 
         _repositoryMock.Verify(r => r.Add(userEntity, Ct), Times.Once);
     }
@@ -360,7 +359,6 @@ public class UserServiceTests : ServiceTestsBase
             Id = id ?? Guid.NewGuid(),
             Username = $"User_{id ?? Guid.NewGuid()}",
             Email = email ?? $"user_{id ?? Guid.NewGuid()}@test.com",
-            PasswordHash = "default_hash",
             Role = role,
             RegistrationDate = DateTimeOffset.UtcNow,
 

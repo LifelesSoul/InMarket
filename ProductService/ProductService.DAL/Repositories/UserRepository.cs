@@ -20,6 +20,13 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
         return await query.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
+    public async Task<User?> GetByExternalId(string externalId, CancellationToken cancellationToken)
+    {
+        return await DbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.ExternalId == externalId, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken, bool disableTracking = false)
     {
         IQueryable<User> query = DbSet.Include(u => u.Profile);
@@ -46,6 +53,7 @@ public class UserRepository(ProductDbContext context) : Repository<User>(context
 
 public interface IUserRepository : IRepository<User>
 {
+    Task<User?> GetByExternalId(string externalId, CancellationToken cancellationToken);
     Task<IReadOnlyList<User>> GetPaged(int page, int pageSize, CancellationToken cancellationToken, bool disableTracking = false);
     Task<User?> GetByEmail(string email, CancellationToken cancellationToken);
 }

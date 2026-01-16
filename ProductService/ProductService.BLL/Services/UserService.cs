@@ -55,8 +55,6 @@ public class UsersService(
 
         var entity = mapper.Map<User>(model);
 
-        entity.PasswordHash = model.Password;
-
         entity.Profile = new UserProfile
         {
             UserId = entity.Id,
@@ -103,10 +101,47 @@ public class UsersService(
 
         await repository.Delete(entity, cancellationToken);
     }
+    public async Task SyncUserAsync(string externalId, string email, CancellationToken cancellationToken)
+    {
+        var user = await repository.GetByExternalId(externalId, cancellationToken);
+
+        if (user is null)
+        {
+            user = await repository.GetByEmail(email, cancellationToken);
+            if (user is not null && string.IsNullOrEmpty(user.ExternalId))
+            {
+                user.ExternalId = externalId;
+                await repository.Update(user, cancellationToken);
+                return;
+            }
+        }
+
+        if (user is null)
+        {
+            var syncModel = new Auth0SyncModel
+            {
+                ExternalId = externalId,
+                Email = email
+            };
+
+            var newUser = mapper.Map<User>(syncModel);
+
+            newUser.Profile = new UserProfile
+            {
+                UserId = newUser.Id,
+                User = newUser,
+                RatingScore = 0
+            };
+
+            await repository.Add(newUser, cancellationToken);
+        }
+    }
+
 }
 
 public interface IUserService
 {
+    Task SyncUserAsync(string externalId, string email, CancellationToken cancellationToken);
     Task<IList<UserModel>> GetAll(int page, int pageSize, CancellationToken cancellationToken);
     Task<UserModel?> GetById(Guid id, CancellationToken cancellationToken);
     Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken);
