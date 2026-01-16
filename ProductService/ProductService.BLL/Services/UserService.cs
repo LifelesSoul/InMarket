@@ -101,6 +101,7 @@ public class UsersService(
 
         await repository.Delete(entity, cancellationToken);
     }
+
     public async Task SyncUserAsync(string externalId, string email, CancellationToken cancellationToken)
     {
         var user = await repository.GetByExternalId(externalId, cancellationToken);

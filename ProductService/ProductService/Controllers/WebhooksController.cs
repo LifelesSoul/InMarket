@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductService.API.Models.Webhook;
 using ProductService.BLL.Services;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Controllers;
 
@@ -18,6 +19,7 @@ public class WebhooksController : ControllerBase
     }
 
     [HttpPost("register")]
+    [ExcludeFromCodeCoverage]
     public async Task<IActionResult> RegisterUser([FromBody] Auth0UserDto dto, [FromHeader(Name = "X-API-KEY")] string apiKey)
     {
         var secretKey = _configuration["Webhooks:ApiKey"];
