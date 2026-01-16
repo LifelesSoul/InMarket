@@ -115,10 +115,7 @@ public class UsersService(
                 await repository.Update(user, cancellationToken);
                 return;
             }
-        }
 
-        if (user is null)
-        {
             var syncModel = new Auth0SyncModel
             {
                 ExternalId = externalId,

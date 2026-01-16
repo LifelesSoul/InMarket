@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using ProductService.API.Configurations;
 using ProductService.BLL.DI;
 using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
@@ -20,6 +21,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryModelValidato
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+builder.Services.Configure<WebhookSettings>(builder.Configuration.GetSection("Webhooks"));
+
 builder.Services.AddDbContext<ProductDbContext>(options =>
 {
     options.UseLazyLoadingProxies();
@@ -31,24 +34,23 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddServices();
 
-var domain = $"https://{builder.Configuration["Auth0:Domain"]}/";
-var audience = builder.Configuration["Auth0:Audience"];
+builder.Services.Configure<Auth0Settings>(builder.Configuration.GetSection("Auth0"));
+var auth0Settings = builder.Configuration.GetSection("Auth0").Get<Auth0Settings>()
+    ?? throw new InvalidOperationException("Auth0 settings are missing in Configuration!");
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.Authority = domain;
-    options.Audience = audience;
-
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        RoleClaimType = "https://inmarket-api/roles"
-    };
-});
+        options.Authority = $"https://{auth0Settings.Domain}/";
+        options.Audience = auth0Settings.Audience;
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            RoleClaimType = "https://schemas.dev-lifelesssoul.com/roles"
+        };
+    });
 
 var app = builder.Build();
 
