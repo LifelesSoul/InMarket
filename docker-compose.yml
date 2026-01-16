@@ -1,0 +1,24 @@
+services:
+  product-service:
+    image: product-service
+    build:
+      context: ./ProductService
+      dockerfile: Dockerfile 
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=InMarket;User Id=sa;Password=YourStrong(!)Password;TrustServerCertificate=True;
+      - Webhooks__ApiKey=SuperSecretKey12345!
+      - Auth0__Domain=dev-lifelesssoul.eu.auth0.com
+      - Auth0__Audience=https://inmarket-api
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong(!)Password
+    ports:
+      - "1433:1433"
