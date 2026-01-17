@@ -7,11 +7,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=InMarket;User Id=sa;Password=YourStrong(!)Password;TrustServerCertificate=True;
-      - Webhooks__ApiKey=SuperSecretKey12345!
-      - Auth0__Domain=dev-lifelesssoul.eu.auth0.com
-      - Auth0__Audience=https://inmarket-api
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=True;
+      - Webhooks__ApiKey=${WEBHOOK_API_KEY}
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
     depends_on:
       - sqlserver
 
@@ -19,6 +19,6 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=YourStrong(!)Password
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
     ports:
       - "1433:1433"
