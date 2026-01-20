@@ -48,7 +48,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
-            RoleClaimType = "https://schemas.dev-lifelesssoul.com/roles"
+            RoleClaimType = "https://inmarket-api/roles"
         };
     });
 
