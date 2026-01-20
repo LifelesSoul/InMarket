@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
 
@@ -6,6 +7,7 @@ namespace NotificationService.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class NotificationController : ControllerBase
 {
     private readonly INotificationService _service;
@@ -16,19 +18,30 @@ public class NotificationController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateNotificationModel dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create(
+    [FromBody] CreateNotificationModel model,
+    CancellationToken cancellationToken)
     {
-        var createdNotification = await _service.Create(dto, cancellationToken);
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        model.UserId = userId;
+
+        var createdNotification = await _service.Create(model, cancellationToken);
 
         return Ok(createdNotification);
     }
 
     [HttpGet("user")]
     public async Task<IActionResult> GetByUser(
-    [FromQuery] Guid userId,
     [FromQuery] PaginationParams pagination,
     CancellationToken cancellationToken)
     {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
         var notifications = await _service.GetByUserPaged(
             userId,
             pagination.PageNumber,

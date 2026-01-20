@@ -22,7 +22,7 @@ public class NotificationRepository : INotificationRepository
     public async Task Create(Notification notification, CancellationToken cancellationToken) =>
           await _collection.InsertOneAsync(notification, null, cancellationToken);
 
-    public async Task<IList<Notification>> GetByUserIdPaged(Guid userId, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<IList<Notification>> GetByUserIdPaged(string userId, int page, int pageSize, CancellationToken cancellationToken)
     {
         var filter = Builders<Notification>.Filter.Eq(x => x.UserId, userId);
 

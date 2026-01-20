@@ -52,7 +52,7 @@ public class NotificationService : INotificationService
         await _repository.Delete(id, cancellationToken);
     }
 
-    public async Task<IList<Notification>> GetByUserPaged(Guid userId, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IList<Notification>> GetByUserPaged(string userId, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await _repository.GetByUserIdPaged(userId, page, pageSize, cancellationToken);
     }
