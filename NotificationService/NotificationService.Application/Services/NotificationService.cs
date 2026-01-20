@@ -19,7 +19,6 @@ public class NotificationService : INotificationService
     {
         var notification = new Notification
         {
-            Id = Guid.NewGuid(),
             Title = model.Title,
             Message = model.Message,
             UserId = model.UserId,
@@ -31,7 +30,7 @@ public class NotificationService : INotificationService
         return notification;
     }
 
-    public async Task<Notification> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<Notification> GetById(string id, CancellationToken cancellationToken)
     {
         var notification = await _repository.GetById(id, cancellationToken)
             ?? throw new NotificationNotFoundException(id);
@@ -39,7 +38,7 @@ public class NotificationService : INotificationService
         return notification;
     }
 
-    public async Task Update(Guid id, UpdateNotificationModel model, CancellationToken cancellationToken)
+    public async Task Update(string id, UpdateNotificationModel model, CancellationToken cancellationToken)
     {
         var existingNotification = await GetById(id, cancellationToken);
 
@@ -49,7 +48,7 @@ public class NotificationService : INotificationService
         await _repository.Update(existingNotification, cancellationToken);
     }
 
-    public async Task Delete(Guid id, CancellationToken cancellationToken)
+    public async Task Delete(string id, CancellationToken cancellationToken)
     {
         await GetById(id, cancellationToken);
 

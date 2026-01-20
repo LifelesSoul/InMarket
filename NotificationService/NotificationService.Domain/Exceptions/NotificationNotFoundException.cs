@@ -2,7 +2,7 @@
 
 public class NotificationNotFoundException : Exception
 {
-    public NotificationNotFoundException(Guid id)
+    public NotificationNotFoundException(string id)
         : base($"Notification with ID '{id}' was not found.")
     {
     }

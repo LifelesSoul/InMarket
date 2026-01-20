@@ -34,12 +34,12 @@ public class NotificationRepository : INotificationRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Notification?> GetById(Guid id, CancellationToken cancellationToken) =>
-        await _collection.Find(x => x.Id == id).FirstOrDefaultAsync(cancellationToken);
+    public async Task<Notification?> GetById(string id, CancellationToken cancellationToken) =>
+        await _collection.Find(x => x.Id == id.ToString()).FirstOrDefaultAsync(cancellationToken);
 
     public async Task Update(Notification notification, CancellationToken cancellationToken) =>
         await _collection.ReplaceOneAsync(x => x.Id == notification.Id, notification, (ReplaceOptions?)null, cancellationToken);
 
-    public async Task Delete(Guid id, CancellationToken cancellationToken) =>
-        await _collection.DeleteOneAsync(x => x.Id == id, null, cancellationToken);
+    public async Task Delete(string id, CancellationToken cancellationToken) =>
+        await _collection.DeleteOneAsync(x => x.Id == id.ToString(), null, cancellationToken);
 }

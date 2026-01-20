@@ -39,14 +39,14 @@ public class NotificationController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
     {
         var notification = await _service.GetById(id, cancellationToken);
         return Ok(notification);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, CancellationToken cancellationToken, [FromBody] UpdateNotificationModel dto)
+    public async Task<IActionResult> Update(string id, CancellationToken cancellationToken, [FromBody] UpdateNotificationModel dto)
     {
         await _service.Update(id, dto, cancellationToken);
 
@@ -55,7 +55,7 @@ public class NotificationController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
     {
         await _service.Delete(id, cancellationToken);
         return NoContent();
