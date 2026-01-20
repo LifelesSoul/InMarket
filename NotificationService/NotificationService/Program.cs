@@ -9,7 +9,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 
-builder.Services.AddServices();
+builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddOpenApi();
 

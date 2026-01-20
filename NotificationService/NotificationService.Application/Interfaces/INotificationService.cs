@@ -5,10 +5,9 @@ namespace NotificationService.Application.Interfaces;
 
 public interface INotificationService
 {
-    Task<Notification> Create(CreateNotificationModel model);
-    Task<Notification> GetById(Guid id);
-    Task Update(Guid id, UpdateNotificationModel model);
-    Task Delete(Guid id);
-    Task<List<Notification>> GetAllPaged(int page, int pageSize);
-    Task<List<Notification>> GetByUser(Guid userId);
+    Task<Notification> Create(CreateNotificationModel model, CancellationToken cancellationToken);
+    Task<Notification> GetById(Guid id, CancellationToken cancellationToken);
+    Task Update(Guid id, UpdateNotificationModel model, CancellationToken cancellationToken);
+    Task Delete(Guid id, CancellationToken cancellationToken);
+    Task<IList<Notification>> GetByUserPaged(Guid userId, int page, int pageSize, CancellationToken cancellationToken);
 }

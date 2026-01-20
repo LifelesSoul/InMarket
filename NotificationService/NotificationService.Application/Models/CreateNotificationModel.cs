@@ -1,3 +1,8 @@
 ﻿namespace NotificationService.Application.Models;
 
-public record CreateNotificationModel(string Title, string Message, Guid UserId);
+public class CreateNotificationModel
+{
+    public required string Title { get; set; }
+    public required string Message { get; set; }
+    public required Guid UserId { get; set; }
+}

@@ -1,6 +1,7 @@
 ﻿using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
 using NotificationService.Domain.Entities;
+using NotificationService.Domain.Exceptions;
 using NotificationService.Infrastructure.Interfaces;
 
 namespace NotificationService.Application.Services;
@@ -14,7 +15,7 @@ public class NotificationService : INotificationService
         _repository = repository;
     }
 
-    public async Task<Notification> Create(CreateNotificationModel model)
+    public async Task<Notification> Create(CreateNotificationModel model, CancellationToken cancellationToken)
     {
         var notification = new Notification
         {
@@ -22,46 +23,41 @@ public class NotificationService : INotificationService
             Title = model.Title,
             Message = model.Message,
             UserId = model.UserId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = TimeProvider.System.GetUtcNow()
         };
 
-        await _repository.Create(notification);
+        await _repository.Create(notification, cancellationToken);
 
         return notification;
     }
 
-    public async Task<Notification> GetById(Guid id)
+    public async Task<Notification> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var notification = await _repository.GetById(id)
-            ?? throw new KeyNotFoundException($"Notification with ID {id} not found");
+        var notification = await _repository.GetById(id, cancellationToken)
+            ?? throw new NotificationNotFoundException(id);
 
         return notification;
     }
 
-    public async Task Update(Guid id, UpdateNotificationModel model)
+    public async Task Update(Guid id, UpdateNotificationModel model, CancellationToken cancellationToken)
     {
-        var existingNotification = await GetById(id);
+        var existingNotification = await GetById(id, cancellationToken);
 
         existingNotification.Title = model.Title;
         existingNotification.Message = model.Message;
 
-        await _repository.Update(existingNotification);
+        await _repository.Update(existingNotification, cancellationToken);
     }
 
-    public async Task Delete(Guid id)
+    public async Task Delete(Guid id, CancellationToken cancellationToken)
     {
-        await GetById(id);
+        await GetById(id, cancellationToken);
 
-        await _repository.Delete(id);
+        await _repository.Delete(id, cancellationToken);
     }
 
-    public async Task<List<Notification>> GetAllPaged(int page, int pageSize)
+    public async Task<IList<Notification>> GetByUserPaged(Guid userId, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetAllPagedAsync(page, pageSize);
-    }
-
-    public async Task<List<Notification>> GetByUser(Guid userId)
-    {
-        return await _repository.GetByUserId(userId);
+        return await _repository.GetByUserIdPaged(userId, page, pageSize, cancellationToken);
     }
 }

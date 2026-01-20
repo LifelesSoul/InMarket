@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using NotificationService.Domain.Exceptions;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -37,9 +38,7 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
         {
             Status = statusCode,
             Title = title,
-            Detail = detail,
-            Instance = context.Request.Path,
-            Type = exception.GetType().Name
+            Detail = detail
         };
 
         var json = JsonSerializer.Serialize(problemDetails);
@@ -53,6 +52,11 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
             ValidationException ex => new ExceptionResponse(
                 StatusCodes.Status400BadRequest,
                 ErrorMessages.Titles.ValidationError,
+                ex.Message),
+
+            NotificationNotFoundException ex => new ExceptionResponse(
+                StatusCodes.Status404NotFound,
+                ErrorMessages.Titles.NotFound,
                 ex.Message),
 
             KeyNotFoundException ex => new ExceptionResponse(

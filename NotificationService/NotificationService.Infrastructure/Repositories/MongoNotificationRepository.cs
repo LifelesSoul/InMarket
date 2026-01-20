@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using NotificationService.Domain.Entities;
 using NotificationService.Infrastructure.Interfaces;
+using NotificationService.Infrastructure.Settings;
 
 namespace NotificationService.Infrastructure.Repositories;
 
@@ -9,38 +10,36 @@ public class NotificationRepository : INotificationRepository
 {
     private readonly IMongoCollection<Notification> _collection;
 
-    public NotificationRepository(IConfiguration config)
+    public NotificationRepository(IOptions<MongoDbSettings> options)
     {
-        var connectionString = config["MongoSettings:ConnectionString"];
-        var dbName = config["MongoSettings:DatabaseName"];
-        var collectionName = config["MongoSettings:CollectionName"];
+        var settings = options.Value;
 
-        var client = new MongoClient(connectionString);
-        var database = client.GetDatabase(dbName);
-        _collection = database.GetCollection<Notification>(collectionName);
+        var client = new MongoClient(settings.ConnectionString);
+        var database = client.GetDatabase(settings.DatabaseName);
+        _collection = database.GetCollection<Notification>(settings.CollectionName);
     }
 
-    public async Task<List<Notification>> GetAllPagedAsync(int page, int pageSize)
+    public async Task Create(Notification notification, CancellationToken cancellationToken) =>
+          await _collection.InsertOneAsync(notification, null, cancellationToken);
+
+    public async Task<IList<Notification>> GetByUserIdPaged(Guid userId, int page, int pageSize, CancellationToken cancellationToken)
     {
-        return await _collection.Find(_ => true)
+        var filter = Builders<Notification>.Filter.Eq(x => x.UserId, userId);
+
+        return await _collection
+            .Find(filter)
             .SortByDescending(x => x.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Limit(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task Create(Notification notification) =>
-        await _collection.InsertOneAsync(notification);
+    public async Task<Notification?> GetById(Guid id, CancellationToken cancellationToken) =>
+        await _collection.Find(x => x.Id == id).FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<List<Notification>> GetByUserId(Guid userId) =>
-        await _collection.Find(x => x.UserId == userId).ToListAsync();
+    public async Task Update(Notification notification, CancellationToken cancellationToken) =>
+        await _collection.ReplaceOneAsync(x => x.Id == notification.Id, notification, (ReplaceOptions?)null, cancellationToken);
 
-    public async Task<Notification?> GetById(Guid id) =>
-        await _collection.Find(x => x.Id == id).FirstOrDefaultAsync();
-
-    public async Task Update(Notification notification) =>
-        await _collection.ReplaceOneAsync(x => x.Id == notification.Id, notification);
-
-    public async Task Delete(Guid id) =>
-        await _collection.DeleteOneAsync(x => x.Id == id);
+    public async Task Delete(Guid id, CancellationToken cancellationToken) =>
+        await _collection.DeleteOneAsync(x => x.Id == id, null, cancellationToken);
 }

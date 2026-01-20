@@ -2,6 +2,6 @@
 
 public class UpdateNotificationModel
 {
-    public string Title { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
+    public required string Title { get; set; }
+    public required string Message { get; set; }
 }
