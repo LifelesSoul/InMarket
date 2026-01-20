@@ -1,4 +1,5 @@
-﻿using NotificationService.Application.Interfaces;
+﻿using AutoMapper;
+using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Exceptions;
@@ -9,21 +10,17 @@ namespace NotificationService.Application.Services;
 public class NotificationService : INotificationService
 {
     private readonly INotificationRepository _repository;
+    private readonly IMapper _mapper;
 
-    public NotificationService(INotificationRepository repository)
+    public NotificationService(INotificationRepository repository, IMapper mapper)
     {
         _repository = repository;
+        _mapper = mapper;
     }
 
     public async Task<Notification> Create(CreateNotificationModel model, CancellationToken cancellationToken)
     {
-        var notification = new Notification
-        {
-            Title = model.Title,
-            Message = model.Message,
-            UserId = model.UserId,
-            CreatedAt = TimeProvider.System.GetUtcNow()
-        };
+        var notification = _mapper.Map<Notification>(model);
 
         await _repository.Create(notification, cancellationToken);
 
