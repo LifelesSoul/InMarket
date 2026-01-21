@@ -1,8 +1,12 @@
-﻿namespace NotificationService.API.Configuration;
+﻿namespace NotificationService.Configuration;
 
 public class Auth0Settings
 {
-    public string Domain { get; set; } = string.Empty;
+    public const string SectionName = "Auth0";
 
-    public string Audience { get; set; } = string.Empty;
+    public required string Domain { get; set; }
+
+    public required string Audience { get; set; }
+
+    public required string RoleClaimType { get; set; }
 }

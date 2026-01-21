@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using NotificationService.Domain.Entities;
 using NotificationService.Infrastructure.Interfaces;
+using NotificationService.Infrastructure.Models;
 using NotificationService.Infrastructure.Settings;
 
 namespace NotificationService.Infrastructure.Repositories;
@@ -22,9 +23,16 @@ public class NotificationRepository : INotificationRepository
     public async Task Create(Notification notification, CancellationToken cancellationToken) =>
           await _collection.InsertOneAsync(notification, null, cancellationToken);
 
-    public async Task<IList<Notification>> GetByUserIdPaged(Guid userId, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<IList<Notification>> GetByFilter(NotificationFilter filterModel, int page, int pageSize, CancellationToken cancellationToken)
     {
-        var filter = Builders<Notification>.Filter.Eq(x => x.UserId, userId);
+        var builder = Builders<Notification>.Filter;
+
+        var filter = builder.Eq(x => x.UserId, filterModel.UserId);
+
+        if (!string.IsNullOrEmpty(filterModel.ExternalId))
+        {
+            filter &= builder.Eq(x => x.ExternalId, filterModel.ExternalId);
+        }
 
         return await _collection
             .Find(filter)

@@ -4,6 +4,7 @@ using NotificationService.Application.Models;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Exceptions;
 using NotificationService.Infrastructure.Interfaces;
+using NotificationService.Infrastructure.Models;
 
 namespace NotificationService.Application.Services;
 
@@ -18,33 +19,28 @@ public class NotificationService : INotificationService
         _mapper = mapper;
     }
 
-    public async Task<Notification> Create(CreateNotificationModel model, string externalId, CancellationToken cancellationToken)
+    public async Task<Notification> Create(CreateNotificationModel model, string ownerExternalId, CancellationToken cancellationToken)
     {
         var notification = _mapper.Map<Notification>(model);
 
-        notification.ExternalId = externalId;
+        notification.ExternalId = ownerExternalId;
 
         await _repository.Create(notification, cancellationToken);
 
         return notification;
     }
 
-    public async Task<Notification> GetById(string id, string requestingExternalId, bool isAdmin, CancellationToken cancellationToken)
+    public async Task<Notification> GetById(string id, CancellationToken cancellationToken)
     {
         var notification = await _repository.GetById(id, cancellationToken)
             ?? throw new NotificationNotFoundException(id);
 
-        if (!isAdmin && notification.ExternalId != requestingExternalId)
-        {
-            throw new UnauthorizedAccessException("Access denied. You do not own this notification.");
-        }
-
         return notification;
     }
 
-    public async Task Update(string id, string requestingExternalId, bool isAdmin, UpdateNotificationModel model, CancellationToken cancellationToken)
+    public async Task Update(string id, UpdateNotificationModel model, CancellationToken cancellationToken)
     {
-        var existingNotification = await GetById(id, requestingExternalId, isAdmin, cancellationToken);
+        var existingNotification = await GetById(id, cancellationToken);
 
         existingNotification.Title = model.Title;
         existingNotification.Message = model.Message;
@@ -52,29 +48,15 @@ public class NotificationService : INotificationService
         await _repository.Update(existingNotification, cancellationToken);
     }
 
-    public async Task Delete(string id, string requestingExternalId, bool isAdmin, CancellationToken cancellationToken)
+    public async Task Delete(string id, CancellationToken cancellationToken)
     {
-        await GetById(id, requestingExternalId, isAdmin, cancellationToken);
+        await GetById(id, cancellationToken);
 
         await _repository.Delete(id, cancellationToken);
     }
 
-    public async Task<IList<Notification>> GetByUserPaged(Guid userId, string requestingExternalId, bool isAdmin, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IList<Notification>> GetByFilter(NotificationFilter filter, int page, int pageSize, CancellationToken cancellationToken)
     {
-        var notifications = await _repository.GetByUserIdPaged(userId, page, pageSize, cancellationToken);
-
-        if (notifications.Count == 0)
-        {
-            return notifications;
-        }
-
-        var ownerExternalId = notifications[0].ExternalId;
-
-        if (!isAdmin && ownerExternalId != requestingExternalId)
-        {
-            throw new UnauthorizedAccessException("Access denied. You do not own these notifications.");
-        }
-
-        return notifications;
+        return await _repository.GetByFilter(filter, page, pageSize, cancellationToken);
     }
 }

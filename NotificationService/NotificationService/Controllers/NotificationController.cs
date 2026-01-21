@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NotificationService.API.Configuration;
+using NotificationService.API.Extensions;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
-using System.Security.Claims;
+using NotificationService.Infrastructure.Models;
 
 namespace NotificationService.Controllers;
 
@@ -11,17 +13,23 @@ namespace NotificationService.Controllers;
 public class NotificationController : ControllerBase
 {
     private readonly INotificationService _service;
+    private readonly IAuthorizationService _authService;
 
-    public NotificationController(INotificationService service)
+    public NotificationController(INotificationService service, IAuthorizationService authService)
     {
         _service = service;
+        _authService = authService;
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AuthConstants.AdminRole)]
     public async Task<IActionResult> Create([FromBody] CreateNotificationModel dto, CancellationToken cancellationToken)
     {
-        var createdNotification = await _service.Create(dto, dto.ExternalId, cancellationToken);
+        var ownerId = !string.IsNullOrEmpty(dto.ExternalId)
+            ? dto.ExternalId
+            : User.GetExternalId();
+
+        var createdNotification = await _service.Create(dto, ownerId, cancellationToken);
 
         return Ok(createdNotification);
     }
@@ -29,18 +37,18 @@ public class NotificationController : ControllerBase
     [HttpGet("user")]
     [Authorize]
     public async Task<IActionResult> GetByUser(
-    [FromQuery] Guid userId,
-    [FromQuery] PaginationParams pagination,
-    CancellationToken cancellationToken)
+        [FromQuery] Guid userId,
+        [FromQuery] PaginationParams pagination,
+        CancellationToken cancellationToken)
     {
-        var requestingExternalId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var filter = new NotificationFilter
+        {
+            UserId = userId,
+            ExternalId = User.IsAdmin() ? null : User.GetExternalId()
+        };
 
-        var isAdmin = User.IsInRole("Admin");
-
-        var notifications = await _service.GetByUserPaged(
-            userId,
-            requestingExternalId!,
-            isAdmin,
+        var notifications = await _service.GetByFilter(
+            filter,
             pagination.PageNumber,
             pagination.PageSize,
             cancellationToken);
@@ -52,26 +60,26 @@ public class NotificationController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
     {
-        var requestingExternalId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var notification = await _service.GetById(id, cancellationToken);
 
-        var isAdmin = User.IsInRole("Admin");
+        var authResult = await _authService.AuthorizeAsync(User, notification, AuthConstants.OwnerPolicyName);
 
-        var notification = await _service.GetById(id, requestingExternalId!, isAdmin, cancellationToken);
+        if (!authResult.Succeeded)
+        {
+            return Forbid();
+        }
 
         return Ok(notification);
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AuthConstants.AdminRole)]
     public async Task<IActionResult> Update(string id, CancellationToken cancellationToken, [FromBody] UpdateNotificationModel dto)
     {
-        var requestingExternalId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        await _service.Update(id, dto, cancellationToken);
 
-        var isAdmin = true;
+        var updated = await _service.GetById(id, cancellationToken);
 
-        await _service.Update(id, requestingExternalId!, isAdmin, dto, cancellationToken);
-
-        var updated = await _service.GetById(id, requestingExternalId!, isAdmin, cancellationToken);
         return Ok(updated);
     }
 
@@ -79,10 +87,16 @@ public class NotificationController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
     {
-        var requestingExternalId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var isAdmin = User.IsInRole("Admin");
+        var notification = await _service.GetById(id, cancellationToken);
 
-        await _service.Delete(id, requestingExternalId!, isAdmin, cancellationToken);
+        var authResult = await _authService.AuthorizeAsync(User, notification, AuthConstants.OwnerPolicyName);
+
+        if (!authResult.Succeeded)
+        {
+            return Forbid();
+        }
+
+        await _service.Delete(id, cancellationToken);
 
         return NoContent();
     }

@@ -16,7 +16,7 @@ public class Notification
     [BsonRepresentation(BsonType.String)]
     public required Guid UserId { get; set; }
 
-    public required string ExternalId { get; set; }
+    public string? ExternalId { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = TimeProvider.System.GetUtcNow();
 }
