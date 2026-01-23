@@ -10,17 +10,8 @@ namespace NotificationService.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class NotificationController : ControllerBase
+public class NotificationController(INotificationService service, IAuthorizationService authService) : ControllerBase
 {
-    private readonly INotificationService _service;
-    private readonly IAuthorizationService _authService;
-
-    public NotificationController(INotificationService service, IAuthorizationService authService)
-    {
-        _service = service;
-        _authService = authService;
-    }
-
     [HttpPost]
     [Authorize(Roles = AuthConstants.AdminRole)]
     public async Task<IActionResult> Create([FromBody] CreateNotificationModel dto, CancellationToken cancellationToken)
@@ -29,7 +20,7 @@ public class NotificationController : ControllerBase
             ? dto.ExternalId
             : User.GetExternalId();
 
-        var createdNotification = await _service.Create(dto, ownerId, cancellationToken);
+        var createdNotification = await service.Create(dto, ownerId, cancellationToken);
 
         return Ok(createdNotification);
     }
@@ -47,7 +38,7 @@ public class NotificationController : ControllerBase
             ExternalId = User.IsAdmin() ? null : User.GetExternalId()
         };
 
-        var notifications = await _service.GetByFilter(
+        var notifications = await service.GetByFilter(
             filter,
             pagination.PageNumber,
             pagination.PageSize,
@@ -60,9 +51,9 @@ public class NotificationController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
     {
-        var notification = await _service.GetById(id, cancellationToken);
+        var notification = await service.GetById(id, cancellationToken);
 
-        var authResult = await _authService.AuthorizeAsync(User, notification, AuthConstants.OwnerPolicyName);
+        var authResult = await authService.AuthorizeAsync(User, notification, AuthConstants.OwnerPolicyName);
 
         if (!authResult.Succeeded)
         {
@@ -76,9 +67,9 @@ public class NotificationController : ControllerBase
     [Authorize(Roles = AuthConstants.AdminRole)]
     public async Task<IActionResult> Update(string id, CancellationToken cancellationToken, [FromBody] UpdateNotificationModel dto)
     {
-        await _service.Update(id, dto, cancellationToken);
+        await service.Update(id, dto, cancellationToken);
 
-        var updated = await _service.GetById(id, cancellationToken);
+        var updated = await service.GetById(id, cancellationToken);
 
         return Ok(updated);
     }
@@ -87,16 +78,16 @@ public class NotificationController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
     {
-        var notification = await _service.GetById(id, cancellationToken);
+        var notification = await service.GetById(id, cancellationToken);
 
-        var authResult = await _authService.AuthorizeAsync(User, notification, AuthConstants.OwnerPolicyName);
+        var authResult = await authService.AuthorizeAsync(User, notification, AuthConstants.OwnerPolicyName);
 
         if (!authResult.Succeeded)
         {
             return Forbid();
         }
 
-        await _service.Delete(id, cancellationToken);
+        await service.Delete(id, cancellationToken);
 
         return NoContent();
     }
