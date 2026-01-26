@@ -1,0 +1,14 @@
+﻿using AutoMapper;
+using NotificationService.Application.Models;
+using NotificationService.Domain.Entities;
+
+namespace NotificationService.Application.Mappings;
+
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        CreateMap<CreateNotificationModel, Notification>()
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => TimeProvider.System.GetUtcNow()));
+    }
+}

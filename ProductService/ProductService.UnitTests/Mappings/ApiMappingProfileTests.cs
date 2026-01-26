@@ -1,0 +1,233 @@
+﻿using ProductService.API.Models;
+using ProductService.API.ViewModels.User;
+using ProductService.BLL.Models;
+using ProductService.BLL.Models.Category;
+using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.User;
+using ProductService.Mappings;
+using Shouldly;
+using UserService.Domain.Enums;
+using Xunit;
+
+namespace ProductService.Tests.Mappings;
+
+public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
+{
+    [Fact]
+    public void MapProductModelToProductViewModel_ShouldMapCustomFields()
+    {
+        var model = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "iPhone 15",
+            Price = 1000m,
+            ImageUrls = new List<string> { "http://main-image.com", "http://second.com" },
+
+            Category = new ProductCategoryModel
+            {
+                Id = Guid.NewGuid(),
+                Name = "Smartphones"
+            },
+
+            Seller = new SellerModel
+            {
+                Id = Guid.NewGuid(),
+                Username = "AppleStore",
+                Email = "store@apple.com"
+            }
+        };
+
+        var viewModel = Mapper.Map<ProductViewModel>(model);
+
+        viewModel.Id.ShouldBe(model.Id);
+        viewModel.Title.ShouldBe("iPhone 15");
+        viewModel.CategoryName.ShouldBe("Smartphones");
+        viewModel.ImageUrl.ShouldBe("http://main-image.com");
+    }
+
+    [Fact]
+    public void MapProductModelWithMultipleImages_ShouldPickStrictlyTheFirstUrl()
+    {
+        var model = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "Gallery Product",
+            Price = 100,
+            Category = new ProductCategoryModel { Id = Guid.NewGuid(), Name = "C" },
+            Seller = new SellerModel { Id = Guid.NewGuid(), Username = "U", Email = "E" },
+
+            ImageUrls = new List<string> { "http://FIRST.com", "http://SECOND.com", "http://THIRD.com" }
+        };
+
+        var viewModel = Mapper.Map<ProductViewModel>(model);
+
+        viewModel.ImageUrl.ShouldBe("http://FIRST.com");
+        viewModel.ImageUrl.ShouldNotBe("http://SECOND.com");
+
+        model.ImageUrls.ShouldBe(["http://FIRST.com", "http://SECOND.com", "http://THIRD.com"]);
+    }
+
+    [Fact]
+    public void MapProductModelWithNoImagesToProductViewModel_ShouldHaveNullImage()
+    {
+        var model = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "No Image Product",
+            Price = 10m,
+            ImageUrls = new List<string>(),
+
+            Category = new ProductCategoryModel
+            {
+                Id = Guid.NewGuid(),
+                Name = "Misc"
+            },
+            Seller = new SellerModel
+            {
+                Id = Guid.NewGuid(),
+                Username = "SellerBob",
+                Email = "bob@test.com"
+            }
+        };
+
+        var viewModel = Mapper.Map<ProductViewModel>(model);
+
+        viewModel.ImageUrl.ShouldBeNull();
+    }
+
+    [Fact]
+    public void MapProductModelWithNullCategory_ShouldMapCategoryNameToNull()
+    {
+        var model = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "Orphan Product",
+            Price = 100,
+            ImageUrls = new List<string>(),
+            Seller = new SellerModel { Id = Guid.NewGuid(), Username = "U", Email = "E" },
+
+            Category = null!
+        };
+
+        var viewModel = Mapper.Map<ProductViewModel>(model);
+
+        viewModel.CategoryName.ShouldBeNull();
+    }
+
+    [Fact]
+    public void MapProductModelWithNullImageUrlsList_ShouldMapImageUrlToNull()
+    {
+        var model = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "Null Images Product",
+            Price = 100,
+            Category = new ProductCategoryModel { Id = Guid.NewGuid(), Name = "C" },
+            Seller = new SellerModel { Id = Guid.NewGuid(), Username = "U", Email = "E" },
+
+            ImageUrls = null!
+        };
+
+        var viewModel = Mapper.Map<ProductViewModel>(model);
+
+        viewModel.ImageUrl.ShouldBeNull();
+    }
+
+    [Fact]
+    public void MapSellerModelToSellerViewModel_ShouldMap()
+    {
+        var model = new SellerModel
+        {
+            Id = Guid.NewGuid(),
+            Username = "BestSeller",
+            Email = "best@seller.com"
+        };
+
+        var viewModel = Mapper.Map<SellerViewModel>(model);
+
+        viewModel.Id.ShouldBe(model.Id);
+    }
+
+    [Fact]
+    public void MapCategoryModelToCategoryViewModel_ShouldMap()
+    {
+        var model = new CategoryModel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Laptops"
+        };
+
+        var viewModel = Mapper.Map<CategoryViewModel>(model);
+
+        viewModel.Id.ShouldBe(model.Id);
+        viewModel.Name.ShouldBe("Laptops");
+    }
+
+    [Fact]
+    public void MapUserModelToUserViewModel_ShouldMap()
+    {
+        var model = new UserModel
+        {
+            Id = Guid.NewGuid(),
+            Username = "ApiUser",
+            Email = "api@test.com",
+            Role = UserRoles.Admin,
+            AvatarUrl = "http://api-avatar.com",
+            Biography = "Api Bio",
+            RatingScore = 5.0,
+            RegistrationDate = DateTimeOffset.UtcNow
+        };
+
+        var viewModel = Mapper.Map<UserViewModel>(model);
+
+        viewModel.Id.ShouldBe(model.Id);
+        viewModel.Username.ShouldBe("ApiUser");
+        viewModel.Email.ShouldBe("api@test.com");
+        viewModel.AvatarUrl.ShouldBe("http://api-avatar.com");
+        viewModel.Biography.ShouldBe("Api Bio");
+        viewModel.RatingScore.ShouldBe(5.0);
+        viewModel.RegistrationDate.ShouldBe(model.RegistrationDate);
+    }
+
+    [Fact]
+    public void MapPagedResultProductModelToPagedResultProductViewModel_ShouldMap()
+    {
+        var productModel = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "P1",
+            Price = 100,
+            ImageUrls = new List<string> { "http://img.com" },
+
+            Category = new ProductCategoryModel { Id = Guid.NewGuid(), Name = "C1" },
+            Seller = new SellerModel { Id = Guid.NewGuid(), Username = "U1", Email = "E1" }
+        };
+
+        var sourcePagedResult = new PagedResult<ProductModel>
+        {
+            Items = new List<ProductModel> { productModel }
+        };
+
+        var result = Mapper.Map<PagedResult<ProductViewModel>>(sourcePagedResult);
+
+        result.Items.ShouldHaveSingleItem();
+
+        result.Items[0].Title.ShouldBe("P1");
+        result.Items[0].CategoryName.ShouldBe("C1");
+    }
+
+    [Fact]
+    public void MapEmptyPagedResult_ShouldReturnEmptyViewModelListNotThrow()
+    {
+        var sourcePagedResult = new PagedResult<ProductModel>
+        {
+            Items = new List<ProductModel>(),
+            ContinuationToken = null
+        };
+
+        var result = Mapper.Map<PagedResult<ProductViewModel>>(sourcePagedResult);
+
+        result.ShouldNotBeNull();
+        result.Items.ShouldBeEmpty();
+    }
+}

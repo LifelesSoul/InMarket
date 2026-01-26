@@ -1,0 +1,37 @@
+﻿using ProductService.Domain.Constants;
+using ProductService.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
+using UserService.Domain.Entities;
+
+namespace ProductService.Domain.Entities;
+
+[ExcludeFromCodeCoverage]
+public class Product : BaseEntity
+{
+    [MaxLength(DbConstants.TitleTextLength)]
+    public required string Title { get; set; }
+
+    public string? Description { get; set; }
+
+    [Column(TypeName = DbConstants.MoneyType)]
+    public required decimal Price { get; set; }
+
+    public DateTimeOffset CreationDate { get; set; } = TimeProvider.System.GetUtcNow();
+
+    public required Priority Priority { get; set; }
+
+    [Column(TypeName = DbConstants.Nvarhar50Type)]
+    public required ProductStatus Status { get; set; }
+
+    public required Guid CategoryId { get; set; }
+
+    public virtual required Category Category { get; set; }
+
+    public required Guid SellerId { get; set; }
+
+    public virtual required User Seller { get; set; }
+
+    public virtual IEnumerable<ProductImage> Images { get; set; } = new List<ProductImage>();
+}

@@ -1,0 +1,67 @@
+# --- Стандартный .gitignore для ASP.NET / Visual Studio ---
+
+## Игнорируем файлы, специфичные для операционной системы
+*.swp
+._*
+.DS_Store
+Thumbs.db
+
+## Игнорируем папки и файлы Visual Studio
+# (Пользовательские настройки, кэш, временные файлы)
+*.suo
+*.user
+*.userosscs
+*.sln.docstates
+.vs/
+.idea/
+
+## Игнорируем артефакты сборки
+# (Самые главные папки, которые нужно игнорировать)
+[Bb]in/
+[Oo]bj/
+
+## Игнорируем файлы, создаваемые при сборке
+*.pdb
+*.dll
+*.exe
+*.lib
+*.sbr
+*.obj
+
+## Игнорируем пакеты
+# Для старого формата packages.config (NuGet)
+packages/
+# Для NPM (если используется front-end)
+node_modules/
+
+## Игнорируем файлы конфигурации и секреты
+# Файлы пользовательских секретов (User Secrets)
+*.secrets.json
+# Локальные файлы настроек (не должны быть в репозитории)
+appsettings.Local.json
+*.env
+secrets.toml
+
+## Игнорируем файлы логов и баз данных
+*.log
+logs/
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+## Игнорируем результаты тестов и отчетов
+TestResults/
+*.trx
+*.coverlet.json
+coverage.cobertura.xml
+
+## Игнорируем артефакты публикации
+publish/
+[Rr]elease/
+[Dd]ebug/
+# (Примечание: Release/ и Debug/ обычно находятся внутри bin/, но на всякий случай)
+
+## Игнорируем специфичные файлы инструментов
+_ReSharper*/
+*.DotSettings.user

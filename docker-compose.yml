@@ -1,0 +1,27 @@
+services:
+  product-service:
+    image: product-service
+    build:
+      context: ./ProductService
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_HOST_PORT}:${APP_CONTAINER_PORT}"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_HTTP_PORTS=${APP_CONTAINER_PORT}
+      - ConnectionStrings__DefaultConnection=Server=${DB_HOST};Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=True;
+      - Webhooks__ApiKey=${WEBHOOK_API_KEY}
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:${MSSQL_VERSION}
+    container_name: ${DB_HOST
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_TCP_PORT=${DB_CONTAINER_PORT}
+    ports:
+      - "${DB_HOST_PORT}:${DB_CONTAINER_PORT}"
