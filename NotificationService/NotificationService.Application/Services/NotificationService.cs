@@ -4,6 +4,7 @@ using NotificationService.Application.Models;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Exceptions;
 using NotificationService.Infrastructure.Interfaces;
+using NotificationService.Infrastructure.Models;
 
 namespace NotificationService.Application.Services;
 
@@ -18,9 +19,11 @@ public class NotificationService : INotificationService
         _mapper = mapper;
     }
 
-    public async Task<Notification> Create(CreateNotificationModel model, CancellationToken cancellationToken)
+    public async Task<Notification> Create(CreateNotificationModel model, string ownerExternalId, CancellationToken cancellationToken)
     {
         var notification = _mapper.Map<Notification>(model);
+
+        notification.ExternalId = ownerExternalId;
 
         await _repository.Create(notification, cancellationToken);
 
@@ -52,8 +55,8 @@ public class NotificationService : INotificationService
         await _repository.Delete(id, cancellationToken);
     }
 
-    public async Task<IList<Notification>> GetByUserPaged(Guid userId, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IList<Notification>> GetByFilter(NotificationFilter filter, int page, int pageSize, CancellationToken cancellationToken)
     {
-        return await _repository.GetByUserIdPaged(userId, page, pageSize, cancellationToken);
+        return await _repository.GetByFilter(filter, page, pageSize, cancellationToken);
     }
 }
