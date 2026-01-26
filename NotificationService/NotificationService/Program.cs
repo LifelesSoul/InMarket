@@ -1,17 +1,26 @@
+using Microsoft.AspNetCore.Authorization;
+using NotificationService.API.Extensions;
 using NotificationService.Application;
+using NotificationService.Authorization;
 using NotificationService.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
+builder.Services.AddSwaggerInfrastructure();
+
+builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
 builder.Services.AddServices(builder.Configuration);
 
-builder.Services.AddOpenApi();
+builder.Services.AddAuth0Authentication(builder.Configuration);
+
+builder.Services.AddSingleton<IAuthorizationHandler, NotificationAuthorizationHandler>();
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("MustBeOwner", policy =>
+        policy.Requirements.Add(new SameAuthorRequirement()));
 
 var app = builder.Build();
 
@@ -25,6 +34,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
