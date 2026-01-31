@@ -1,5 +1,8 @@
-﻿namespace ProductService.Configurations;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.Configurations;
+
+[ExcludeFromCodeCoverage]
 public class RabbitMqSettings
 {
     public const string SectionName = "RabbitMq";

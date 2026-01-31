@@ -1,9 +1,12 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Options;
 using ProductService.Configurations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Extensions;
 
+
+[ExcludeFromCodeCoverage]
 public static class MassTransitExtensions
 {
     public static IServiceCollection AddRabbitMqInfrastructure(this IServiceCollection services, IConfiguration configuration)
