@@ -1,4 +1,7 @@
-﻿using Moq;
+﻿using AutoMapper;
+using MassTransit;
+using Moq;
+using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
@@ -13,15 +16,18 @@ namespace ProductService.Tests.Services.Product;
 public class ProductServiceTests : ServiceTestsBase
 {
     private readonly Mock<IProductRepository> _repositoryMock;
+    private readonly Mock<IPublishEndpoint> _publishEndpointMock;
     private readonly ProductsService _service;
 
     public ProductServiceTests()
     {
         _repositoryMock = new Mock<IProductRepository>();
+        _publishEndpointMock = new Mock<IPublishEndpoint>();
 
         _service = new ProductsService(
             _repositoryMock.Object,
-            MapperMock.Object
+            MapperMock.Object,
+            _publishEndpointMock.Object
         );
     }
 
@@ -66,7 +72,7 @@ public class ProductServiceTests : ServiceTestsBase
     }
 
     [Fact]
-    public async Task Create_ShouldReturnCreatedModel()
+    public async Task Create_ShouldReturnCreatedModel_AndPublishEvent()
     {
         var sellerId = Guid.NewGuid();
         var createModel = new CreateProductModel
@@ -94,6 +100,14 @@ public class ProductServiceTests : ServiceTestsBase
             Seller = null!
         };
 
+        var notificationEvent = new CreateNotificationEvent
+        {
+            Title = "T",
+            Message = "M",
+            UserId = sellerId,
+            ExternalId = "P"
+        };
+
         MapperMock
             .Setup(m => m.Map<Domain.Entities.Product>(createModel))
             .Returns(entityToCreate);
@@ -103,16 +117,23 @@ public class ProductServiceTests : ServiceTestsBase
             .ReturnsAsync(createdEntity);
 
         MapperMock
+            .Setup(m => m.Map<CreateNotificationEvent>(
+                createdEntity,
+                It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Returns(notificationEvent);
+
+        MapperMock
             .Setup(m => m.Map<ProductModel>(createdEntity))
             .Returns(expectedModel);
 
         var result = await _service.Create(createModel, sellerId, Ct);
 
         result.ShouldBe(expectedModel);
-
         entityToCreate.SellerId.ShouldBe(sellerId);
 
         _repositoryMock.Verify(r => r.Add(entityToCreate, Ct), Times.Once);
+
+        _publishEndpointMock.Verify(p => p.Publish(notificationEvent, Ct), Times.Once);
     }
 
     [Fact]
@@ -137,6 +158,8 @@ public class ProductServiceTests : ServiceTestsBase
             _service.Create(createModel, Guid.NewGuid(), Ct));
 
         exception.Message.ShouldBe("Failed to create product.");
+
+        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<object>(), Ct), Times.Never);
     }
 
     [Fact]
@@ -209,11 +232,11 @@ public class ProductServiceTests : ServiceTestsBase
 
         exception.Message.ShouldBe($"Product {id} not found");
 
-        _repositoryMock.Verify(r => r.Delete(It.IsAny<ProductService.Domain.Entities.Product>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
     }
 
     [Fact]
-    public async Task Update_WhenExists_UpdatesAndReturnsModel()
+    public async Task Update_WhenExists_UpdatesAndReturnsModel_AndPublishesEvent()
     {
         var id = Guid.NewGuid();
         var updateModel = new UpdateProductModel
@@ -239,6 +262,14 @@ public class ProductServiceTests : ServiceTestsBase
             Seller = null!
         };
 
+        var notificationEvent = new CreateNotificationEvent
+        {
+            Title = "T",
+            Message = "M",
+            UserId = id,
+            ExternalId = "P"
+        };
+
         _repositoryMock
             .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync(existingEntity);
@@ -251,6 +282,12 @@ public class ProductServiceTests : ServiceTestsBase
             });
 
         MapperMock
+            .Setup(m => m.Map<CreateNotificationEvent>(
+                existingEntity,
+                It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Returns(notificationEvent);
+
+        MapperMock
             .Setup(m => m.Map<ProductModel>(existingEntity))
             .Returns(expectedModel);
 
@@ -259,6 +296,8 @@ public class ProductServiceTests : ServiceTestsBase
         result.ShouldBe(expectedModel);
 
         _repositoryMock.Verify(r => r.Update(existingEntity, updateModel.ImageUrls, Ct), Times.Once);
+
+        _publishEndpointMock.Verify(p => p.Publish(notificationEvent, Ct), Times.Once);
     }
 
     [Fact]
@@ -286,6 +325,8 @@ public class ProductServiceTests : ServiceTestsBase
             It.IsAny<Domain.Entities.Product>(),
             It.IsAny<ICollection<string>>(),
             Ct), Times.Never);
+
+        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<object>(), Ct), Times.Never);
     }
 
     private static Domain.Entities.Product CreateProductEntity()
