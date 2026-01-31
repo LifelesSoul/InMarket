@@ -1,4 +1,5 @@
-﻿using ProductService.BLL.Mappings;
+﻿using ProductService.BLL.Events;
+using ProductService.BLL.Mappings;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
@@ -310,6 +311,29 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         result.ShouldNotBeNull();
         result.Items.ShouldNotBeNull();
         result.Items.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void MapProductToCreateNotificationEvent_ShouldMapContextItemsAndSellerId()
+    {
+        var product = CreateValidProduct();
+        var expectedTitle = "Custom Title Notification";
+        var expectedMessage = "This is a custom message from context";
+
+        var result = Mapper.Map<CreateNotificationEvent>(product, opt =>
+        {
+            opt.Items["Title"] = expectedTitle;
+            opt.Items["Message"] = expectedMessage;
+        });
+
+        result.ShouldNotBeNull();
+
+        result.UserId.ShouldBe(product.SellerId);
+
+        result.ExternalId.ShouldBe("ProductService");
+
+        result.Title.ShouldBe(expectedTitle);
+        result.Message.ShouldBe(expectedMessage);
     }
 
     private static Product CreateValidProduct()

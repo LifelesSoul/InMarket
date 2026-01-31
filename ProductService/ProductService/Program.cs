@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ProductService.API.Configurations;
+using ProductService.API.Extensions;
 using ProductService.BLL.DI;
 using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
@@ -51,6 +52,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             RoleClaimType = "https://inmarket-api/roles"
         };
     });
+
+builder.Services.AddRabbitMqInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 

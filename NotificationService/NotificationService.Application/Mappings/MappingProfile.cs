@@ -8,6 +8,8 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        CreateMap<CreateNotificationEvent, CreateNotificationModel>();
+
         CreateMap<CreateNotificationModel, Notification>()
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => TimeProvider.System.GetUtcNow()));
     }

@@ -22,6 +22,8 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("MustBeOwner", policy =>
         policy.Requirements.Add(new SameAuthorRequirement()));
 
+builder.Services.AddRabbitMqInfrastructure(builder.Configuration);
+
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();

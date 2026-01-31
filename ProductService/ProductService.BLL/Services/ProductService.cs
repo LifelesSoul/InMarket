@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using MassTransit;
+using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.DAL.Repositories;
@@ -6,7 +8,10 @@ using ProductService.Domain.Entities;
 
 namespace ProductService.BLL.Services;
 
-public class ProductsService(IProductRepository repository, IMapper mapper) : IProductService
+public class ProductsService(
+    IProductRepository repository,
+    IMapper mapper,
+    IPublishEndpoint publishEndpoint) : IProductService
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
@@ -18,11 +23,18 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
     public async Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken)
     {
         var entity = mapper.Map<Product>(model);
-
         entity.SellerId = sellerId;
 
         var createdProduct = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create product.");
+
+        var notificationEvent = mapper.Map<CreateNotificationEvent>(createdProduct, opt =>
+        {
+            opt.Items["Title"] = "Product created";
+            opt.Items["Message"] = $"Your product '{createdProduct.Title}' has been successfully published!";
+        });
+
+        await publishEndpoint.Publish(notificationEvent, cancellationToken);
 
         return mapper.Map<ProductModel>(createdProduct);
     }
@@ -51,6 +63,14 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
         mapper.Map(model, product);
 
         await repository.Update(product, model.ImageUrls, cancellationToken);
+
+        var notificationEvent = mapper.Map<CreateNotificationEvent>(product, opt =>
+        {
+            opt.Items["Title"] = "Product updated";
+            opt.Items["Message"] = $"Your product '{product.Title}' has been successfully updated!";
+        });
+
+        await publishEndpoint.Publish(notificationEvent, cancellationToken);
 
         return mapper.Map<ProductModel>(product);
     }

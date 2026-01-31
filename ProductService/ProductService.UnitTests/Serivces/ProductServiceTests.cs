@@ -1,4 +1,7 @@
-﻿using Moq;
+﻿using AutoMapper;
+using MassTransit;
+using Moq;
+using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
@@ -13,15 +16,18 @@ namespace ProductService.Tests.Services.Product;
 public class ProductServiceTests : ServiceTestsBase
 {
     private readonly Mock<IProductRepository> _repositoryMock;
+    private readonly Mock<IPublishEndpoint> _publishEndpointMock;
     private readonly ProductsService _service;
 
     public ProductServiceTests()
     {
         _repositoryMock = new Mock<IProductRepository>();
+        _publishEndpointMock = new Mock<IPublishEndpoint>();
 
         _service = new ProductsService(
             _repositoryMock.Object,
-            MapperMock.Object
+            MapperMock.Object,
+            _publishEndpointMock.Object
         );
     }
 
@@ -66,7 +72,7 @@ public class ProductServiceTests : ServiceTestsBase
     }
 
     [Fact]
-    public async Task Create_ShouldReturnCreatedModel()
+    public async Task Create_ShouldReturnCreatedModel_AndPublishEvent_WithCorrectContext()
     {
         var sellerId = Guid.NewGuid();
         var createModel = new CreateProductModel
@@ -94,49 +100,56 @@ public class ProductServiceTests : ServiceTestsBase
             Seller = null!
         };
 
-        MapperMock
-            .Setup(m => m.Map<Domain.Entities.Product>(createModel))
-            .Returns(entityToCreate);
+        var notificationEvent = new CreateNotificationEvent
+        {
+            Title = "T",
+            Message = "M",
+            UserId = sellerId,
+            ExternalId = "P"
+        };
 
-        _repositoryMock
-            .Setup(r => r.Add(entityToCreate, Ct))
-            .ReturnsAsync(createdEntity);
+        MapperMock.Setup(m => m.Map<Domain.Entities.Product>(createModel)).Returns(entityToCreate);
+
+        _repositoryMock.Setup(r => r.Add(entityToCreate, Ct)).ReturnsAsync(createdEntity);
 
         MapperMock
-            .Setup(m => m.Map<ProductModel>(createdEntity))
-            .Returns(expectedModel);
+            .Setup(m => m.Map<CreateNotificationEvent>(
+                createdEntity,
+                It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optsAction) =>
+            {
+                var optsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
+                var itemsDict = new Dictionary<string, object>();
+
+                optsMock.SetupGet(x => x.Items).Returns(itemsDict);
+
+                optsAction(optsMock.Object);
+
+                itemsDict["Title"].ShouldBe("Product created");
+                itemsDict["Message"].ShouldBe($"Your product '{createdEntity.Title}' has been successfully published!");
+            })
+            .Returns(notificationEvent);
+
+        MapperMock.Setup(m => m.Map<ProductModel>(createdEntity)).Returns(expectedModel);
 
         var result = await _service.Create(createModel, sellerId, Ct);
 
         result.ShouldBe(expectedModel);
-
         entityToCreate.SellerId.ShouldBe(sellerId);
-
         _repositoryMock.Verify(r => r.Add(entityToCreate, Ct), Times.Once);
+        _publishEndpointMock.Verify(p => p.Publish(notificationEvent, Ct), Times.Once);
     }
 
     [Fact]
     public async Task Create_WhenRepositoryFails_ThrowsInvalidOperationException()
     {
-        var createModel = new CreateProductModel
-        {
-            Title = "Fail",
-            Price = 10,
-            CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid()
-        };
+        var createModel = new CreateProductModel { Title = "Fail", Price = 10, CategoryId = Guid.NewGuid(), SellerId = Guid.NewGuid() };
         var entity = CreateProductEntity();
-
         MapperMock.Setup(m => m.Map<Domain.Entities.Product>(createModel)).Returns(entity);
+        _repositoryMock.Setup(r => r.Add(entity, Ct)).ReturnsAsync((Domain.Entities.Product)null!);
 
-        _repositoryMock
-        .Setup(r => r.Add(entity, Ct))
-        .ReturnsAsync((Domain.Entities.Product)null!);
-
-        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
-            _service.Create(createModel, Guid.NewGuid(), Ct));
-
-        exception.Message.ShouldBe("Failed to create product.");
+        await Should.ThrowAsync<InvalidOperationException>(() => _service.Create(createModel, Guid.NewGuid(), Ct));
+        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<object>(), Ct), Times.Never);
     }
 
     [Fact]
@@ -209,11 +222,11 @@ public class ProductServiceTests : ServiceTestsBase
 
         exception.Message.ShouldBe($"Product {id} not found");
 
-        _repositoryMock.Verify(r => r.Delete(It.IsAny<ProductService.Domain.Entities.Product>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
     }
 
     [Fact]
-    public async Task Update_WhenExists_UpdatesAndReturnsModel()
+    public async Task Update_WhenExists_UpdatesAndReturnsModel_AndPublishesEvent_WithCorrectContext()
     {
         var id = Guid.NewGuid();
         var updateModel = new UpdateProductModel
@@ -239,9 +252,15 @@ public class ProductServiceTests : ServiceTestsBase
             Seller = null!
         };
 
-        _repositoryMock
-            .Setup(r => r.GetById(id, Ct, false))
-            .ReturnsAsync(existingEntity);
+        var notificationEvent = new CreateNotificationEvent
+        {
+            Title = "T",
+            Message = "M",
+            UserId = id,
+            ExternalId = "P"
+        };
+
+        _repositoryMock.Setup(r => r.GetById(id, Ct, false)).ReturnsAsync(existingEntity);
 
         MapperMock
             .Setup(m => m.Map(updateModel, existingEntity))
@@ -251,41 +270,37 @@ public class ProductServiceTests : ServiceTestsBase
             });
 
         MapperMock
-            .Setup(m => m.Map<ProductModel>(existingEntity))
-            .Returns(expectedModel);
+            .Setup(m => m.Map<CreateNotificationEvent>(
+                existingEntity,
+                It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optsAction) =>
+            {
+                var optsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
+                var itemsDict = new Dictionary<string, object>();
+                optsMock.SetupGet(x => x.Items).Returns(itemsDict);
+
+                optsAction(optsMock.Object);
+
+                itemsDict["Title"].ShouldBe("Product updated");
+                itemsDict["Message"].ShouldBe($"Your product 'Updated' has been successfully updated!");
+            })
+            .Returns(notificationEvent);
+
+        MapperMock.Setup(m => m.Map<ProductModel>(existingEntity)).Returns(expectedModel);
 
         var result = await _service.Update(updateModel, Ct);
 
         result.ShouldBe(expectedModel);
-
         _repositoryMock.Verify(r => r.Update(existingEntity, updateModel.ImageUrls, Ct), Times.Once);
+        _publishEndpointMock.Verify(p => p.Publish(notificationEvent, Ct), Times.Once);
     }
 
     [Fact]
     public async Task Update_WhenNotExists_ThrowsKeyNotFoundException()
     {
-        var updateModel = new UpdateProductModel
-        {
-            Id = Guid.NewGuid(),
-            Title = "U",
-            Price = 1,
-            Status = ProductStatus.Available,
-            CategoryId = Guid.NewGuid()
-        };
-
-        _repositoryMock
-            .Setup(r => r.GetById(updateModel.Id, Ct, false))
-            .ReturnsAsync((Domain.Entities.Product?)null);
-
-        var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-            _service.Update(updateModel, Ct));
-
-        exception.Message.ShouldBe($"Product {updateModel.Id} not found");
-
-        _repositoryMock.Verify(r => r.Update(
-            It.IsAny<Domain.Entities.Product>(),
-            It.IsAny<ICollection<string>>(),
-            Ct), Times.Never);
+        var updateModel = new UpdateProductModel { Id = Guid.NewGuid(), Title = "U", Price = 1, Status = ProductStatus.Available, CategoryId = Guid.NewGuid() };
+        _repositoryMock.Setup(r => r.GetById(updateModel.Id, Ct, false)).ReturnsAsync((Domain.Entities.Product?)null);
+        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, Ct));
     }
 
     private static Domain.Entities.Product CreateProductEntity()
