@@ -1,11 +1,13 @@
-﻿using NotificationService.Application.Interfaces;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models.Events;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 
-namespace NotificationService.API.BackgroundServices;
+namespace NotificationService.Application.BackgroundServices;
 
 public class RabbitMqListener(IConnection connection, IServiceScopeFactory scopeFactory) : BackgroundService
 {
@@ -14,7 +16,6 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _channel = connection.CreateModel();
-
         _channel.ExchangeDeclare("notification-create", ExchangeType.Fanout, durable: true);
 
         var queueName = "notification.service.queue";
@@ -33,25 +34,22 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var service = scope.ServiceProvider.GetRequiredService<INotificationService>();
-
                     var notificationEvent = JsonSerializer.Deserialize<CreateNotificationEvent>(message);
 
                     if (notificationEvent != null)
                     {
                         await service.HandleProductCreated(notificationEvent, stoppingToken);
-
                         _channel?.BasicAck(args.DeliveryTag, false);
                     }
                     else
                     {
-                        Console.WriteLine("Empty message.");
                         _channel?.BasicAck(args.DeliveryTag, false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error message: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
         };
 
