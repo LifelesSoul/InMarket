@@ -20,7 +20,7 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
 
         var queueName = "notification.service.queue";
         _channel.QueueDeclare(queueName, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queueName, "notification-create", "");
+        _channel.QueueBind(queueName, "notification-create", string.Empty);
 
         var consumer = new EventingBasicConsumer(_channel);
 
@@ -36,7 +36,7 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
                     var service = scope.ServiceProvider.GetRequiredService<INotificationService>();
                     var notificationEvent = JsonSerializer.Deserialize<CreateNotificationEvent>(message);
 
-                    if (notificationEvent != null)
+                    if (notificationEvent is not null)
                     {
                         await service.HandleProductCreated(notificationEvent, stoppingToken);
                         _channel?.BasicAck(args.DeliveryTag, false);
@@ -49,7 +49,7 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                throw;
             }
         };
 

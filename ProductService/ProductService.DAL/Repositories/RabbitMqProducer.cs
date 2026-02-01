@@ -29,7 +29,7 @@ public class RabbitMqProducer : IMessageProducer, IDisposable
 
         lock (_channel)
         {
-            _channel.BasicPublish(ExchangeName, "", properties, body);
+            _channel.BasicPublish(ExchangeName, string.Empty, properties, body);
         }
     }
 
