@@ -22,10 +22,7 @@ public class RabbitMqProducer : IMessageProducer, IDisposable
 
     public void SendMessage<T>(T message)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(RabbitMqProducer));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var json = JsonSerializer.Serialize(message);
         var body = Encoding.UTF8.GetBytes(json);
