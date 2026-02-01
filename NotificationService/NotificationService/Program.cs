@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using NotificationService.API.BackgroundServices;
 using NotificationService.API.Extensions;
 using NotificationService.Application;
 using NotificationService.Authorization;
@@ -15,6 +16,10 @@ builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddAuth0Authentication(builder.Configuration);
+
+builder.Services.AddRabbitMq(builder.Configuration);
+
+builder.Services.AddHostedService<RabbitMqListener>();
 
 builder.Services.AddSingleton<IAuthorizationHandler, NotificationAuthorizationHandler>();
 

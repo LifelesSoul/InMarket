@@ -1,12 +1,18 @@
 ﻿using AutoMapper;
+using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
+using ProductService.DAL.Interfaces;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
 
 namespace ProductService.BLL.Services;
 
-public class ProductsService(IProductRepository repository, IMapper mapper) : IProductService
+public class ProductsService(
+    IProductRepository repository,
+    IMapper mapper,
+    IMessageProducer producer
+    ) : IProductService
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
@@ -23,6 +29,14 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
 
         var createdProduct = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create product.");
+
+        var notificationEvent = mapper.Map<CreateNotificationEvent>(createdProduct, opt =>
+        {
+            opt.Items["Title"] = "Product created";
+            opt.Items["Message"] = $"Your product '{createdProduct.Title}' has been successfully published!";
+        });
+
+        producer.SendMessage(notificationEvent);
 
         return mapper.Map<ProductModel>(createdProduct);
     }
@@ -51,6 +65,14 @@ public class ProductsService(IProductRepository repository, IMapper mapper) : IP
         mapper.Map(model, product);
 
         await repository.Update(product, model.ImageUrls, cancellationToken);
+
+        var notificationEvent = mapper.Map<CreateNotificationEvent>(product, opt =>
+        {
+            opt.Items["Title"] = "Product updated";
+            opt.Items["Message"] = $"Your product '{product.Title}' has been successfully updated!";
+        });
+
+        producer.SendMessage(notificationEvent);
 
         return mapper.Map<ProductModel>(product);
     }

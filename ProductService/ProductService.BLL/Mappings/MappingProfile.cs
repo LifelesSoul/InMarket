@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ProductService.BLL.Events;
 using ProductService.BLL.Extensions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
@@ -58,5 +59,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Email.Substring(0, src.Email.IndexOf('@'))))
             .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => TimeProvider.System.GetUtcNow()))
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRoles.Buyer));
+
+        CreateMap<Product, CreateNotificationEvent>()
+            .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.SellerId))
+            .ForMember(dest => dest.Title, opt => opt.MapFrom((src, dest, _, context) => context.Items["Title"]))
+            .ForMember(dest => dest.Message, opt => opt.MapFrom((src, dest, _, context) => context.Items["Message"]));
     }
 }
