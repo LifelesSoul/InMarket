@@ -1,12 +1,12 @@
 ﻿namespace NotificationService.Application.Models.Events;
 
-public class CreateNotificationEvent
+public record CreateNotificationEvent
 {
-    public Guid UserId { get; set; }
+    public required Guid UserId { get; init; }
 
-    public string Title { get; set; } = string.Empty;
+    public required string Title { get; init; }
 
-    public string Message { get; set; } = string.Empty;
+    public required string Message { get; init; }
 
-    public Guid ProductId { get; set; }
+    public required Guid ProductId { get; init; }
 }

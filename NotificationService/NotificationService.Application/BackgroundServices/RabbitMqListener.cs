@@ -13,14 +13,17 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
 {
     private IModel? _channel;
 
+    private const string ExchangeName = "notification-create";
+    private const string QueueName = "notification.service.queue";
+
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _channel = connection.CreateModel();
-        _channel.ExchangeDeclare("notification-create", ExchangeType.Fanout, durable: true);
+        _channel.ExchangeDeclare(ExchangeName, ExchangeType.Fanout, durable: true);
 
-        var queueName = "notification.service.queue";
+        var queueName = QueueName;
         _channel.QueueDeclare(queueName, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queueName, "notification-create", string.Empty);
+        _channel.QueueBind(queueName, ExchangeName, string.Empty);
 
         var consumer = new EventingBasicConsumer(_channel);
 
@@ -47,7 +50,7 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
