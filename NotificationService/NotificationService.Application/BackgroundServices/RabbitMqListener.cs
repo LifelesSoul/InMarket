@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NotificationService.Application.Interfaces;
-using NotificationService.Application.Models.Events;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -9,21 +8,35 @@ using System.Text.Json;
 
 namespace NotificationService.Application.BackgroundServices;
 
-public class RabbitMqListener(IConnection connection, IServiceScopeFactory scopeFactory) : BackgroundService
+public class GenericRabbitMqListener<TEvent> : BackgroundService
 {
+    private readonly IConnection _connection;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly string _queueName;
+    private readonly string _exchangeName;
     private IModel? _channel;
 
-    private const string ExchangeName = "notification-create";
-    private const string QueueName = "notification.service.queue";
+    public GenericRabbitMqListener(
+        IConnection connection,
+        IServiceScopeFactory scopeFactory,
+        string queueName,
+        string exchangeName)
+    {
+        _connection = connection;
+        _scopeFactory = scopeFactory;
+        _queueName = queueName;
+        _exchangeName = exchangeName;
+    }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _channel = connection.CreateModel();
-        _channel.ExchangeDeclare(ExchangeName, ExchangeType.Fanout, durable: true);
+        _channel = _connection.CreateModel();
 
-        var queueName = QueueName;
-        _channel.QueueDeclare(queueName, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(queueName, ExchangeName, string.Empty);
+        _channel.ExchangeDeclare(_exchangeName, ExchangeType.Fanout, durable: true);
+        _channel.QueueDeclare(_queueName, durable: true, exclusive: false, autoDelete: false);
+        _channel.QueueBind(_queueName, _exchangeName, string.Empty);
+
+        _channel.BasicQos(0, 1, false);
 
         var consumer = new EventingBasicConsumer(_channel);
 
@@ -34,14 +47,16 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
 
             try
             {
-                using (var scope = scopeFactory.CreateScope())
+                using (var scope = _scopeFactory.CreateScope())
                 {
-                    var service = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    var notificationEvent = JsonSerializer.Deserialize<CreateNotificationEvent>(message);
+                    var handler = scope.ServiceProvider.GetRequiredService<IIntegrationEventHandler<TEvent>>();
 
-                    if (notificationEvent is not null)
+                    var eventData = JsonSerializer.Deserialize<TEvent>(message);
+
+                    if (eventData is not null)
                     {
-                        await service.HandleProductCreated(notificationEvent, stoppingToken);
+                        await handler.Handle(eventData);
+
                         _channel?.BasicAck(args.DeliveryTag, false);
                     }
                     else
@@ -52,11 +67,11 @@ public class RabbitMqListener(IConnection connection, IServiceScopeFactory scope
             }
             catch (Exception)
             {
-                throw;
+                _channel?.BasicNack(args.DeliveryTag, false, requeue: false);
             }
         };
 
-        _channel.BasicConsume(queueName, false, consumer);
+        _channel.BasicConsume(_queueName, false, consumer);
         return Task.CompletedTask;
     }
 

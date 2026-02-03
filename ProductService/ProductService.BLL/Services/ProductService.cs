@@ -32,8 +32,8 @@ public class ProductsService(
 
         var notificationEvent = mapper.Map<CreateNotificationEvent>(createdProduct, opt =>
         {
-            opt.Items["Title"] = "Product created";
-            opt.Items["Message"] = $"Your product '{createdProduct.Title}' has been successfully published!";
+            opt.Items[nameof(CreateNotificationEvent.Title)] = "Product created";
+            opt.Items[nameof(CreateNotificationEvent.Message)] = $"Your product '{createdProduct.Title}' has been successfully published!";
         });
 
         producer.SendMessage(notificationEvent);
@@ -68,8 +68,8 @@ public class ProductsService(
 
         var notificationEvent = mapper.Map<CreateNotificationEvent>(product, opt =>
         {
-            opt.Items["Title"] = "Product updated";
-            opt.Items["Message"] = $"Your product '{product.Title}' has been successfully updated!";
+            opt.Items[nameof(CreateNotificationEvent.Title)] = "Product updated";
+            opt.Items[nameof(CreateNotificationEvent.Message)] = $"Your product '{product.Title}' has been successfully updated!";
         });
 
         producer.SendMessage(notificationEvent);

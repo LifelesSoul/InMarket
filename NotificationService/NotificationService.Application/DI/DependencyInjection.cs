@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NotificationService.Application.BackgroundServices;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Mappings;
 using NotificationService.Infrastructure;
@@ -18,8 +17,6 @@ public static class DependencyInjection
         services.AddRepositories(configuration);
 
         services.AddAutoMapper(typeof(MappingProfile));
-
-        services.AddHostedService<RabbitMqListener>();
 
         return services;
     }
