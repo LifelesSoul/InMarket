@@ -3,7 +3,6 @@ using MassTransit;
 using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
-using ProductService.DAL.Interfaces;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
 

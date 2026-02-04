@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using ProductService.DAL.Interfaces;
 using ProductService.DAL.Repositories;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,8 +12,6 @@ public static class DependencyInjection
         services.AddScoped<IProductRepository, ProductRepository>()
                 .AddScoped<ICategoryRepository, CategoryRepository>()
                 .AddScoped<IUserRepository, UserRepository>();
-
-        services.AddSingleton<IMessageProducer, RabbitMqProducer>();
 
         return services;
     }
