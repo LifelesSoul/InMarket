@@ -91,7 +91,13 @@ public class ProductServiceTests : ServiceTestsBase
         createdEntity.Title = "New Product";
         createdEntity.SellerId = sellerId;
 
-        var notificationEvent = new CreateNotificationEvent();
+        var notificationEvent = new CreateNotificationEvent
+        {
+            UserId = sellerId,
+            ProductId = createdEntity.Id,
+            Title = "Product created",
+            Message = "Your product has been published"
+        };
 
         var expectedModel = new ProductModel
         {
@@ -258,7 +264,13 @@ public class ProductServiceTests : ServiceTestsBase
         existingEntity.Id = id;
         existingEntity.Title = "Old";
 
-        var notificationEvent = new CreateNotificationEvent();
+        var notificationEvent = new CreateNotificationEvent
+        {
+            UserId = existingEntity.SellerId,
+            ProductId = id,
+            Title = "Product updated",
+            Message = "Your product has been updated"
+        };
 
         var expectedModel = new ProductModel
         {
