@@ -17,6 +17,7 @@
   <ItemGroup>
     <Compile Include="Configuration\Auth0Settings.cs" />
     <Compile Include="Configuration\AuthConstants.cs" />
+    <Compile Include="Configuration\RabbitMQOptions.cs" />
   </ItemGroup>
 
   <ItemGroup>

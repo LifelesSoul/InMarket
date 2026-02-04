@@ -1,4 +1,5 @@
 ﻿using NotificationService.Application.Models;
+using NotificationService.Application.Models.Events;
 using NotificationService.Domain.Entities;
 using NotificationService.Infrastructure.Models;
 
@@ -11,4 +12,5 @@ public interface INotificationService
     Task Update(string id, UpdateNotificationModel model, CancellationToken cancellationToken);
     Task Delete(string id, CancellationToken cancellationToken);
     Task<IList<Notification>> GetByFilter(NotificationFilter filter, int page, int pageSize, CancellationToken cancellationToken);
+    Task HandleProductCreated(CreateNotificationEvent notificationEvent, CancellationToken cancellationToken);
 }
