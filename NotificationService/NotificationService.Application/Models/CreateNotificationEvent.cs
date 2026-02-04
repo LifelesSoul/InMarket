@@ -1,15 +1,12 @@
 ﻿using MassTransit;
-using System.Diagnostics.CodeAnalysis;
 
-namespace ProductService.BLL.Events;
+namespace NotificationService.Application.Models;
 
-[ExcludeFromCodeCoverage]
 public static class NotificationConfig
 {
     public const string ExchangeName = "notification-create";
 }
 
-[ExcludeFromCodeCoverage]
 [EntityName(NotificationConfig.ExchangeName)]
 [MessageUrn(NotificationConfig.ExchangeName)]
 public record CreateNotificationEvent

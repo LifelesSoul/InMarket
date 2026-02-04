@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using MassTransit;
 using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
-using ProductService.DAL.Interfaces;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
 
@@ -11,8 +11,7 @@ namespace ProductService.BLL.Services;
 public class ProductsService(
     IProductRepository repository,
     IMapper mapper,
-    IMessageProducer producer
-    ) : IProductService
+    IPublishEndpoint publishEndpoint) : IProductService
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
@@ -24,7 +23,6 @@ public class ProductsService(
     public async Task<ProductModel> Create(CreateProductModel model, Guid sellerId, CancellationToken cancellationToken)
     {
         var entity = mapper.Map<Product>(model);
-
         entity.SellerId = sellerId;
 
         var createdProduct = await repository.Add(entity, cancellationToken)
@@ -32,11 +30,11 @@ public class ProductsService(
 
         var notificationEvent = mapper.Map<CreateNotificationEvent>(createdProduct, opt =>
         {
-            opt.Items[nameof(CreateNotificationEvent.Title)] = "Product created";
-            opt.Items[nameof(CreateNotificationEvent.Message)] = $"Your product '{createdProduct.Title}' has been successfully published!";
+            opt.Items["Title"] = "Product created";
+            opt.Items["Message"] = $"Your product '{createdProduct.Title}' has been successfully published!";
         });
 
-        producer.SendMessage(notificationEvent);
+        await publishEndpoint.Publish(notificationEvent, cancellationToken);
 
         return mapper.Map<ProductModel>(createdProduct);
     }
@@ -68,11 +66,11 @@ public class ProductsService(
 
         var notificationEvent = mapper.Map<CreateNotificationEvent>(product, opt =>
         {
-            opt.Items[nameof(CreateNotificationEvent.Title)] = "Product updated";
-            opt.Items[nameof(CreateNotificationEvent.Message)] = $"Your product '{product.Title}' has been successfully updated!";
+            opt.Items["Title"] = "Product updated";
+            opt.Items["Message"] = $"Your product '{product.Title}' has been successfully updated!";
         });
 
-        producer.SendMessage(notificationEvent);
+        await publishEndpoint.Publish(notificationEvent, cancellationToken);
 
         return mapper.Map<ProductModel>(product);
     }

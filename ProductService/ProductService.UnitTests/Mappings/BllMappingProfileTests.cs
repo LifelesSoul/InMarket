@@ -330,9 +330,12 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 
         result.UserId.ShouldBe(product.SellerId);
 
+        result.ExternalId.ShouldBe("ProductService");
+
         result.Title.ShouldBe(expectedTitle);
         result.Message.ShouldBe(expectedMessage);
     }
+
     private static Product CreateValidProduct()
     {
         var sellerId = Guid.NewGuid();
