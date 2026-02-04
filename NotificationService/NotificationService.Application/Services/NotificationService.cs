@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
+using NotificationService.Application.Models.Events;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Exceptions;
 using NotificationService.Infrastructure.Interfaces;
@@ -58,5 +59,14 @@ public class NotificationService : INotificationService
     public async Task<IList<Notification>> GetByFilter(NotificationFilter filter, int page, int pageSize, CancellationToken cancellationToken)
     {
         return await _repository.GetByFilter(filter, page, pageSize, cancellationToken);
+    }
+
+    public async Task HandleProductCreated(CreateNotificationEvent notificationEvent, CancellationToken cancellationToken)
+    {
+        var createModel = _mapper.Map<CreateNotificationModel>(notificationEvent);
+
+        var ownerExternalId = notificationEvent.ProductId.ToString();
+
+        await Create(createModel, ownerExternalId, cancellationToken);
     }
 }
