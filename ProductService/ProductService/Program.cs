@@ -9,6 +9,7 @@ using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
 using ProductService.Mappings;
 using ProductService.Middlewares;
+using RabbitMQ.Client;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,19 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseLazyLoadingProxies();
 
     options.UseSqlServer(connectionString);
+});
+
+builder.Services.AddSingleton<IConnection>(sp =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("RabbitMq");
+
+    var factory = new ConnectionFactory
+    {
+        Uri = new Uri(connectionString),
+        ClientProvidedName = "ProductService API"
+    };
+
+    return factory.CreateConnection();
 });
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));

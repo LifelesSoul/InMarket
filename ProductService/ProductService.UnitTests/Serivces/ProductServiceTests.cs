@@ -5,6 +5,7 @@ using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
+using ProductService.DAL.Interfaces;
 using ProductService.DAL.Models;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Enums;
@@ -90,6 +91,14 @@ public class ProductServiceTests : ServiceTestsBase
         createdEntity.Id = Guid.NewGuid();
         createdEntity.Title = "New Product";
         createdEntity.SellerId = sellerId;
+
+        var notificationEvent = new CreateNotificationEvent
+        {
+            UserId = sellerId,
+            ProductId = createdEntity.Id,
+            Title = "Product created",
+            Message = "Your product has been published"
+        };
 
         var expectedModel = new ProductModel
         {
@@ -243,6 +252,14 @@ public class ProductServiceTests : ServiceTestsBase
         existingEntity.Id = id;
         existingEntity.Title = "Old";
 
+        var notificationEvent = new CreateNotificationEvent
+        {
+            UserId = existingEntity.SellerId,
+            ProductId = id,
+            Title = "Product updated",
+            Message = "Your product has been updated"
+        };
+
         var expectedModel = new ProductModel
         {
             Id = id,
@@ -268,6 +285,28 @@ public class ProductServiceTests : ServiceTestsBase
             {
                 dest.Title = src.Title;
             });
+
+        _repositoryMock
+            .Setup(r => r.Update(existingEntity, updateModel.ImageUrls, Ct))
+            .Returns(Task.CompletedTask);
+
+        MapperMock
+            .Setup(m => m.Map<CreateNotificationEvent>(
+                existingEntity,
+                It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optsAction) =>
+            {
+                var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
+                var items = new Dictionary<string, object>();
+
+                optionsMock.SetupGet(o => o.Items).Returns(items);
+
+                optsAction(optionsMock.Object);
+
+                items["Title"].ShouldBe("Product updated");
+                items["Message"].ShouldBe($"Your product '{existingEntity.Title}' has been successfully updated!");
+            })
+            .Returns(notificationEvent);
 
         MapperMock
             .Setup(m => m.Map<CreateNotificationEvent>(
