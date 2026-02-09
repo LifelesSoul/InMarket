@@ -1,7 +1,9 @@
-﻿using System.Security.Claims;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 
 namespace ProductService.API.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class ClaimsPrincipalExtensions
 {
     public static string GetExternalId(this ClaimsPrincipal principal)
