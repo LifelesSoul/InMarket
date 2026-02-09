@@ -13,4 +13,8 @@ public record RabbitMqSettings
     public required string Password { get; init; }
 
     public required string QueueName { get; init; }
+
+    public required int RetryCount { get; init; } = 3;
+
+    public int RetryIntervalSeconds { get; init; } = 5;
 }

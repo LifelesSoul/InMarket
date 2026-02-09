@@ -319,18 +319,20 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         var product = CreateValidProduct();
         var expectedTitle = "Custom Title Notification";
         var expectedMessage = "This is a custom message from context";
+        var expectedExternalUserId = "auth0|123456";
 
         var result = Mapper.Map<CreateNotificationEvent>(product, opt =>
         {
-            opt.Items["Title"] = expectedTitle;
-            opt.Items["Message"] = expectedMessage;
+            opt.Items[nameof(CreateNotificationEvent.Title)] = expectedTitle;
+            opt.Items[nameof(CreateNotificationEvent.Message)] = expectedMessage;
+            opt.Items[nameof(CreateNotificationEvent.ExternalId)] = expectedExternalUserId;
         });
 
         result.ShouldNotBeNull();
 
         result.UserId.ShouldBe(product.SellerId);
 
-        result.ExternalId.ShouldBe("ProductService");
+        result.ExternalId.ShouldBe(expectedExternalUserId);
 
         result.Title.ShouldBe(expectedTitle);
         result.Message.ShouldBe(expectedMessage);
@@ -342,8 +344,8 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         var seller = new User
         {
             Id = sellerId,
-            Username = "U",
-            Email = "E",
+            Username = "ValidSeller",
+            Email = "valid@test.com",
             Profile = null!
         };
         seller.Profile = new UserProfile { UserId = sellerId, User = seller };
@@ -351,13 +353,13 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
         return new Product
         {
             Id = Guid.NewGuid(),
-            Title = "P",
+            Title = "Valid Product",
             Price = 10,
             Priority = Priority.Low,
             Status = ProductStatus.Available,
             CategoryId = Guid.NewGuid(),
             SellerId = sellerId,
-            Category = new Category { Id = Guid.NewGuid(), Name = "C" },
+            Category = new Category { Id = Guid.NewGuid(), Name = "Category" },
             Seller = seller,
             Images = new List<ProductImage>()
         };

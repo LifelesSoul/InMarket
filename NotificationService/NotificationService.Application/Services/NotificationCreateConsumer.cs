@@ -12,10 +12,11 @@ public class NotificationCreateConsumer(
 {
     public async Task Consume(ConsumeContext<CreateNotificationEvent> context)
     {
-        var createModel = mapper.Map<CreateNotificationModel>(context.Message);
+        var message = context.Message;
+        var createModel = mapper.Map<CreateNotificationModel>(message);
 
-        var ownerId = context.Message.ExternalId ?? "System";
+        var ownerExternalId = message.ExternalId;
 
-        await notificationService.Create(createModel, ownerId, context.CancellationToken);
+        await notificationService.Create(createModel, ownerExternalId, context.CancellationToken);
     }
 }

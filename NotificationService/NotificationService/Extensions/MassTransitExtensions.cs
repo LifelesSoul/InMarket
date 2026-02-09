@@ -29,7 +29,10 @@ public static class MassTransitExtensions
                 {
                     e.ConfigureConsumer<NotificationCreateConsumer>(context);
 
-                    e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+                    e.UseMessageRetry(r => r.Interval(
+                        settings.RetryCount,
+                        TimeSpan.FromSeconds(settings.RetryIntervalSeconds)
+                    ));
                 });
             });
         });

@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Extensions;
 
-
 [ExcludeFromCodeCoverage]
 public static class MassTransitExtensions
 {

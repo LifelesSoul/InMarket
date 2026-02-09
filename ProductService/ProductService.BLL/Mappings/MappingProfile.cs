@@ -62,8 +62,8 @@ public class MappingProfile : Profile
 
         CreateMap<Product, CreateNotificationEvent>()
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.SellerId))
-            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => "ProductService"))
-            .ForMember(dest => dest.Title, opt => opt.MapFrom((src, dest, member, context) => context.Items["Title"]))
-            .ForMember(dest => dest.Message, opt => opt.MapFrom((src, dest, member, context) => context.Items["Message"]));
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom((src, dest, member, context) => context.Items[nameof(CreateNotificationEvent.ExternalId)]))
+            .ForMember(dest => dest.Title, opt => opt.MapFrom((src, dest, member, context) => context.Items[nameof(CreateNotificationEvent.Title)]))
+            .ForMember(dest => dest.Message, opt => opt.MapFrom((src, dest, member, context) => context.Items[nameof(CreateNotificationEvent.Message)]));
     }
 }

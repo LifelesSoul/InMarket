@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MassTransit;
 using Moq;
+using ProductService.BLL.Constants;
 using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
@@ -38,7 +39,7 @@ public class ProductServiceTests : ServiceTestsBase
         Guid? token = null;
 
         var entity = CreateProductEntity();
-        entity.Title = "P1";
+        entity.Title = "Product 1";
 
         var pagedList = new PagedList<Domain.Entities.Product>
         {
@@ -50,7 +51,7 @@ public class ProductServiceTests : ServiceTestsBase
         {
             Items = new List<ProductModel> { new()
             {
-                Title = "P1",
+                Title = "Product 1",
                 Price = 10,
                 Category = null!, Seller = null!
             }},
@@ -75,6 +76,8 @@ public class ProductServiceTests : ServiceTestsBase
     public async Task Create_ShouldReturnCreatedModel_AndPublishEvent_WithCorrectContext()
     {
         var sellerId = Guid.NewGuid();
+        var externalUserId = "auth0|123456";
+
         var createModel = new CreateProductModel
         {
             Title = "New Product",
@@ -102,10 +105,10 @@ public class ProductServiceTests : ServiceTestsBase
 
         var notificationEvent = new CreateNotificationEvent
         {
-            Title = "T",
-            Message = "M",
+            Title = NotificationMessages.ProductCreatedTitle,
+            Message = NotificationMessages.GetProductCreatedMessage(createdEntity.Title),
             UserId = sellerId,
-            ExternalId = "P"
+            ExternalId = externalUserId
         };
 
         MapperMock.Setup(m => m.Map<Domain.Entities.Product>(createModel)).Returns(entityToCreate);
@@ -116,23 +119,24 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(m => m.Map<CreateNotificationEvent>(
                 createdEntity,
                 It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
-            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optsAction) =>
+            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optionsAction) =>
             {
-                var optsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
-                var itemsDict = new Dictionary<string, object>();
+                var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
+                var itemsDictionary = new Dictionary<string, object>();
 
-                optsMock.SetupGet(x => x.Items).Returns(itemsDict);
+                optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
 
-                optsAction(optsMock.Object);
+                optionsAction(optionsMock.Object);
 
-                itemsDict["Title"].ShouldBe("Product created");
-                itemsDict["Message"].ShouldBe($"Your product '{createdEntity.Title}' has been successfully published!");
+                itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductCreatedTitle);
+                itemsDictionary[nameof(CreateNotificationEvent.Message)].ShouldBe(NotificationMessages.GetProductCreatedMessage(createdEntity.Title));
+                itemsDictionary[nameof(CreateNotificationEvent.ExternalId)].ShouldBe(externalUserId);
             })
             .Returns(notificationEvent);
 
         MapperMock.Setup(m => m.Map<ProductModel>(createdEntity)).Returns(expectedModel);
 
-        var result = await _service.Create(createModel, sellerId, Ct);
+        var result = await _service.Create(createModel, sellerId, externalUserId, Ct);
 
         result.ShouldBe(expectedModel);
         entityToCreate.SellerId.ShouldBe(sellerId);
@@ -143,12 +147,20 @@ public class ProductServiceTests : ServiceTestsBase
     [Fact]
     public async Task Create_WhenRepositoryFails_ThrowsInvalidOperationException()
     {
-        var createModel = new CreateProductModel { Title = "Fail", Price = 10, CategoryId = Guid.NewGuid(), SellerId = Guid.NewGuid() };
+        var createModel = new CreateProductModel
+        {
+            Title = "Fail Product",
+            Price = 10,
+            CategoryId = Guid.NewGuid(),
+            SellerId = Guid.NewGuid()
+        };
         var entity = CreateProductEntity();
+        var externalUserId = "auth0|123456";
+
         MapperMock.Setup(m => m.Map<Domain.Entities.Product>(createModel)).Returns(entity);
         _repositoryMock.Setup(r => r.Add(entity, Ct)).ReturnsAsync((Domain.Entities.Product)null!);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => _service.Create(createModel, Guid.NewGuid(), Ct));
+        await Should.ThrowAsync<InvalidOperationException>(() => _service.Create(createModel, Guid.NewGuid(), externalUserId, Ct));
         _publishEndpointMock.Verify(p => p.Publish(It.IsAny<object>(), Ct), Times.Never);
     }
 
@@ -162,7 +174,7 @@ public class ProductServiceTests : ServiceTestsBase
         var model = new ProductModel
         {
             Id = id,
-            Title = "P",
+            Title = "Product Title",
             Price = 10,
             Category = null!,
             Seller = null!
@@ -199,40 +211,61 @@ public class ProductServiceTests : ServiceTestsBase
         var id = Guid.NewGuid();
         var entity = CreateProductEntity();
         entity.Id = id;
+        var externalUserId = "auth0|123456";
 
         _repositoryMock
             .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync(entity);
 
-        await _service.Remove(id, Ct);
+        var notificationEvent = new CreateNotificationEvent
+        {
+            Title = NotificationMessages.ProductDeletedTitle,
+            Message = NotificationMessages.GetProductDeletedMessage(entity.Title),
+            UserId = id,
+            ExternalId = externalUserId
+        };
+
+        MapperMock
+            .Setup(m => m.Map<CreateNotificationEvent>(
+                entity,
+                It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Returns(notificationEvent);
+
+        await _service.Remove(id, externalUserId, Ct);
 
         _repositoryMock.Verify(r => r.Delete(entity, Ct), Times.Once);
+        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<CreateNotificationEvent>(), Ct), Times.Once);
     }
 
     [Fact]
     public async Task Remove_WhenNotExists_ThrowsKeyNotFoundException()
     {
         var id = Guid.NewGuid();
+        var externalUserId = "auth0|123456";
+
         _repositoryMock
             .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-            _service.Remove(id, Ct));
+            _service.Remove(id, externalUserId, Ct));
 
         exception.Message.ShouldBe($"Product {id} not found");
 
         _repositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
+        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<object>(), Ct), Times.Never);
     }
 
     [Fact]
     public async Task Update_WhenExists_UpdatesAndReturnsModel_AndPublishesEvent_WithCorrectContext()
     {
         var id = Guid.NewGuid();
+        var externalUserId = "auth0|123456";
+
         var updateModel = new UpdateProductModel
         {
             Id = id,
-            Title = "Updated",
+            Title = "Updated Product Title",
             Price = 999,
             Status = ProductStatus.Available,
             CategoryId = Guid.NewGuid(),
@@ -241,12 +274,12 @@ public class ProductServiceTests : ServiceTestsBase
 
         var existingEntity = CreateProductEntity();
         existingEntity.Id = id;
-        existingEntity.Title = "Old";
+        existingEntity.Title = "Old Product Title";
 
         var expectedModel = new ProductModel
         {
             Id = id,
-            Title = "Updated",
+            Title = "Updated Product Title",
             Price = 999,
             Category = null!,
             Seller = null!
@@ -254,10 +287,10 @@ public class ProductServiceTests : ServiceTestsBase
 
         var notificationEvent = new CreateNotificationEvent
         {
-            Title = "T",
-            Message = "M",
+            Title = NotificationMessages.ProductUpdatedTitle,
+            Message = NotificationMessages.GetProductUpdatedMessage(updateModel.Title),
             UserId = id,
-            ExternalId = "P"
+            ExternalId = externalUserId
         };
 
         _repositoryMock.Setup(r => r.GetById(id, Ct, false)).ReturnsAsync(existingEntity);
@@ -273,24 +306,24 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(m => m.Map<CreateNotificationEvent>(
                 existingEntity,
                 It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
-            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optsAction) =>
+            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optionsAction) =>
             {
-                var optsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
-                var itemsDict = new Dictionary<string, object>();
-                optsMock.SetupGet(x => x.Items).Returns(itemsDict);
+                var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
+                var itemsDictionary = new Dictionary<string, object>();
+                optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
 
-                optsAction(optsMock.Object);
+                optionsAction(optionsMock.Object);
 
-                itemsDict["Title"].ShouldBe("Product updated");
-                itemsDict["Message"].ShouldBe($"Your product 'Updated' has been successfully updated!");
+                itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductUpdatedTitle);
+                itemsDictionary[nameof(CreateNotificationEvent.Message)].ShouldBe(NotificationMessages.GetProductUpdatedMessage(existingEntity.Title));
+                itemsDictionary[nameof(CreateNotificationEvent.ExternalId)].ShouldBe(externalUserId);
             })
             .Returns(notificationEvent);
 
         MapperMock.Setup(m => m.Map<ProductModel>(existingEntity)).Returns(expectedModel);
 
-        var result = await _service.Update(updateModel, Ct);
+        await _service.Update(updateModel, externalUserId, Ct);
 
-        result.ShouldBe(expectedModel);
         _repositoryMock.Verify(r => r.Update(existingEntity, updateModel.ImageUrls, Ct), Times.Once);
         _publishEndpointMock.Verify(p => p.Publish(notificationEvent, Ct), Times.Once);
     }
@@ -298,9 +331,19 @@ public class ProductServiceTests : ServiceTestsBase
     [Fact]
     public async Task Update_WhenNotExists_ThrowsKeyNotFoundException()
     {
-        var updateModel = new UpdateProductModel { Id = Guid.NewGuid(), Title = "U", Price = 1, Status = ProductStatus.Available, CategoryId = Guid.NewGuid() };
+        var updateModel = new UpdateProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "Update Test",
+            Price = 1,
+            Status = ProductStatus.Available,
+            CategoryId = Guid.NewGuid()
+        };
+        var externalUserId = "auth0|123456";
+
         _repositoryMock.Setup(r => r.GetById(updateModel.Id, Ct, false)).ReturnsAsync((Domain.Entities.Product?)null);
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, Ct));
+
+        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, externalUserId, Ct));
     }
 
     private static Domain.Entities.Product CreateProductEntity()
@@ -308,7 +351,7 @@ public class ProductServiceTests : ServiceTestsBase
         return new Domain.Entities.Product
         {
             Id = Guid.NewGuid(),
-            Title = "Default",
+            Title = "Default Product",
             Price = 10,
             Priority = Priority.Medium,
             Status = ProductStatus.Available,

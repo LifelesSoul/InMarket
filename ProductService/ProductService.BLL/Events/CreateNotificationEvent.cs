@@ -4,21 +4,17 @@ using System.Diagnostics.CodeAnalysis;
 namespace ProductService.BLL.Events;
 
 [ExcludeFromCodeCoverage]
-public static class NotificationConfig
-{
-    public const string ExchangeName = "notification-create";
-}
-
-[ExcludeFromCodeCoverage]
-[EntityName(NotificationConfig.ExchangeName)]
-[MessageUrn(NotificationConfig.ExchangeName)]
+[EntityName(ExchangeName)]
+[MessageUrn(ExchangeName)]
 public record CreateNotificationEvent
 {
+    public const string ExchangeName = "notification-create";
+
     public required string Title { get; init; }
 
     public required string Message { get; init; }
 
     public required Guid UserId { get; init; }
 
-    public string? ExternalId { get; init; }
+    public required string ExternalId { get; init; }
 }
