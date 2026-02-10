@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProductService.API.Extensions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
@@ -38,16 +39,20 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateProductModel model, CancellationToken cancellationToken = default)
     {
-        var createdModel = await service.Create(model, model.SellerId, cancellationToken);
+        var externalUserId = User.GetExternalId();
+
+        var createdModel = await service.Create(model, model.SellerId, externalUserId, cancellationToken);
 
         return Ok(mapper.Map<ProductViewModel>(createdModel));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [Authorize]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
     {
-        await service.Remove(id, cancellationToken);
+        var externalUserId = User.GetExternalId();
+
+        await service.Remove(id, externalUserId, cancellationToken);
 
         return NoContent();
     }
@@ -56,7 +61,9 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [Authorize]
     public async Task<ActionResult<ProductViewModel>> Update([FromBody] UpdateProductModel model, CancellationToken cancellationToken = default)
     {
-        var updatedModel = await service.Update(model, cancellationToken);
+        var externalUserId = User.GetExternalId();
+
+        var updatedModel = await service.Update(model, externalUserId, cancellationToken);
 
         return Ok(mapper.Map<ProductViewModel>(updatedModel));
     }

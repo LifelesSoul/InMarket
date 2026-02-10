@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
-namespace NotificationService.API.Extensions;
+namespace ProductService.API.Extensions;
 
 [ExcludeFromCodeCoverage]
 public static class ClaimsPrincipalExtensions

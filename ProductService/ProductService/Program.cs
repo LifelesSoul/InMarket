@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ProductService.API.Configurations;
+using ProductService.API.Extensions;
 using ProductService.BLL.DI;
 using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
 using ProductService.Mappings;
 using ProductService.Middlewares;
-using RabbitMQ.Client;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,19 +27,6 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseLazyLoadingProxies();
 
     options.UseSqlServer(connectionString);
-});
-
-builder.Services.AddSingleton<IConnection>(sp =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("RabbitMq");
-
-    var factory = new ConnectionFactory
-    {
-        Uri = new Uri(connectionString),
-        ClientProvidedName = "ProductService API"
-    };
-
-    return factory.CreateConnection();
 });
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -65,6 +52,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             RoleClaimType = "https://inmarket-api/roles"
         };
     });
+
+builder.Services.AddRabbitMqInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
