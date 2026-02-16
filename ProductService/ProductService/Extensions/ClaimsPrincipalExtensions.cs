@@ -12,7 +12,7 @@ public static class ClaimsPrincipalExtensions
 
         if (string.IsNullOrEmpty(externalId))
         {
-            throw new UnauthorizedAccessException("User ID (sub) claim is missing in the token.");
+            throw new UnauthorizedAccessException("Invalid token.");
         }
 
         return externalId;
