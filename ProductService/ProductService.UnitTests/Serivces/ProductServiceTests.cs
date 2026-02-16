@@ -59,7 +59,8 @@ public class ProductServiceTests : ServiceTestsBase
             {
                 Title = "Product 1",
                 Price = 10,
-                Category = null!, Seller = null!
+                Category = null!,
+                Seller = null!
             }},
             ContinuationToken = pagedList.LastId.ToString()
         };
@@ -173,6 +174,64 @@ public class ProductServiceTests : ServiceTestsBase
     }
 
     [Fact]
+    public async Task Create_WhenHangfireFails_ShouldLogAndReturnModel()
+    {
+        var sellerId = Guid.NewGuid();
+        var externalUserId = "auth0|123456";
+
+        var createModel = new CreateProductModel
+        {
+            Title = "New Product",
+            Price = 100,
+            CategoryId = Guid.NewGuid(),
+            SellerId = sellerId
+        };
+
+        var entityToCreate = CreateProductEntity();
+        var createdEntity = CreateProductEntity();
+        createdEntity.Id = Guid.NewGuid();
+
+        var expectedModel = new ProductModel
+        {
+            Id = createdEntity.Id,
+            Title = "New Product",
+            Price = 100,
+            Category = null!,
+            Seller = null!
+        };
+
+        MapperMock.Setup(m => m.Map<Domain.Entities.Product>(createModel)).Returns(entityToCreate);
+        _repositoryMock.Setup(r => r.Add(entityToCreate, Ct)).ReturnsAsync(createdEntity);
+
+        MapperMock.Setup(m => m.Map<CreateNotificationEvent>(It.IsAny<object>(), It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Returns(new CreateNotificationEvent
+            {
+                Title = "Dummy",
+                Message = "Dummy",
+                UserId = Guid.NewGuid(),
+                ExternalId = "Dummy"
+            });
+
+        MapperMock.Setup(m => m.Map<ProductModel>(createdEntity)).Returns(expectedModel);
+
+        _backgroundJobClientMock.Setup(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Throws(new Exception("Hangfire error"));
+
+        var result = await _service.Create(createModel, sellerId, externalUserId, Ct);
+
+        result.ShouldBe(expectedModel);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("failed to enqueue notification event")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task GetById_WhenExists_ReturnsModel()
     {
         var id = Guid.NewGuid();
@@ -214,11 +273,12 @@ public class ProductServiceTests : ServiceTestsBase
     }
 
     [Fact]
-    public async Task Remove_WhenExists_EnqueuesJob()
+    public async Task Remove_WhenExists_EnqueuesJob_AndSetsContextItems()
     {
         var id = Guid.NewGuid();
         var entity = CreateProductEntity();
         entity.Id = id;
+        entity.Title = "Test Product";
         var externalUserId = "auth0|123456";
 
         _repositoryMock
@@ -237,6 +297,17 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(m => m.Map<CreateNotificationEvent>(
                 entity,
                 It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optionsAction) =>
+            {
+                var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
+                var itemsDictionary = new Dictionary<string, object>();
+                optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
+                optionsAction(optionsMock.Object);
+
+                itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductDeletedTitle);
+                itemsDictionary[nameof(CreateNotificationEvent.Message)].ShouldBe(NotificationMessages.GetProductDeletedMessage(entity.Title));
+                itemsDictionary[nameof(CreateNotificationEvent.ExternalId)].ShouldBe(externalUserId);
+            })
             .Returns(notificationEvent);
 
         await _service.Remove(id, externalUserId, Ct);
@@ -272,7 +343,7 @@ public class ProductServiceTests : ServiceTestsBase
     }
 
     [Fact]
-    public async Task Update_WhenExists_UpdatesAndEnqueuesJob()
+    public async Task Update_WhenExists_UpdatesAndEnqueuesJob_AndSetsContextItems()
     {
         var id = Guid.NewGuid();
         var externalUserId = "auth0|123456";
@@ -321,6 +392,17 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(m => m.Map<CreateNotificationEvent>(
                 existingEntity,
                 It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optionsAction) =>
+            {
+                var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
+                var itemsDictionary = new Dictionary<string, object>();
+                optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
+                optionsAction(optionsMock.Object);
+
+                itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductUpdatedTitle);
+                itemsDictionary[nameof(CreateNotificationEvent.Message)].ShouldBe(NotificationMessages.GetProductUpdatedMessage(existingEntity.Title));
+                itemsDictionary[nameof(CreateNotificationEvent.ExternalId)].ShouldBe(externalUserId);
+            })
             .Returns(notificationEvent);
 
         MapperMock.Setup(m => m.Map<ProductModel>(existingEntity)).Returns(expectedModel);
