@@ -178,7 +178,6 @@ public class ProductServiceTests : ServiceTestsBase
     {
         var sellerId = Guid.NewGuid();
         var externalUserId = "auth0|123456";
-
         var createModel = new CreateProductModel
         {
             Title = "New Product",
@@ -225,9 +224,9 @@ public class ProductServiceTests : ServiceTestsBase
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("failed to enqueue notification event")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("failed to enqueue notification event")),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
@@ -302,6 +301,7 @@ public class ProductServiceTests : ServiceTestsBase
                 var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
                 var itemsDictionary = new Dictionary<string, object>();
                 optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
+
                 optionsAction(optionsMock.Object);
 
                 itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductDeletedTitle);
@@ -397,6 +397,7 @@ public class ProductServiceTests : ServiceTestsBase
                 var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
                 var itemsDictionary = new Dictionary<string, object>();
                 optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
+
                 optionsAction(optionsMock.Object);
 
                 itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductUpdatedTitle);
