@@ -27,13 +27,15 @@ public static class MassTransitExtensions
 
                 cfg.ReceiveEndpoint(settings.QueueName, e =>
                 {
-                    e.ConfigureConsumer<NotificationCreateConsumer>(context);
-
                     e.UseMessageRetry(r => r.Interval(
                         settings.RetryCount,
                         TimeSpan.FromSeconds(settings.RetryIntervalSeconds)
                     ));
+
+                    e.ConfigureConsumer<NotificationCreateConsumer>(context);
                 });
+
+                cfg.ConfigureEndpoints(context);
             });
         });
 

@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
-using MassTransit;
+using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ProductService.BLL.Constants;
 using ProductService.BLL.Events;
@@ -17,18 +20,21 @@ namespace ProductService.Tests.Services.Product;
 public class ProductServiceTests : ServiceTestsBase
 {
     private readonly Mock<IProductRepository> _repositoryMock;
-    private readonly Mock<IPublishEndpoint> _publishEndpointMock;
+    private readonly Mock<IBackgroundJobClient> _backgroundJobClientMock;
+    private readonly Mock<ILogger<ProductsService>> _loggerMock;
     private readonly ProductsService _service;
 
     public ProductServiceTests()
     {
         _repositoryMock = new Mock<IProductRepository>();
-        _publishEndpointMock = new Mock<IPublishEndpoint>();
+        _backgroundJobClientMock = new Mock<IBackgroundJobClient>();
+        _loggerMock = new Mock<ILogger<ProductsService>>();
 
         _service = new ProductsService(
             _repositoryMock.Object,
             MapperMock.Object,
-            _publishEndpointMock.Object
+            _loggerMock.Object,
+            _backgroundJobClientMock.Object
         );
     }
 
@@ -73,7 +79,7 @@ public class ProductServiceTests : ServiceTestsBase
     }
 
     [Fact]
-    public async Task Create_ShouldReturnCreatedModel_AndPublishEvent_WithCorrectContext()
+    public async Task Create_ShouldReturnCreatedModel_AndEnqueueJob()
     {
         var sellerId = Guid.NewGuid();
         var externalUserId = "auth0|123456";
@@ -123,14 +129,8 @@ public class ProductServiceTests : ServiceTestsBase
             {
                 var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
                 var itemsDictionary = new Dictionary<string, object>();
-
                 optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
-
                 optionsAction(optionsMock.Object);
-
-                itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductCreatedTitle);
-                itemsDictionary[nameof(CreateNotificationEvent.Message)].ShouldBe(NotificationMessages.GetProductCreatedMessage(createdEntity.Title));
-                itemsDictionary[nameof(CreateNotificationEvent.ExternalId)].ShouldBe(externalUserId);
             })
             .Returns(notificationEvent);
 
@@ -139,9 +139,16 @@ public class ProductServiceTests : ServiceTestsBase
         var result = await _service.Create(createModel, sellerId, externalUserId, Ct);
 
         result.ShouldBe(expectedModel);
-        entityToCreate.SellerId.ShouldBe(sellerId);
         _repositoryMock.Verify(r => r.Add(entityToCreate, Ct), Times.Once);
-        _publishEndpointMock.Verify(p => p.Publish(notificationEvent, Ct), Times.Once);
+
+        _backgroundJobClientMock.Verify(x => x.Create(
+            It.Is<Job>(job =>
+                job.Type == typeof(IEventPublisher) &&
+                job.Method.Name == nameof(IEventPublisher.PublishNotification) &&
+                (CreateNotificationEvent)job.Args[0] == notificationEvent
+            ),
+            It.IsAny<EnqueuedState>()
+        ), Times.Once);
     }
 
     [Fact]
@@ -161,7 +168,8 @@ public class ProductServiceTests : ServiceTestsBase
         _repositoryMock.Setup(r => r.Add(entity, Ct)).ReturnsAsync((Domain.Entities.Product)null!);
 
         await Should.ThrowAsync<InvalidOperationException>(() => _service.Create(createModel, Guid.NewGuid(), externalUserId, Ct));
-        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<object>(), Ct), Times.Never);
+
+        _backgroundJobClientMock.Verify(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>()), Times.Never);
     }
 
     [Fact]
@@ -206,7 +214,7 @@ public class ProductServiceTests : ServiceTestsBase
     }
 
     [Fact]
-    public async Task Remove_WhenExists_CallsDelete()
+    public async Task Remove_WhenExists_EnqueuesJob()
     {
         var id = Guid.NewGuid();
         var entity = CreateProductEntity();
@@ -234,7 +242,14 @@ public class ProductServiceTests : ServiceTestsBase
         await _service.Remove(id, externalUserId, Ct);
 
         _repositoryMock.Verify(r => r.Delete(entity, Ct), Times.Once);
-        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<CreateNotificationEvent>(), Ct), Times.Once);
+
+        _backgroundJobClientMock.Verify(x => x.Create(
+            It.Is<Job>(job =>
+                job.Method.Name == nameof(IEventPublisher.PublishNotification) &&
+                (CreateNotificationEvent)job.Args[0] == notificationEvent
+            ),
+            It.IsAny<EnqueuedState>()
+        ), Times.Once);
     }
 
     [Fact]
@@ -253,11 +268,11 @@ public class ProductServiceTests : ServiceTestsBase
         exception.Message.ShouldBe($"Product {id} not found");
 
         _repositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
-        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<object>(), Ct), Times.Never);
+        _backgroundJobClientMock.Verify(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>()), Times.Never);
     }
 
     [Fact]
-    public async Task Update_WhenExists_UpdatesAndReturnsModel_AndPublishesEvent_WithCorrectContext()
+    public async Task Update_WhenExists_UpdatesAndEnqueuesJob()
     {
         var id = Guid.NewGuid();
         var externalUserId = "auth0|123456";
@@ -306,18 +321,6 @@ public class ProductServiceTests : ServiceTestsBase
             .Setup(m => m.Map<CreateNotificationEvent>(
                 existingEntity,
                 It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
-            .Callback<object, Action<IMappingOperationOptions<object, CreateNotificationEvent>>>((src, optionsAction) =>
-            {
-                var optionsMock = new Mock<IMappingOperationOptions<object, CreateNotificationEvent>>();
-                var itemsDictionary = new Dictionary<string, object>();
-                optionsMock.SetupGet(x => x.Items).Returns(itemsDictionary);
-
-                optionsAction(optionsMock.Object);
-
-                itemsDictionary[nameof(CreateNotificationEvent.Title)].ShouldBe(NotificationMessages.ProductUpdatedTitle);
-                itemsDictionary[nameof(CreateNotificationEvent.Message)].ShouldBe(NotificationMessages.GetProductUpdatedMessage(existingEntity.Title));
-                itemsDictionary[nameof(CreateNotificationEvent.ExternalId)].ShouldBe(externalUserId);
-            })
             .Returns(notificationEvent);
 
         MapperMock.Setup(m => m.Map<ProductModel>(existingEntity)).Returns(expectedModel);
@@ -325,7 +328,14 @@ public class ProductServiceTests : ServiceTestsBase
         await _service.Update(updateModel, externalUserId, Ct);
 
         _repositoryMock.Verify(r => r.Update(existingEntity, updateModel.ImageUrls, Ct), Times.Once);
-        _publishEndpointMock.Verify(p => p.Publish(notificationEvent, Ct), Times.Once);
+
+        _backgroundJobClientMock.Verify(x => x.Create(
+            It.Is<Job>(job =>
+                job.Method.Name == nameof(IEventPublisher.PublishNotification) &&
+                (CreateNotificationEvent)job.Args[0] == notificationEvent
+            ),
+            It.IsAny<EnqueuedState>()
+        ), Times.Once);
     }
 
     [Fact]

@@ -1,18 +1,21 @@
 ﻿using AutoMapper;
-using MassTransit;
+using Hangfire;
+using Microsoft.Extensions.Logging;
 using ProductService.BLL.Constants;
 using ProductService.BLL.Events;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
+using System.Transactions;
 
 namespace ProductService.BLL.Services;
 
 public class ProductsService(
     IProductRepository repository,
     IMapper mapper,
-    IPublishEndpoint publishEndpoint) : IProductService
+    ILogger<ProductsService> logger,
+    IBackgroundJobClient backgroundJobClient) : IProductService
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
@@ -21,25 +24,42 @@ public class ProductsService(
     }
 
     public async Task<ProductModel> Create(
-        CreateProductModel model,
-        Guid sellerId,
-        string externalUserId,
-        CancellationToken cancellationToken)
+    CreateProductModel model,
+    Guid sellerId,
+    string externalUserId,
+    CancellationToken cancellationToken)
     {
         var entity = mapper.Map<Product>(model);
         entity.SellerId = sellerId;
 
-        var createdProduct = await repository.Add(entity, cancellationToken)
-            ?? throw new InvalidOperationException("Failed to create product.");
+        Product createdProduct;
 
-        var notificationEvent = mapper.Map<CreateNotificationEvent>(createdProduct, opt =>
+        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            opt.Items[nameof(CreateNotificationEvent.Title)] = NotificationMessages.ProductCreatedTitle;
-            opt.Items[nameof(CreateNotificationEvent.Message)] = NotificationMessages.GetProductCreatedMessage(createdProduct.Title);
-            opt.Items[nameof(CreateNotificationEvent.ExternalId)] = externalUserId;
-        });
+            createdProduct = await repository.Add(entity, cancellationToken)
+                             ?? throw new InvalidOperationException("Failed to create product.");
 
-        await publishEndpoint.Publish(notificationEvent, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+
+            transaction.Complete();
+        }
+
+        try
+        {
+            var notificationEvent = mapper.Map<CreateNotificationEvent>(createdProduct, opt =>
+            {
+                opt.Items[nameof(CreateNotificationEvent.Title)] = NotificationMessages.ProductCreatedTitle;
+                opt.Items[nameof(CreateNotificationEvent.Message)] = NotificationMessages.GetProductCreatedMessage(createdProduct.Title);
+                opt.Items[nameof(CreateNotificationEvent.ExternalId)] = externalUserId;
+            });
+
+            backgroundJobClient.Enqueue<IEventPublisher>(publisher =>
+                publisher.PublishNotification(notificationEvent));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Product {ProductId} created, but failed to enqueue notification event.", createdProduct.Id);
+        }
 
         return mapper.Map<ProductModel>(createdProduct);
     }
@@ -57,6 +77,8 @@ public class ProductsService(
         var product = await repository.GetById(id, cancellationToken, disableTracking: false)
             ?? throw new KeyNotFoundException($"Product {id} not found");
 
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
         await repository.Delete(product, cancellationToken);
 
         var notificationEvent = mapper.Map<CreateNotificationEvent>(product, opt =>
@@ -66,7 +88,12 @@ public class ProductsService(
             opt.Items[nameof(CreateNotificationEvent.ExternalId)] = externalUserId;
         });
 
-        await publishEndpoint.Publish(notificationEvent, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+
+        backgroundJobClient.Enqueue<IEventPublisher>(publisher =>
+            publisher.PublishNotification(notificationEvent));
+
+        transaction.Complete();
     }
 
     public async Task<ProductModel?> Update(
@@ -79,6 +106,8 @@ public class ProductsService(
 
         mapper.Map(model, product);
 
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
         await repository.Update(product, model.ImageUrls, cancellationToken);
 
         var notificationEvent = mapper.Map<CreateNotificationEvent>(product, opt =>
@@ -88,7 +117,12 @@ public class ProductsService(
             opt.Items[nameof(CreateNotificationEvent.ExternalId)] = externalUserId;
         });
 
-        await publishEndpoint.Publish(notificationEvent, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+
+        backgroundJobClient.Enqueue<IEventPublisher>(publisher =>
+            publisher.PublishNotification(notificationEvent));
+
+        transaction.Complete();
 
         return mapper.Map<ProductModel>(product);
     }

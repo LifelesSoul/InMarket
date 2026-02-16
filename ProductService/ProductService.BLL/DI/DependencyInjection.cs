@@ -19,6 +19,8 @@ public static class DependencyInjection
 
         services.AddRepositories();
 
+        services.AddScoped<IEventPublisher, EventPublisher>();
+
         return services;
     }
 }

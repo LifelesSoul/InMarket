@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using NotificationService.API.Extensions;
 using NotificationService.Application;
+using NotificationService.Application.Configurations;
 using NotificationService.Authorization;
 using NotificationService.Middlewares;
 
@@ -13,6 +14,8 @@ builder.Services.AddSwaggerInfrastructure();
 builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
 builder.Services.AddServices(builder.Configuration);
+
+builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
 
 builder.Services.AddAuth0Authentication(builder.Configuration);
 
@@ -41,4 +44,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

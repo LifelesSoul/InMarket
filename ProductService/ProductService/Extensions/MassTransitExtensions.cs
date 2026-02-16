@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Options;
+using ProductService.BLL.Events;
 using ProductService.Configurations;
 using System.Diagnostics.CodeAnalysis;
 
@@ -23,6 +24,18 @@ public static class MassTransitExtensions
                     h.Username(settings.Username);
                     h.Password(settings.Password);
                 });
+
+                cfg.ConfigurePublish(pipe =>
+                {
+                    pipe.UseExecute(ctx =>
+                    {
+                        ctx.Mandatory = true;
+                    });
+                });
+
+                cfg.Publish<CreateNotificationEvent>(p => p.Exclude = false);
+
+                cfg.ConfigureEndpoints(context);
             });
         });
 
