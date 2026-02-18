@@ -1,21 +1,20 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NotificationService.Application.Configurations;
+using NotificationService.Application.Providers;
 using RabbitMQ.Client;
 
 namespace NotificationService.Application.Services;
 
-public class DlqRetryBackgroundService : BackgroundService
+public class DeadLetterQueueRetryBackgroundService : BackgroundService
 {
-    private readonly RabbitMqSettings _settings;
-    private readonly ILogger<DlqRetryBackgroundService> _logger;
+    private readonly IRabbitMqConnectionProvider _connectionProvider;
+    private readonly ILogger<DeadLetterQueueRetryBackgroundService> _logger;
 
-    public DlqRetryBackgroundService(
-        IOptions<RabbitMqSettings> settings,
-        ILogger<DlqRetryBackgroundService> logger)
+    public DeadLetterQueueRetryBackgroundService(
+        IRabbitMqConnectionProvider connectionProvider,
+        ILogger<DeadLetterQueueRetryBackgroundService> logger)
     {
-        _settings = settings.Value;
+        _connectionProvider = connectionProvider;
         _logger = logger;
     }
 
@@ -34,26 +33,17 @@ public class DlqRetryBackgroundService : BackgroundService
                 _logger.LogError(ex, "Error while trying to check DLQ queue.");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(_settings.RetryIntervalSeconds), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(_connectionProvider.RetryIntervalSeconds), stoppingToken);
         }
     }
 
     private async Task RetryFailedMessagesAsync(CancellationToken cancellationToken)
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = _settings.Host,
-            VirtualHost = _settings.VirtualHost,
-            UserName = _settings.Username,
-            Password = _settings.Password,
-            RequestedConnectionTimeout = TimeSpan.FromSeconds(5)
-        };
-
-        using var connection = await factory.CreateConnectionAsync(cancellationToken);
+        using var connection = await _connectionProvider.CreateConnectionAsync(cancellationToken);
         using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
-        var errorQueue = $"{_settings.QueueName}_error";
-        var mainQueue = _settings.QueueName;
+        var errorQueue = _connectionProvider.ErrorQueueName;
+        var mainQueue = _connectionProvider.MainQueueName;
 
         _logger.LogInformation("Checking DLQ. Error Queue: '{ErrorQueue}', Target Queue: '{MainQueue}'", errorQueue, mainQueue);
 
@@ -63,25 +53,24 @@ public class DlqRetryBackgroundService : BackgroundService
         }
         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
         {
-            _logger.LogWarning("Error queue '{ErrorQueue}' not found or not accessible. Reason: {Reason}", errorQueue, ex.Message);
+            _logger.LogWarning("Error queue '{ErrorQueue}' not found. Reason: {Reason}", errorQueue, ex.Message);
             return;
         }
 
         var queueInfo = await channel.QueueDeclarePassiveAsync(errorQueue, cancellationToken);
         if (queueInfo.MessageCount == 0)
         {
-            _logger.LogInformation("DLQ '{ErrorQueue}' is empty. Nothing to restore.", errorQueue);
+            _logger.LogInformation("DLQ '{ErrorQueue}' is empty.", errorQueue);
             return;
         }
 
-        _logger.LogInformation("Found {Count} messages in DLQ. Starting restoration...", queueInfo.MessageCount);
+        _logger.LogInformation("Found {Count} messages inside DLQ.", queueInfo.MessageCount);
 
         int count = 0;
 
         while (true)
         {
             var result = await channel.BasicGetAsync(errorQueue, autoAck: false, cancellationToken);
-
             if (result == null) break;
 
             var properties = new BasicProperties(result.BasicProperties);
@@ -101,7 +90,7 @@ public class DlqRetryBackgroundService : BackgroundService
 
         if (count > 0)
         {
-            _logger.LogInformation("Successfully restored {Count} messages from {ErrorQueue} to {MainQueue}", count, errorQueue, mainQueue);
+            _logger.LogInformation("Restored {Count} messages from {ErrorQueue} to {MainQueue}", count, errorQueue, mainQueue);
         }
     }
 }

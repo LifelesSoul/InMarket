@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Mappings;
+using NotificationService.Application.Providers;
 using NotificationService.Application.Services;
 using NotificationService.Infrastructure;
 using AppNotificationService = NotificationService.Application.Services.NotificationService;
@@ -14,11 +15,12 @@ public static class DependencyInjection
     {
         services.AddScoped<INotificationService, AppNotificationService>();
 
+        services.AddSingleton<IRabbitMqConnectionProvider, RabbitMqConnectionProvider>();
+
+        services.AddHostedService<DeadLetterQueueRetryBackgroundService>();
+
         services.AddRepositories(configuration);
-
         services.AddAutoMapper(typeof(MappingProfile));
-
-        services.AddHostedService<DlqRetryBackgroundService>();
 
         return services;
     }
