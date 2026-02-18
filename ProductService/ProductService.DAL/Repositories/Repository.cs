@@ -26,19 +26,21 @@ public abstract class Repository<T>(ProductDbContext context) : IRepository<T> w
     public virtual async Task<T> Add(T entity, CancellationToken cancellationToken)
     {
         var entry = await DbSet.AddAsync(entity, cancellationToken);
-        await Context.SaveChangesAsync(cancellationToken);
         return entry.Entity;
     }
 
     public virtual async Task Update(T entity, CancellationToken cancellationToken)
     {
         DbSet.Update(entity);
-        await Context.SaveChangesAsync(cancellationToken);
     }
 
     public virtual async Task Delete(T entity, CancellationToken cancellationToken)
     {
         DbSet.Remove(entity);
+    }
+
+    public virtual async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
         await Context.SaveChangesAsync(cancellationToken);
     }
 }
@@ -49,4 +51,5 @@ public interface IRepository<T> where T : BaseEntity
     Task<T> Add(T entity, CancellationToken cancellationToken);
     Task Update(T entity, CancellationToken cancellationToken);
     Task Delete(T entity, CancellationToken cancellationToken);
+    Task SaveChangesAsync(CancellationToken cancellationToken);
 }

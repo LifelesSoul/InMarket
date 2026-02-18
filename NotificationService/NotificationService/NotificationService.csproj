@@ -17,15 +17,17 @@
   <ItemGroup>
     <Compile Include="Configuration\Auth0Settings.cs" />
     <Compile Include="Configuration\AuthConstants.cs" />
-    <Compile Include="Configuration\RabbitMQOptions.cs" />
+    <Compile Include="Configuration\RabbitMqSettings.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="9.1.1" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.6" />
+	<PackageReference Include="Hangfire" Version="1.8.23" />
   </ItemGroup>
 
   <ItemGroup>

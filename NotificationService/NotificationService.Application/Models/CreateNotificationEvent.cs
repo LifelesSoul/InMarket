@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ProductService.BLL.Events;
+namespace NotificationService.Application.Models;
 
 [ExcludeFromCodeCoverage]
 [EntityName(ExchangeName)]
