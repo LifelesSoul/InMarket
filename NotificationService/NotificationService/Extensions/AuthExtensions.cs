@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NotificationService.Application.Constants;
 using NotificationService.Configuration;
 
 namespace NotificationService.API.Extensions;
@@ -33,7 +34,7 @@ public static class AuthExtensions
 
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            path.StartsWithSegments("/hubs/notifications"))
+                            path.StartsWithSegments(HubRoutes.NotificationHub))
                         {
                             context.Token = accessToken;
                         }
