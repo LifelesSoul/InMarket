@@ -35,7 +35,7 @@ public class MappingProfile : Profile
         CreateMap<UpdateProductModel, Product>();
 
         CreateMap(typeof(PagedList<>), typeof(PagedResult<>))
-            .ForMember(nameof(PagedResult<object>.ContinuationToken),
+            .ForMember(nameof(PagedResult<object>.lastId),
                 option => option.MapFrom(nameof(PagedList<object>.LastId)));
 
         CreateMap<User, SellerModel>();
