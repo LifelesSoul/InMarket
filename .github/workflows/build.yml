@@ -46,7 +46,8 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
-            /d:sonar.exclusions="**/Migrations/**,**/Program.cs,**/Dockerfile,**/.dockerignore"
+            /d:sonar.exclusions="**/Migrations/**,**/Program.cs,**/Dockerfile,**/.dockerignore" \
+            /d:sonar.coverage.exclusions="**/frontend/**"
           
           dotnet restore ./ProductService/ProductService.sln
           dotnet build ./ProductService/ProductService.sln
