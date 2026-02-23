@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using NotificationService.API.Extensions;
+using NotificationService.Applcaition.Hubs;
 using NotificationService.Application;
 using NotificationService.Application.Configurations;
 using NotificationService.Authorization;
@@ -8,19 +9,28 @@ using NotificationService.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-
 builder.Services.AddSwaggerInfrastructure();
-
 builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
-
 builder.Services.AddServices(builder.Configuration);
+
+builder.Services.AddSignalR();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
 
 builder.Services.AddAuth0Authentication(builder.Configuration);
 
 builder.Services.AddSingleton<IAuthorizationHandler, NotificationAuthorizationHandler>();
-
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("MustBeOwner", policy =>
         policy.Requirements.Add(new SameAuthorRequirement()));
@@ -39,9 +49,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 await app.RunAsync();
