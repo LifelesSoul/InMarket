@@ -222,7 +222,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         var sourcePagedResult = new PagedResult<ProductModel>
         {
             Items = new List<ProductModel>(),
-            ContinuationToken = null
+            lastId = null
         };
 
         var result = Mapper.Map<PagedResult<ProductViewModel>>(sourcePagedResult);

@@ -62,7 +62,7 @@ export function ProductList() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      {error && <h3 style={{ color: 'red', backgroundColor: '#fee', padding: '10px' }}>Ошибка: {error}</h3>}
+      {error && <h3 style={{ color: 'red', backgroundColor: '#fee', padding: '10px' }}>Error: {error}</h3>}
 
       <div style={{ display: 'grid', gap: '20px' }}>
         {products.map((product, index) => {
