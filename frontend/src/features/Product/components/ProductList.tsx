@@ -1,6 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { Product, PagedResult } from '../types';
 
+function mergeProducts(existingProducts: Product[], newProducts: Product[]): Product[] {
+  const existingIds = new Set(existingProducts.map(p => p.id));
+  const uniqueNewProducts = newProducts.filter(p => !existingIds.has(p.id));
+  
+  return [...existingProducts, ...uniqueNewProducts];
+}
+
 export function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -41,10 +48,7 @@ export function ProductList() {
 
       const nextCursor = data.lastId ?? null;
 
-      setProducts(prev => {
-        const newItems = data.items.filter(newItem => !prev.some(p => p.id === newItem.id));
-        return [...prev, ...newItems];
-      });
+      setProducts(prev => mergeProducts(prev, data.items));
 
       setCursor(nextCursor);
       setHasMore(nextCursor !== null && data.items.length > 0);
