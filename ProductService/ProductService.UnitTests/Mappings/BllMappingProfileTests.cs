@@ -271,7 +271,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 
         var result = Mapper.Map<PagedResult<ProductModel>>(pagedList);
 
-        result.ContinuationToken.ShouldBe(lastId.ToString());
+        result.lastId.ShouldBe(lastId.ToString());
 
         result.Items.Count.ShouldBe(1);
 
@@ -293,7 +293,7 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 
         var result = Mapper.Map<PagedResult<ProductModel>>(pagedList);
 
-        result.ContinuationToken.ShouldBeNull();
+        result.lastId.ShouldBeNull();
         result.Items.Count.ShouldBe(1);
     }
 
