@@ -83,7 +83,7 @@ export function ProductList() {
                 {product.categoryName}
               </span>
               <p style={{ color: '#555' }}>{product.description || "No Options"}</p>
-              <strong style={{ fontSize: '1.2em', color: '#2a9d8f' }}>Цена: ${product.price}</strong>
+              <strong style={{ fontSize: '1.2em', color: '#2a9d8f' }}>Cost: ${product.price}</strong>
             </div>
           );
         })}
