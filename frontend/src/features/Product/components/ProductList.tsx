@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { Product, PagedResult } from '../types';
 
+import styles from './ProductList.module.css';
+
 function mergeProducts(existingProducts: Product[], newProducts: Product[]): Product[] {
   const existingIds = new Set(existingProducts.map(p => p.id));
   const uniqueNewProducts = newProducts.filter(p => !existingIds.has(p.id));
@@ -65,10 +67,10 @@ export function ProductList() {
   }, []);
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      {error && <h3 style={{ color: 'red', backgroundColor: '#fee', padding: '10px' }}>Error: {error}</h3>}
+    <div className={styles.container}>
+      {error && <h3 className={styles.errorMessage}>Error: {error}</h3>}
 
-      <div style={{ display: 'grid', gap: '20px' }}>
+      <div className={styles.grid}>
         {products.map((product, index) => {
           const isLastElement = products.length === index + 1;
 
@@ -76,23 +78,23 @@ export function ProductList() {
             <div 
               key={product.id} 
               ref={isLastElement ? lastProductElementRef : null} 
-              style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}
+              className={styles.card}
             >
-              <h3 style={{ margin: '0 0 10px 0' }}>{product.title}</h3>
-              <span style={{ backgroundColor: '#eee', padding: '3px 8px', borderRadius: '12px', fontSize: '0.8em' }}>
+              <h3 className={styles.cardTitle}>{product.title}</h3>
+              <span className={styles.badge}>
                 {product.categoryName}
               </span>
-              <p style={{ color: '#555' }}>{product.description || "No Options"}</p>
-              <strong style={{ fontSize: '1.2em', color: '#2a9d8f' }}>Cost: ${product.price}</strong>
+              <p className={styles.description}>{product.description || "No Options"}</p>
+              <strong className={styles.price}>Cost: ${product.price}</strong>
             </div>
           );
         })}
       </div>
 
-      {loading && <h3 style={{ textAlign: 'center', margin: '20px 0' }}>Loading more... ⏳</h3>}
+      {loading && <h3 className={styles.loading}>Loading more... ⏳</h3>}
       
       {!hasMore && products.length > 0 && (
-        <p style={{ textAlign: 'center', color: '#888', marginTop: '20px' }}> 🎉</p>
+        <p className={styles.endMessage}> 🎉</p>
       )}
     </div>
   );
