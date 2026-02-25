@@ -1,0 +1,93 @@
+.container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.loginButton {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.loginButton:hover {
+  background-color: #0056b3;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userName {
+  margin: 0;
+}
+
+.userEmail {
+  margin: 0;
+  font-size: 0.8em;
+  color: gray;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.addButton {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.addButton:hover {
+  background-color: #218838;
+}
+
+.lotsButton {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.lotsButton:hover {
+  background-color: #138496;
+}
+
+.exitButton {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.exitButton:hover {
+  background-color: #c82333;
+}
