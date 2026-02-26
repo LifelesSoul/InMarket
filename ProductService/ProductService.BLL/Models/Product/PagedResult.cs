@@ -7,5 +7,5 @@ public class PagedResult<T>
 {
     public IList<T> Items { get; init; } = [];
 
-    public string? lastId { get; init; }
+    public string? LastId { get; init; }
 }

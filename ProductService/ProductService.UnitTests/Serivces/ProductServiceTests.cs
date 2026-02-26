@@ -62,7 +62,7 @@ public class ProductServiceTests : ServiceTestsBase
                 Category = null!,
                 Seller = null!
             }},
-            lastId = pagedList.LastId?.ToString()
+            LastId = pagedList.LastId?.ToString()
         };
 
         _repositoryMock

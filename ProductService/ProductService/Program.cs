@@ -16,7 +16,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+var allowedOrigins = builder.Configuration
+    .GetRequiredSection("Cors:AllowedOrigins")
+    .Get<string[]>();
+
+if (allowedOrigins == null || allowedOrigins.Length == 0)
+{
+    throw new InvalidOperationException("CORS allowed origins are missing or empty in the configuration");
+}
 
 builder.Services.AddCors(options =>
 {
