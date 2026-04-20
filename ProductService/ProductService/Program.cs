@@ -8,7 +8,6 @@ using ProductService.API.Extensions;
 using ProductService.BLL.DI;
 using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
-using ProductService.Mappings;
 using ProductService.Middlewares;
 using Scalar.AspNetCore;
 
@@ -49,7 +48,12 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddMaps(
+        typeof(ProductService.Mappings.MappingProfile).Assembly
+    );
+});
 
 builder.Services.AddServices();
 
