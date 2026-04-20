@@ -20,7 +20,11 @@ public static class DependencyInjection
         services.AddHostedService<DeadLetterQueueRetryBackgroundService>();
 
         services.AddRepositories(configuration);
-        services.AddAutoMapper(typeof(MappingProfile));
+
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddMaps(typeof(MappingProfile).Assembly);
+        });
 
         return services;
     }

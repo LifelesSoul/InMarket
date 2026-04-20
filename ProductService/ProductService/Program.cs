@@ -8,13 +8,31 @@ using ProductService.API.Extensions;
 using ProductService.BLL.DI;
 using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
-using ProductService.Mappings;
 using ProductService.Middlewares;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+var allowedOrigins = builder.Configuration
+    .GetRequiredSection("Cors:AllowedOrigins")
+    .Get<string[]>();
+
+if (allowedOrigins == null || allowedOrigins.Length == 0)
+{
+    throw new InvalidOperationException("CORS allowed origins are missing or empty in the configuration");
+}
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddOpenApi();
 
@@ -30,7 +48,12 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddMaps(
+        typeof(ProductService.Mappings.MappingProfile).Assembly
+    );
+});
 
 builder.Services.AddServices();
 
@@ -105,6 +128,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

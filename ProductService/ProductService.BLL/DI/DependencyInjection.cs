@@ -11,7 +11,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddAutoMapper(typeof(MappingProfile));
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddMaps(typeof(MappingProfile).Assembly);
+        });
 
         services.AddScoped<IProductService, ProductsService>()
                 .AddScoped<ICategoryService, CategoryService>()

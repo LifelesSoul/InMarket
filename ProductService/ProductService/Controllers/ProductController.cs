@@ -17,10 +17,10 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProductViewModel>>> GetAll(
         [FromQuery] int limit = 10,
-        [FromQuery] Guid? continuationToken = null,
+        [FromQuery] Guid? lastId = null,
         CancellationToken cancellationToken = default)
     {
-        var pagedModels = await service.GetAll(limit, continuationToken, cancellationToken);
+        var pagedModels = await service.GetAll(limit, lastId, cancellationToken);
 
         var result = mapper.Map<PagedResult<ProductViewModel>>(pagedModels);
 
