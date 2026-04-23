@@ -1,0 +1,53 @@
+.product-list-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.error-message {
+  color: red;
+  background-color: #fee;
+  padding: 10px;
+}
+
+.product-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.product-card {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.product-title {
+  margin: 0 0 10px 0;
+}
+
+.product-category {
+  background-color: #eee;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+
+.product-description {
+  color: #555;
+}
+
+.product-price {
+  font-size: 1.2em;
+  color: #2a9d8f;
+}
+
+.loading-text {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.end-message {
+  text-align: center;
+  color: #888;
+  margin-top: 20px;
+}

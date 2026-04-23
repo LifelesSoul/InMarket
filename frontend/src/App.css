@@ -1,0 +1,10 @@
+.app-container {
+  padding: 40px;
+  font-family: sans-serif;
+}
+
+.app-header {
+  margin-bottom: 30px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}

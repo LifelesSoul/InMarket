@@ -1,9 +1,10 @@
 import { ProductList } from './features/Product/components/ProductList';
+import './App.css';
 
 function App() {
   return (
-    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
-      <header style={{ marginBottom: '30px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+    <div className="app-container">
+      <header className="app-header">
         <h1>MarketPlace</h1>
       </header>
       
