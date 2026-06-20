@@ -18,7 +18,8 @@ public static class DependencyInjection
 
         services.AddScoped<IProductService, ProductsService>()
                 .AddScoped<ICategoryService, CategoryService>()
-                .AddScoped<IUserService, UsersService>();
+                .AddScoped<IUserService, UsersService>()
+                .AddScoped<IProfileService, ProfileService>();
 
         services.AddRepositories();
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { Product, PagedResult } from '../types';
 import './ProductList.css';
+import { UserProfile } from '../../Auth/components/UserProfile';
 
 function mergeProducts(existingProducts: Product[], newProducts: Product[]): Product[] {
   const existingIds = new Set(existingProducts.map(p => p.id));
@@ -67,6 +68,9 @@ export function ProductList() {
 
   return (
     <div className="product-list-container">
+
+      <UserProfile />
+      
       {error && <h3 className="error-message">Error: {error}</h3>}
 
       <div className="product-grid">

@@ -4,6 +4,7 @@ using ProductService.BLL.Extensions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.Profile;
 using ProductService.BLL.Models.User;
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
@@ -20,6 +21,11 @@ public class MappingProfile : Profile
         CreateMap<Category, ProductCategoryModel>();
 
         CreateMap<User, SellerModel>();
+
+        CreateMap<User, UserProfileDto>()
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : string.Empty))
+            .ForMember(dest => dest.Biography, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Biography : string.Empty))
+            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0));
 
         CreateMap<Product, ProductModel>()
             .ForMember(destination => destination.ImageUrls, option => option.MapFrom(source => source.Images.Select(image => image.Url)));
