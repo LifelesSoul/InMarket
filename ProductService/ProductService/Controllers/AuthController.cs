@@ -31,7 +31,8 @@ public class AuthController : ControllerBase
     {
         bool useKeycloak = _unleash.IsEnabled("use-keycloak-auth");
 
-        string redirectUri = _configuration["Frontend:RedirectUri"] ?? "http://localhost:5173/";
+        string redirectUri = _configuration["Frontend:RedirectUri"]
+            ?? throw new InvalidOperationException("Frontend:RedirectUri is not configured.");
         string responseType = "code";
 
         if (useKeycloak)
@@ -41,7 +42,7 @@ public class AuthController : ControllerBase
                                  $"&response_type={responseType}" +
                                  $"&redirect_uri={redirectUri}";
 
-            return Ok(new { provider = "Keycloak", url = keycloakUrl });
+            return Ok(new { provider = AuthSchemes.Keycloak, url = keycloakUrl });
         }
 
         string auth0Url = $"https://{_auth0Settings.Domain}/authorize" +
@@ -49,6 +50,6 @@ public class AuthController : ControllerBase
                           $"&response_type={responseType}" +
                           $"&redirect_uri={redirectUri}";
 
-        return Ok(new { provider = "Auth0", url = auth0Url });
+        return Ok(new { provider = AuthSchemes.Auth0, url = auth0Url });
     }
 }

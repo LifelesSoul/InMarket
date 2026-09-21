@@ -89,21 +89,21 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSecurityLayer(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<WebhookSettings>(configuration.GetSection("Webhooks"));
-        services.Configure<Auth0Settings>(configuration.GetSection("Auth0"));
-        services.Configure<KeycloakSettings>(configuration.GetSection("Keycloak"));
+        services.Configure<Auth0Settings>(configuration.GetSection(Auth0Settings.SectionName));
+        services.Configure<KeycloakSettings>(configuration.GetSection(KeycloakSettings.SectionName));
 
-        var auth0Settings = configuration.GetSection("Auth0").Get<Auth0Settings>()
+        var auth0Settings = configuration.GetSection(Auth0Settings.SectionName).Get<Auth0Settings>()
             ?? throw new InvalidOperationException("Auth0 settings are missing in Configuration!");
 
-        var keycloakSettings = configuration.GetSection("Keycloak").Get<KeycloakSettings>()
+        var keycloakSettings = configuration.GetSection(KeycloakSettings.SectionName).Get<KeycloakSettings>()
             ?? throw new InvalidOperationException("Keycloak settings are missing in Configuration!");
 
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = "Auth0";
-            options.DefaultChallengeScheme = "Auth0";
+            options.DefaultAuthenticateScheme = AuthSchemes.Auth0;
+            options.DefaultChallengeScheme = AuthSchemes.Auth0;
         })
-        .AddJwtBearer("Auth0", options =>
+        .AddJwtBearer(AuthSchemes.Auth0, options =>
         {
             options.Authority = $"https://{auth0Settings.Domain}/";
             options.Audience = auth0Settings.Audience;
@@ -114,7 +114,7 @@ public static class ServiceCollectionExtensions
                 RoleClaimType = "https://inmarket-api/roles"
             };
         })
-        .AddJwtBearer("Keycloak", options =>
+        .AddJwtBearer(AuthSchemes.Keycloak, options =>
         {
             options.Authority = keycloakSettings.Authority;
             options.RequireHttpsMetadata = false;
@@ -130,7 +130,7 @@ public static class ServiceCollectionExtensions
 
         services.AddAuthorization(options =>
         {
-            var defaultPolicy = new AuthorizationPolicyBuilder("Auth0", "Keycloak")
+            var defaultPolicy = new AuthorizationPolicyBuilder(AuthSchemes.Auth0, AuthSchemes.Keycloak)
                 .RequireAuthenticatedUser()
                 .Build();
 
