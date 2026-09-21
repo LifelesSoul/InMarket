@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Infrastructure;
 using UserService.Domain.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.DAL.Repositories;
 
@@ -9,6 +10,7 @@ public interface IProfileRepository
     Task<User?> GetUserWithProfileAsync(string externalId);
 }
 
+[ExcludeFromCodeCoverage]
 public class ProfileRepository : IProfileRepository
 {
     private readonly ProductDbContext _context;

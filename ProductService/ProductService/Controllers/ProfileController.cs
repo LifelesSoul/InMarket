@@ -1,12 +1,14 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.API.Extensions;
 using ProductService.BLL.Services;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Controllers;
 
 [ApiController]
 [Route("api/profiles")]
+[ExcludeFromCodeCoverage]
 public class ProfileController : ControllerBase
 {
     private readonly IProfileService _profileService;

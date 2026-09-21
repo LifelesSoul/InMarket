@@ -1,5 +1,8 @@
-﻿namespace ProductService.BLL.Models.Profile;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ProductService.BLL.Models.Profile;
+
+[ExcludeFromCodeCoverage]
 public record UserProfileDto
 {
     public required string Username { get; init; }

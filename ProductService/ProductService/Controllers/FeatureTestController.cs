@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Unleash;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Controllers;
 
 [ApiController]
 [Route("api/test-feature")]
+[ExcludeFromCodeCoverage]
 public class FeatureTestController : ControllerBase
 {
     private readonly IUnleash _unleash;

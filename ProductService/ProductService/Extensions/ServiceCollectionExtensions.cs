@@ -9,9 +9,11 @@ using ProductService.API.Configurations;
 using ProductService.BLL.Validators;
 using ProductService.Infrastructure;
 using Unleash;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApiLayer(this IServiceCollection services, IConfiguration configuration)

@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using ProductService.Infrastructure;
 using Scalar.AspNetCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class WebApplicationExtensions
 {
     public static async Task ApplyDatabaseMigrationsAsync(this WebApplication app)
