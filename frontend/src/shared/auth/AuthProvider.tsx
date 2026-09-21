@@ -48,6 +48,16 @@ function toMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
+async function fetchLoginPlan(): Promise<LoginPlan> {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login-url`);
+
+  if (!response.ok) {
+    throw new Error(`The login endpoint answered with status ${response.status}`);
+  }
+
+  return toLoginPlan(await response.json());
+}
+
 export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const auth0 = useAuth0();
   const navigate = useNavigate();
@@ -66,7 +76,16 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
     callbackHandled.current = true;
 
-    completeLogin(new URLSearchParams(location.search))
+    const search = location.search;
+
+    fetchLoginPlan()
+      .then((plan) => {
+        if (plan.provider !== 'Keycloak') {
+          throw new Error('The sign-in was started with a provider that is no longer selected');
+        }
+
+        return completeLogin(validateConfig(plan), new URLSearchParams(search));
+      })
       .then(({ session, returnTo }) => {
         setKeycloak(session);
         setError(null);
@@ -83,26 +102,14 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     setIsStartingLogin(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login-url`);
-
-      if (!response.ok) {
-        throw new Error(`The login endpoint answered with status ${response.status}`);
-      }
-
-      const plan = toLoginPlan(await response.json());
+      const plan = await fetchLoginPlan();
 
       if (plan.provider === 'Auth0') {
         await auth0.loginWithRedirect();
         return;
       }
 
-      const config = validateConfig({
-        authority: plan.authority,
-        clientId: plan.clientId,
-        scopes: plan.scopes,
-      });
-
-      await startLogin(config, `${location.pathname}${location.search}`);
+      await startLogin(validateConfig(plan), `${location.pathname}${location.search}`);
     } catch (err: unknown) {
       setError(toMessage(err, 'Could not start the sign-in'));
       setIsStartingLogin(false);

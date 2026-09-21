@@ -23,8 +23,6 @@ interface PendingLogin {
   verifier: string;
   state: string;
   returnTo: string;
-  clientId: string;
-  authority: TrustedAuthority;
 }
 
 const PENDING_KEY = 'inmarket.auth.keycloak.pending';
@@ -109,7 +107,7 @@ function clearPending(): void {
 function decodeSegment(segment: string): string {
   const normalized = segment.replaceAll('-', '+').replaceAll('_', '/');
   const binary = atob(normalized);
-  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const bytes = Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0);
 
   return new TextDecoder().decode(bytes);
 }
@@ -165,8 +163,6 @@ export async function startLogin(config: ValidatedConfig, returnTo: string): Pro
     verifier,
     state,
     returnTo: safeReturnTo(returnTo),
-    clientId: config.clientId,
-    authority: config.authority,
   };
 
   sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
@@ -188,7 +184,10 @@ export interface CompletedLogin {
   returnTo: string;
 }
 
-export async function completeLogin(params: URLSearchParams): Promise<CompletedLogin> {
+export async function completeLogin(
+  config: ValidatedConfig,
+  params: URLSearchParams,
+): Promise<CompletedLogin> {
   const pending = readPending();
   clearPending();
 
@@ -212,21 +211,15 @@ export async function completeLogin(params: URLSearchParams): Promise<CompletedL
     throw new Error('The identity provider returned no authorization code');
   }
 
-  const authority = toTrustedAuthority(`${pending.authority.origin}${pending.authority.realmPath}`);
-
-  if (!CLIENT_ID_PATTERN.test(pending.clientId)) {
-    throw new TypeError('The stored Keycloak client id has an unexpected shape');
-  }
-
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
     redirect_uri: redirectUri(),
-    client_id: pending.clientId,
+    client_id: config.clientId,
     code_verifier: pending.verifier,
   });
 
-  const response = await fetch(endpoint(authority, 'token'), {
+  const response = await fetch(endpoint(config.authority, 'token'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
@@ -253,7 +246,7 @@ export async function completeLogin(params: URLSearchParams): Promise<CompletedL
       accessToken: payload.access_token,
       expiresAt: Date.now() + lifetime * 1000,
       user: typeof payload.id_token === 'string' ? decodeIdToken(payload.id_token) : {},
-      authority,
+      authority: config.authority,
     },
     returnTo: safeReturnTo(pending.returnTo),
   };
