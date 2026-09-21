@@ -7,10 +7,10 @@ import {
   CALLBACK_PATH,
   buildLogoutUrl,
   completeLogin,
-  isConfigured,
   startLogin,
+  validateConfig,
 } from './keycloakStrategy';
-import type { KeycloakConfig, KeycloakSession } from './keycloakStrategy';
+import type { KeycloakSession } from './keycloakStrategy';
 import type { AuthContextValue, AuthProviderName, AuthUser } from './types';
 
 const KNOWN_PROVIDERS: AuthProviderName[] = ['Auth0', 'Keycloak'];
@@ -33,7 +33,7 @@ function toLoginPlan(data: unknown): LoginPlan {
   const provider = source.provider;
 
   if (typeof provider !== 'string' || !(KNOWN_PROVIDERS as string[]).includes(provider)) {
-    throw new Error('The server selected an identity provider this build does not know');
+    throw new TypeError('The server selected an identity provider this build does not know');
   }
 
   return {
@@ -48,7 +48,7 @@ function toMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const auth0 = useAuth0();
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,15 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const config: KeycloakConfig = {
+      const config = validateConfig({
         authority: plan.authority,
         clientId: plan.clientId,
         scopes: plan.scopes,
-      };
-
-      if (!isConfigured(config)) {
-        throw new Error('The server did not return a usable Keycloak configuration');
-      }
+      });
 
       await startLogin(config, `${location.pathname}${location.search}`);
     } catch (err: unknown) {
