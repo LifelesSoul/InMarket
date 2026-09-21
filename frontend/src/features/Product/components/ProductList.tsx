@@ -55,8 +55,8 @@ export function ProductList() {
       setCursor(nextCursor);
       setHasMore(nextCursor !== null && data.items.length > 0);
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }

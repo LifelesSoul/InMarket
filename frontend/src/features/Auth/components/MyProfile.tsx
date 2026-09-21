@@ -6,8 +6,8 @@ interface UserProfileData {
   username: string;
   email: string;
   avatarUrl: string;
-  bio: string;
-  rating: number;
+  biography: string;
+  ratingScore: number;
 }
 
 export function MyProfile() {
@@ -37,8 +37,8 @@ export function MyProfile() {
 
         const data = await response.json();
         setProfile(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setIsLoading(false);
       }
@@ -64,13 +64,13 @@ export function MyProfile() {
         <div className="profile-main-info">
           <h3>{profile.username}</h3>
           <p>{profile.email}</p>
-          <span className="rating-badge">Rating: {profile.rating}</span>
+          <span className="rating-badge">Rating: {profile.ratingScore}</span>
         </div>
       </div>
       
       <div className="profile-bio">
         <h4>About me:</h4>
-        <p>{profile.bio}</p>
+        <p>{profile.biography}</p>
       </div>
     </div>
   );

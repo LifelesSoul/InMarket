@@ -1,10 +1,32 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import './UserProfile.css';
 
 export function UserProfile() {
-  const { loginWithRedirect, logout, user, isAuthenticated, isLoading } = useAuth0();
+  const { logout, user, isAuthenticated, isLoading } = useAuth0();
   const navigate = useNavigate();
+
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const handleDynamicLogin = async () => {
+    setIsRedirecting(true);
+    try {
+      const response = await fetch('https://localhost:7032/api/auth/login-url');
+      
+      if (!response.ok) {
+        throw new Error('Error retrieving login link');
+      }
+
+      const data = await response.json();
+      console.log(`Redirecting to: ${data.provider}`);
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error(error);
+      setIsRedirecting(false);
+    }
+  };
 
   if (isLoading) {
     return <div className="auth-container">Loading...</div>;
@@ -13,8 +35,12 @@ export function UserProfile() {
   return (
     <div className="auth-container">
       {!isAuthenticated ? (
-        <button className="auth-btn login" onClick={() => loginWithRedirect()}>
-          Log In
+        <button
+          className="auth-btn login" 
+          onClick={handleDynamicLogin}
+          disabled={isRedirecting}
+        >
+          {isRedirecting ? 'Connecting...' : 'Log In'}
         </button>
       ) : (
         <div className="profile-info">
@@ -24,7 +50,6 @@ export function UserProfile() {
             <span className="profile-email">{user?.email}</span>
           </div>
           
-          {/* Новая кнопка для перехода в профиль */}
           <button 
             className="auth-btn" 
             style={{ backgroundColor: '#198754', color: 'white' }}
