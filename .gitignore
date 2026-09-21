@@ -1,13 +1,13 @@
-# --- Стандартный .gitignore для ASP.NET / Visual Studio ---
+# --- Standard .gitignore for ASP.NET / Visual Studio ---
 
-## Игнорируем файлы, специфичные для операционной системы
+## OS-specific files
 *.swp
 ._*
 .DS_Store
 Thumbs.db
 
-## Игнорируем папки и файлы Visual Studio
-# (Пользовательские настройки, кэш, временные файлы)
+## Visual Studio folders and files
+# (user settings, cache, temporary files)
 *.suo
 *.user
 *.userosscs
@@ -15,12 +15,12 @@ Thumbs.db
 .vs/
 .idea/
 
-## Игнорируем артефакты сборки
-# (Самые главные папки, которые нужно игнорировать)
+## Build artifacts
+# (the most important folders to ignore)
 [Bb]in/
 [Oo]bj/
 
-## Игнорируем файлы, создаваемые при сборке
+## Files produced by the build
 *.pdb
 *.dll
 *.exe
@@ -28,21 +28,21 @@ Thumbs.db
 *.sbr
 *.obj
 
-## Игнорируем пакеты
-# Для старого формата packages.config (NuGet)
+## Packages
+# For the legacy packages.config format (NuGet)
 packages/
-# Для NPM (если используется front-end)
+# For NPM (when a front-end is used)
 node_modules/
 
-## Игнорируем файлы конфигурации и секреты
-# Файлы пользовательских секретов (User Secrets)
+## Configuration files and secrets
+# User Secrets files
 *.secrets.json
-# Локальные файлы настроек (не должны быть в репозитории)
+# Local settings files (must never be committed)
 appsettings.Local.json
 *.env
 secrets.toml
 
-## Игнорируем файлы логов и баз данных
+## Log and database files
 *.log
 logs/
 *.mdf
@@ -50,18 +50,18 @@ logs/
 *.sqlite
 *.db
 
-## Игнорируем результаты тестов и отчетов
+## Test results and reports
 TestResults/
 *.trx
 *.coverlet.json
 coverage.cobertura.xml
 
-## Игнорируем артефакты публикации
+## Publish artifacts
 publish/
 [Rr]elease/
 [Dd]ebug/
-# (Примечание: Release/ и Debug/ обычно находятся внутри bin/, но на всякий случай)
+# (note: Release/ and Debug/ usually live inside bin/, but just in case)
 
-## Игнорируем специфичные файлы инструментов
+## Tool-specific files
 _ReSharper*/
 *.DotSettings.user

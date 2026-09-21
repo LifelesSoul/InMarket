@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentValidation;
 using ProductService.BLL.Models.User;
 using ProductService.DAL.Repositories;
@@ -68,6 +68,7 @@ public class UsersService(
         }
 
         await repository.Add(entity, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
 
         return mapper.Map<UserModel>(entity);
     }
@@ -90,6 +91,7 @@ public class UsersService(
         }
 
         await repository.Update(entity, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
 
         return mapper.Map<UserModel>(entity);
     }
@@ -100,6 +102,7 @@ public class UsersService(
             ?? throw new KeyNotFoundException($"User {id} not found");
 
         await repository.Delete(entity, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
     }
 
     public async Task SyncUserAsync(string externalId, string email, CancellationToken cancellationToken)
@@ -113,6 +116,7 @@ public class UsersService(
             {
                 user.ExternalId = externalId;
                 await repository.Update(user, cancellationToken);
+                await repository.SaveChangesAsync(cancellationToken);
                 return;
             }
 
@@ -132,6 +136,7 @@ public class UsersService(
             };
 
             await repository.Add(newUser, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
         }
     }
 }

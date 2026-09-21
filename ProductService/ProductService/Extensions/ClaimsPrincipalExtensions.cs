@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace ProductService.API.Extensions;
@@ -16,6 +16,12 @@ public static class ClaimsPrincipalExtensions
         }
 
         return externalId;
+    }
+
+    public static string? GetEmail(this ClaimsPrincipal principal)
+    {
+        return principal.FindFirst(ClaimTypes.Email)?.Value
+            ?? principal.FindFirst("email")?.Value;
     }
 
     public static bool IsAdmin(this ClaimsPrincipal principal)

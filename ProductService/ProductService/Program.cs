@@ -1,141 +1,23 @@
-﻿using FluentValidation;
-using Hangfire;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using ProductService.API.Configurations;
-using ProductService.API.Extensions;
+﻿using ProductService.API.Extensions;
 using ProductService.BLL.DI;
-using ProductService.BLL.Validators;
-using ProductService.Infrastructure;
 using ProductService.Middlewares;
-using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-
-var allowedOrigins = builder.Configuration
-    .GetRequiredSection("Cors:AllowedOrigins")
-    .Get<string[]>();
-
-if (allowedOrigins == null || allowedOrigins.Length == 0)
-{
-    throw new InvalidOperationException("CORS allowed origins are missing or empty in the configuration");
-}
-
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
-
-builder.Services.AddOpenApi();
-
-builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
-builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryModelValidator>();
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-builder.Services.AddDbContext<ProductDbContext>(options =>
-{
-    options.UseLazyLoadingProxies();
-
-    options.UseSqlServer(connectionString);
-});
-
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.AddMaps(
-        typeof(ProductService.Mappings.MappingProfile).Assembly
-    );
-});
+builder.Services.AddApiLayer(builder.Configuration);
+builder.Services.AddInfrastructureLayer(builder.Configuration);
+builder.Services.AddSecurityLayer(builder.Configuration);
 
 builder.Services.AddServices();
-
-builder.Services.AddHangfire(config => config
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddHangfireServer();
-
-builder.Services.Configure<WebhookSettings>(builder.Configuration.GetSection("Webhooks"));
-
-builder.Services.Configure<Auth0Settings>(builder.Configuration.GetSection("Auth0"));
-var auth0Settings = builder.Configuration.GetSection("Auth0").Get<Auth0Settings>()
-    ?? throw new InvalidOperationException("Auth0 settings are missing in Configuration!");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = $"https://{auth0Settings.Domain}/";
-        options.Audience = auth0Settings.Audience;
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            RoleClaimType = "https://inmarket-api/roles"
-        };
-    });
-
 builder.Services.AddRabbitMqInfrastructure(builder.Configuration);
+
+builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.ConfigurePipeline();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<ProductDbContext>();
-
-        if (!await context.Database.CanConnectAsync())
-        {
-            await context.Database.MigrateAsync();
-        }
-
-        if (app.Environment.IsDevelopment())
-        {
-            context.SeedData();
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"{ex.Message}");
-    }
-}
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-
-    app.MapScalarApiReference(options =>
-    {
-        options
-            .WithTitle("Product Service API")
-            .WithTheme(ScalarTheme.Moon)
-            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-    });
-}
-
-app.UseHttpsRedirection();
-
-app.UseCors();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.UseHangfireDashboard();
+await app.ApplyDatabaseMigrationsAsync();
 
 await app.RunAsync();
