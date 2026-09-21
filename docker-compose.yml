@@ -1,27 +1,42 @@
 services:
-  product-service:
-    image: product-service
-    build:
-      context: ./ProductService
-      dockerfile: Dockerfile
-    ports:
-      - "${APP_HOST_PORT}:${APP_CONTAINER_PORT}"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - ASPNETCORE_HTTP_PORTS=${APP_CONTAINER_PORT}
-      - ConnectionStrings__DefaultConnection=Server=${DB_HOST};Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=True;
-      - Webhooks__ApiKey=${WEBHOOK_API_KEY}
-      - Auth0__Domain=${AUTH0_DOMAIN}
-      - Auth0__Audience=${AUTH0_AUDIENCE}
-    depends_on:
-      - sqlserver
-
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:${MSSQL_VERSION}
-    container_name: ${DB_HOST
+    image: mcr.microsoft.com/mssql/server:${MSSQL_VERSION:-2022-latest}
+    container_name: sqlserver-db
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
-      - MSSQL_TCP_PORT=${DB_CONTAINER_PORT}
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-YourStrong!Password123}
+      - MSSQL_TCP_PORT=1433
     ports:
-      - "${DB_HOST_PORT}:${DB_CONTAINER_PORT}"
+      - "1433:1433"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak-server
+    environment:
+      - KEYCLOAK_ADMIN=${KEYCLOAK_USER:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_PASSWORD:-admin}
+    ports:
+      - "8080:8080"
+    command: start-dev
+
+  unleash-db:
+    image: postgres:15-alpine
+    container_name: unleash-postgres
+    environment:
+      - POSTGRES_DB=unleash
+      - POSTGRES_USER=unleash_user
+      - POSTGRES_PASSWORD=unleash_password
+    ports:
+      - "5432:5432"
+
+  unleash:
+    image: unleashorg/unleash-server:latest
+    container_name: unleash-server
+    ports:
+      - "4242:4242"
+    environment:
+      - DATABASE_URL=postgres://unleash_user:unleash_password@unleash-db/unleash
+      - DATABASE_SSL=false
+      - LOG_LEVEL=info
+    depends_on:
+      - unleash-db
