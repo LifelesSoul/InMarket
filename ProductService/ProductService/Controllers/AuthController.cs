@@ -2,11 +2,13 @@
 using Microsoft.Extensions.Options;
 using ProductService.API.Configurations;
 using Unleash;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProductService.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[ExcludeFromCodeCoverage]
 public class AuthController : ControllerBase
 {
     private readonly IUnleash _unleash;
