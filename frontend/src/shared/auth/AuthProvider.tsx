@@ -9,39 +9,39 @@ import {
   completeLogin,
   startLogin,
   validateConfig,
-} from './keycloakStrategy';
-import type { KeycloakSession } from './keycloakStrategy';
+} from './keycloak';
+import type { KeycloakConfig, KeycloakSession } from './keycloak';
 import type { AuthContextValue, AuthProviderName, AuthUser } from './types';
 
-const KNOWN_PROVIDERS: AuthProviderName[] = ['Auth0', 'Keycloak'];
+type LoginPlan =
+  | { provider: 'Auth0' }
+  | { provider: 'Keycloak'; config: KeycloakConfig };
 
-interface LoginPlan {
-  provider: AuthProviderName;
-  authority: string;
-  clientId: string;
-  scopes: string;
-}
+const LOGIN_PLAN_URL = `${import.meta.env.VITE_API_URL}/auth/login-url`;
 
-function readString(source: Record<string, unknown>, key: string): string {
-  const value = source[key];
-
-  return typeof value === 'string' ? value : '';
+function str(v: unknown): string {
+  return typeof v === 'string' ? v : '';
 }
 
 function toLoginPlan(data: unknown): LoginPlan {
   const source = (data ?? {}) as Record<string, unknown>;
-  const provider = source.provider;
 
-  if (typeof provider !== 'string' || !(KNOWN_PROVIDERS as string[]).includes(provider)) {
-    throw new TypeError('The server selected an identity provider this build does not know');
+  if (source.provider === 'Auth0') {
+    return { provider: 'Auth0' };
   }
 
-  return {
-    provider: provider as AuthProviderName,
-    authority: readString(source, 'authority'),
-    clientId: readString(source, 'clientId'),
-    scopes: readString(source, 'scopes') || 'openid profile email',
-  };
+  if (source.provider === 'Keycloak') {
+    return {
+      provider: 'Keycloak',
+      config: {
+        authority: str(source.authority),
+        clientId: str(source.clientId),
+        scopes: str(source.scopes),
+      },
+    };
+  }
+
+  throw new TypeError('The server selected an identity provider this build does not know');
 }
 
 function toMessage(err: unknown, fallback: string): string {
@@ -49,7 +49,7 @@ function toMessage(err: unknown, fallback: string): string {
 }
 
 async function fetchLoginPlan(): Promise<LoginPlan> {
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login-url`);
+  const response = await fetch(LOGIN_PLAN_URL);
 
   if (!response.ok) {
     throw new Error(`The login endpoint answered with status ${response.status}`);
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
           throw new Error('The sign-in was started with a provider that is no longer selected');
         }
 
-        return completeLogin(validateConfig(plan), new URLSearchParams(search));
+        return completeLogin(validateConfig(plan.config), new URLSearchParams(search));
       })
       .then(({ session, returnTo }) => {
         setKeycloak(session);
@@ -109,7 +109,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
         return;
       }
 
-      await startLogin(validateConfig(plan), `${location.pathname}${location.search}`);
+      await startLogin(validateConfig(plan.config), `${location.pathname}${location.search}`);
     } catch (err: unknown) {
       setError(toMessage(err, 'Could not start the sign-in'));
       setIsStartingLogin(false);
