@@ -174,29 +174,26 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     return auth0.isAuthenticated ? 'Auth0' : null;
   }, [keycloak, auth0.isAuthenticated]);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    isAuthenticated: keycloak !== null || auth0.isAuthenticated,
-    isLoading: auth0.isLoading || isStartingLogin || location.pathname === CALLBACK_PATH,
-    user,
-    error: error ?? (auth0.error ? auth0.error.message : null),
-    provider,
-    login,
-    logout,
-    getAccessToken,
-  }), [
-    keycloak,
-    auth0.isAuthenticated,
-    auth0.isLoading,
-    auth0.error,
-    isStartingLogin,
-    location.pathname,
-    user,
-    error,
-    provider,
-    login,
-    logout,
-    getAccessToken,
-  ]);
+  const isAuthenticated = keycloak !== null || auth0.isAuthenticated;
+  const isLoading = auth0.isLoading || isStartingLogin || location.pathname === CALLBACK_PATH;
+  const resolvedError = error ?? auth0.error?.message ?? null;
+
+  const actions = useMemo(
+    () => ({ login, logout, getAccessToken }),
+    [login, logout, getAccessToken],
+  );
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      isAuthenticated,
+      isLoading,
+      user,
+      error: resolvedError,
+      provider,
+      ...actions,
+    }),
+    [isAuthenticated, isLoading, user, resolvedError, provider, actions],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
