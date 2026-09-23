@@ -52,3 +52,9 @@
   background-color: #dc3545;
   color: white;
 }
+
+.auth-error {
+  color: #b00020;
+  font-size: 0.85rem;
+  margin-left: 10px;
+}

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ProductService.API.Configurations;
 using Unleash;
@@ -11,47 +11,42 @@ namespace ProductService.API.Controllers;
 [ExcludeFromCodeCoverage]
 public class AuthController : ControllerBase
 {
+    private const string UseKeycloakAuthFlag = "use-keycloak-auth";
+
     private readonly IUnleash _unleash;
     private readonly Auth0Settings _auth0Settings;
     private readonly KeycloakSettings _keycloakSettings;
-    private readonly IConfiguration _configuration;
 
     public AuthController(
         IUnleash unleash,
         IOptions<Auth0Settings> auth0Options,
-        IOptions<KeycloakSettings> keycloakOptions,
-        IConfiguration configuration)
+        IOptions<KeycloakSettings> keycloakOptions)
     {
         _unleash = unleash;
         _auth0Settings = auth0Options.Value;
         _keycloakSettings = keycloakOptions.Value;
-        _configuration = configuration;
     }
 
     [HttpGet("login-url")]
     public IActionResult GetLoginUrl()
     {
-        bool useKeycloak = _unleash.IsEnabled("use-keycloak-auth");
-
-        string redirectUri = _configuration["Frontend:RedirectUri"]
-            ?? throw new InvalidOperationException("Frontend:RedirectUri is not configured.");
-        string responseType = "code";
-
-        if (useKeycloak)
+        if (_unleash.IsEnabled(UseKeycloakAuthFlag))
         {
-            string keycloakUrl = $"{_keycloakSettings.Authority}/protocol/openid-connect/auth" +
-                                 $"?client_id={_keycloakSettings.ClientId}" +
-                                 $"&response_type={responseType}" +
-                                 $"&redirect_uri={redirectUri}";
-
-            return Ok(new { provider = AuthSchemes.Keycloak, url = keycloakUrl });
+            return Ok(new
+            {
+                provider = AuthSchemes.Keycloak,
+                authority = _keycloakSettings.Authority,
+                clientId = _keycloakSettings.ClientId,
+                scopes = _keycloakSettings.Scopes
+            });
         }
 
-        string auth0Url = $"https://{_auth0Settings.Domain}/authorize" +
-                          $"?client_id={_auth0Settings.ClientId}" +
-                          $"&response_type={responseType}" +
-                          $"&redirect_uri={redirectUri}";
-
-        return Ok(new { provider = AuthSchemes.Auth0, url = auth0Url });
+        return Ok(new
+        {
+            provider = AuthSchemes.Auth0,
+            authority = $"https://{_auth0Settings.Domain}",
+            clientId = _auth0Settings.ClientId,
+            scopes = _auth0Settings.Scopes
+        });
     }
 }

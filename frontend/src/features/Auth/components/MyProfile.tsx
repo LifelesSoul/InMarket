@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '../../../shared/auth/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 interface UserProfileData {
@@ -11,7 +11,7 @@ interface UserProfileData {
 }
 
 export function MyProfile() {
-  const { getAccessTokenSilently, isAuthenticated, isLoading: isAuthLoading } = useAuth0();
+  const { getAccessToken, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   
   const [profile, setProfile] = useState<UserProfileData | null>(null);
@@ -26,7 +26,12 @@ export function MyProfile() {
       }
 
       try {
-        const token = await getAccessTokenSilently();
+        const token = await getAccessToken();
+
+        if (token === null) {
+          throw new Error('Could not obtain an access token');
+        }
+
         const response = await fetch(`${import.meta.env.VITE_API_URL}/profiles/me`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -45,7 +50,7 @@ export function MyProfile() {
     };
 
     fetchMyProfile();
-  }, [getAccessTokenSilently, isAuthenticated]);
+  }, [getAccessToken, isAuthenticated]);
 
   if (isAuthLoading || isLoading) return <div>Loading profile... ⏳</div>;
   if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
