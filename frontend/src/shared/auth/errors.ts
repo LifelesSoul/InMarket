@@ -1,15 +1,20 @@
 export type AuthError =
-  | { kind: 'plan-unavailable'; status?: number }
+  | { kind: 'plan-unreachable'; message: string }
+  | { kind: 'plan-unavailable'; status: number }
+  | { kind: 'plan-invalid' }
   | { kind: 'unknown-provider' }
   | { kind: 'invalid-config'; field: 'authority' | 'clientId' | 'scopes' }
-  | { kind: 'untrusted-authority'; expectedOrigin: string | null }
+  | { kind: 'trusted-origin-missing' }
+  | { kind: 'untrusted-authority'; expectedOrigin: string }
   | { kind: 'provider-changed' }
   | { kind: 'provider-refused'; code: string }
   | { kind: 'no-pending-login' }
   | { kind: 'storage-unavailable'; message: string }
   | { kind: 'state-mismatch' }
   | { kind: 'missing-code' }
-  | { kind: 'token-exchange'; status?: number }
+  | { kind: 'token-unreachable'; message: string }
+  | { kind: 'token-exchange'; status: number }
+  | { kind: 'token-invalid' }
   | { kind: 'silent-unavailable'; reason: string }
   | { kind: 'provider-sdk'; message: string }
   | { kind: 'unexpected'; message: string };
@@ -30,19 +35,21 @@ const INVALID_CONFIG_MESSAGES: Record<'authority' | 'clientId' | 'scopes', strin
 
 export function describeAuthError(error: AuthError): string {
   switch (error.kind) {
+    case 'plan-unreachable':
+      return `The login endpoint could not be reached (${error.message})`;
     case 'plan-unavailable':
-      return error.status === undefined
-        ? 'The login endpoint could not be reached'
-        : `The login endpoint answered with status ${error.status}`;
+      return `The login endpoint answered with status ${error.status}`;
+    case 'plan-invalid':
+      return 'The login endpoint returned a response that is not JSON';
     case 'unknown-provider':
       return 'The server selected an identity provider this build does not know';
     case 'invalid-config':
       return INVALID_CONFIG_MESSAGES[error.field];
+    case 'trusted-origin-missing':
+      return 'VITE_KEYCLOAK_URL is not set or is not a valid url, so this build trusts no Keycloak origin. ' +
+        'Add it to frontend/.env and restart the dev server.';
     case 'untrusted-authority':
-      return error.expectedOrigin === null
-        ? 'VITE_KEYCLOAK_URL is not set, so this build trusts no Keycloak origin. ' +
-            'Add it to frontend/.env and restart the dev server.'
-        : `The Keycloak authority is not on the origin this build trusts (${error.expectedOrigin})`;
+      return `The Keycloak authority is not on the origin this build trusts (${error.expectedOrigin})`;
     case 'provider-changed':
       return 'The sign-in was started with a provider that is no longer selected';
     case 'provider-refused':
@@ -55,10 +62,12 @@ export function describeAuthError(error: AuthError): string {
       return 'The sign-in response does not match the request that started it';
     case 'missing-code':
       return 'The identity provider returned no authorization code';
+    case 'token-unreachable':
+      return `The token endpoint could not be reached (${error.message})`;
     case 'token-exchange':
-      return error.status === undefined
-        ? 'The token endpoint returned no usable token'
-        : `The token endpoint answered with status ${error.status}`;
+      return `The token endpoint answered with status ${error.status}`;
+    case 'token-invalid':
+      return 'The token endpoint returned no usable token';
     case 'silent-unavailable':
       return 'There is no identity provider session to restore';
     case 'provider-sdk':

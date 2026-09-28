@@ -1,3 +1,4 @@
+import { errorMessage } from './errors';
 import type { AuthError } from './errors';
 import type { KeycloakConfig } from './keycloak';
 import { fail, ok } from './result';
@@ -40,8 +41,8 @@ export async function fetchLoginPlan(): Promise<Result<LoginPlan, AuthError>> {
 
   try {
     response = await fetch(LOGIN_PLAN_URL, { signal: AbortSignal.timeout(LOGIN_PLAN_TIMEOUT_MS) });
-  } catch {
-    return fail({ kind: 'plan-unavailable' });
+  } catch (err: unknown) {
+    return fail({ kind: 'plan-unreachable', message: errorMessage(err) });
   }
 
   if (!response.ok) {
@@ -53,7 +54,7 @@ export async function fetchLoginPlan(): Promise<Result<LoginPlan, AuthError>> {
   try {
     data = await response.json();
   } catch {
-    return fail({ kind: 'plan-unavailable', status: response.status });
+    return fail({ kind: 'plan-invalid' });
   }
 
   return toLoginPlan(data);

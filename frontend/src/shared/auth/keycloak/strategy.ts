@@ -1,4 +1,4 @@
-import { unexpected } from '../errors';
+import { errorMessage, unexpected } from '../errors';
 import type { AuthError } from '../errors';
 import { createChallenge, createState, createVerifier } from '../pkce';
 import { fail, ok } from '../result';
@@ -71,8 +71,8 @@ export async function exchangeCode(
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
     });
-  } catch {
-    return fail({ kind: 'token-exchange' });
+  } catch (err: unknown) {
+    return fail({ kind: 'token-unreachable', message: errorMessage(err) });
   }
 
   if (!response.ok) {
@@ -84,11 +84,11 @@ export async function exchangeCode(
   try {
     payload = (await response.json()) as TokenPayload;
   } catch {
-    return fail({ kind: 'token-exchange' });
+    return fail({ kind: 'token-invalid' });
   }
 
   if (typeof payload.access_token !== 'string') {
-    return fail({ kind: 'token-exchange' });
+    return fail({ kind: 'token-invalid' });
   }
 
   const lifetime = typeof payload.expires_in === 'number' ? payload.expires_in : 0;
