@@ -115,7 +115,11 @@ export async function startLogin(
     const state = createState();
     const challenge = await createChallenge(verifier);
 
-    savePending({ verifier, state, returnTo: safeReturnTo(returnTo) });
+    const saved = savePending({ verifier, state, returnTo: safeReturnTo(returnTo) });
+
+    if (!saved.ok) {
+      return saved;
+    }
 
     url = buildAuthorizeUrl({ config, redirectUri: CALLBACK_URI, state, challenge });
   } catch (err: unknown) {
@@ -138,11 +142,11 @@ export async function completeLogin(
     return fail({ kind: 'provider-refused', code: error });
   }
 
-  if (pending === null) {
-    return fail({ kind: 'no-pending-login' });
+  if (!pending.ok) {
+    return pending;
   }
 
-  if (params.get('state') !== pending.state) {
+  if (params.get('state') !== pending.value.state) {
     return fail({ kind: 'state-mismatch' });
   }
 
@@ -152,13 +156,13 @@ export async function completeLogin(
     return fail({ kind: 'missing-code' });
   }
 
-  const session = await exchangeCode(config, code, pending.verifier, CALLBACK_URI);
+  const session = await exchangeCode(config, code, pending.value.verifier, CALLBACK_URI);
 
   if (!session.ok) {
     return session;
   }
 
-  return ok({ session: session.value, returnTo: safeReturnTo(pending.returnTo) });
+  return ok({ session: session.value, returnTo: safeReturnTo(pending.value.returnTo) });
 }
 
 export function buildLogoutUrl(session: KeycloakSession): string {

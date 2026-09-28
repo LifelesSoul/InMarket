@@ -6,6 +6,7 @@ export type AuthError =
   | { kind: 'provider-changed' }
   | { kind: 'provider-refused'; code: string }
   | { kind: 'no-pending-login' }
+  | { kind: 'storage-unavailable'; message: string }
   | { kind: 'state-mismatch' }
   | { kind: 'missing-code' }
   | { kind: 'token-exchange'; status?: number }
@@ -13,8 +14,12 @@ export type AuthError =
   | { kind: 'provider-sdk'; message: string }
   | { kind: 'unexpected'; message: string };
 
+export function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function unexpected(err: unknown): AuthError {
-  return { kind: 'unexpected', message: err instanceof Error ? err.message : String(err) };
+  return { kind: 'unexpected', message: errorMessage(err) };
 }
 
 const INVALID_CONFIG_MESSAGES: Record<'authority' | 'clientId' | 'scopes', string> = {
@@ -44,6 +49,8 @@ export function describeAuthError(error: AuthError): string {
       return 'The identity provider refused the sign-in';
     case 'no-pending-login':
       return 'No sign-in was started from this tab';
+    case 'storage-unavailable':
+      return `The browser blocked session storage, so the sign-in cannot continue (${error.message})`;
     case 'state-mismatch':
       return 'The sign-in response does not match the request that started it';
     case 'missing-code':
