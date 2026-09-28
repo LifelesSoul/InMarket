@@ -28,6 +28,17 @@ export function unexpected(err: unknown): AuthError {
   return { kind: 'unexpected', message: errorMessage(err) };
 }
 
+const INTERACTION_REQUIRED = new Set([
+  'login_required',
+  'interaction_required',
+  'consent_required',
+  'account_selection_required',
+]);
+
+export function isInteractionRequired(code: string): boolean {
+  return INTERACTION_REQUIRED.has(code);
+}
+
 const INVALID_CONFIG_MESSAGES: Record<'authority' | 'clientId' | 'scopes', string> = {
   authority: 'The Keycloak authority is not a valid absolute url',
   clientId: 'The Keycloak client id has an unexpected shape',

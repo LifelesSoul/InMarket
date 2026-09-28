@@ -1,8 +1,6 @@
-import type { AuthProviderName, AuthUser } from './types';
+import type { AuthActions, AuthProviderName, AuthUser } from './types';
 
-export interface ProviderSession {
+export type ProviderSession = Pick<AuthActions, 'getAccessToken' | 'logout'> & {
   provider: AuthProviderName;
   user: AuthUser;
-  getAccessToken(): Promise<string | null>;
-  logout(): void;
-}
+};

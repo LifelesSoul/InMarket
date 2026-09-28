@@ -8,7 +8,7 @@ import { describeAuthError } from './errors';
 import { beginLogin, finishKeycloakLogin, restoreKeycloak } from './flow';
 import { CALLBACK_PATH, createKeycloakSession } from './keycloak';
 import { authReducer, initialAuthState, isBusy } from './state';
-import type { AuthContextValue } from './types';
+import type { AuthActions, AuthContextValue } from './types';
 
 export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const auth0 = useAuth0();
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
 
     if (auth0.isAuthenticated) {
-      const session = createAuth0Session(auth0);
+      const session = createAuth0Session(auth0, signOut);
 
       if (session.ok) {
         dispatch({ type: 'signed-in', session: session.value });
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     [session],
   );
 
-  const actions = useMemo(
+  const actions = useMemo<AuthActions>(
     () => ({ login, logout, getAccessToken }),
     [login, logout, getAccessToken],
   );

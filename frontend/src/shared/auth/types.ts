@@ -6,13 +6,18 @@ export interface AuthUser {
   picture?: string;
 }
 
-export interface AuthContextValue {
+export interface AuthSnapshot {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: AuthUser | null;
   error: string | null;
   provider: AuthProviderName | null;
+}
+
+export interface AuthActions {
   login: () => Promise<void>;
   logout: () => void;
   getAccessToken: () => Promise<string | null>;
 }
+
+export type AuthContextValue = Readonly<AuthSnapshot & AuthActions>;

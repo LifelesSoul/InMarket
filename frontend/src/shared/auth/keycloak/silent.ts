@@ -1,4 +1,4 @@
-import { unexpected } from '../errors';
+import { isInteractionRequired, unexpected } from '../errors';
 import type { AuthError } from '../errors';
 import { createChallenge, createState, createVerifier } from '../pkce';
 import { fail } from '../result';
@@ -11,13 +11,6 @@ const SILENT_CALLBACK_URI = `${window.location.origin}${SILENT_CALLBACK_PATH}`;
 
 const SILENT_TIMEOUT_MS = 5_000;
 const SILENT_MESSAGE_SOURCE = 'inmarket.silent-callback';
-
-const INTERACTION_REQUIRED = new Set([
-  'login_required',
-  'interaction_required',
-  'consent_required',
-  'account_selection_required',
-]);
 
 function readSilentMessage(data: unknown): string | null {
   if (typeof data !== 'object' || data === null) {
@@ -91,7 +84,7 @@ export async function restoreSession(
 
   if (error !== null) {
     return fail(
-      INTERACTION_REQUIRED.has(error)
+      isInteractionRequired(error)
         ? { kind: 'silent-unavailable', reason: error }
         : { kind: 'provider-refused', code: error },
     );
