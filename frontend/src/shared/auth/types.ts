@@ -1,8 +1,8 @@
 export type AuthProviderName = 'Auth0' | 'Keycloak';
 
 export interface AuthUser {
-  name?: string;
-  email?: string;
+  name: string;
+  email: string;
   picture?: string;
 }
 

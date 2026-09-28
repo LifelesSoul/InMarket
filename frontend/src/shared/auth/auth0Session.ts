@@ -1,14 +1,19 @@
 import type { Auth0ContextInterface } from '@auth0/auth0-react';
+import type { AuthError } from './errors';
+import { ok, type Result } from './result';
 import type { ProviderSession } from './session';
+import { toAuthUser } from './user';
 
-export function createAuth0Session(auth0: Auth0ContextInterface): ProviderSession {
-    return {
+export function createAuth0Session(auth0: Auth0ContextInterface): Result<ProviderSession, AuthError> {
+    const user = toAuthUser(auth0.user);
+
+    if (!user.ok) {
+        return user;
+    }
+
+    return ok({
         provider: 'Auth0',
-        user: {
-            name: auth0.user?.name,
-            email: auth0.user?.email,
-            picture: auth0.user?.picture,
-        },
+        user: user.value,
         async getAccessToken() {
             try {
                 return await auth0.getAccessTokenSilently();
@@ -19,5 +24,5 @@ export function createAuth0Session(auth0: Auth0ContextInterface): ProviderSessio
         logout() {
             auth0.logout({ logoutParams: { returnTo: window.location.origin } });
         },
-    };
+    });
 }

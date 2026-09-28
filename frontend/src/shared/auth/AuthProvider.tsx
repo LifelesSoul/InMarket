@@ -42,7 +42,13 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
 
     if (auth0.isAuthenticated) {
-      dispatch({ type: 'signed-in', session: createAuth0Session(auth0) });
+      const session = createAuth0Session(auth0);
+
+      if (session.ok) {
+        dispatch({ type: 'signed-in', session: session.value });
+      } else {
+        dispatch({ type: 'failed', error: session.error });
+      }
       return;
     }
 

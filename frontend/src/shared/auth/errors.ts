@@ -15,6 +15,7 @@ export type AuthError =
   | { kind: 'token-unreachable'; message: string }
   | { kind: 'token-exchange'; status: number }
   | { kind: 'token-invalid' }
+  | { kind: 'incomplete-profile'; claim: 'name' | 'email' }
   | { kind: 'silent-unavailable'; reason: string }
   | { kind: 'provider-sdk'; message: string }
   | { kind: 'unexpected'; message: string };
@@ -68,6 +69,8 @@ export function describeAuthError(error: AuthError): string {
       return `The token endpoint answered with status ${error.status}`;
     case 'token-invalid':
       return 'The token endpoint returned no usable token';
+    case 'incomplete-profile':
+      return `The identity provider did not return the user's ${error.claim}`;
     case 'silent-unavailable':
       return 'There is no identity provider session to restore';
     case 'provider-sdk':

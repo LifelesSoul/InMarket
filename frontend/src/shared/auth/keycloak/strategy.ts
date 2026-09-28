@@ -87,20 +87,24 @@ export async function exchangeCode(
     return fail({ kind: 'token-invalid' });
   }
 
-  if (typeof payload.access_token !== 'string') {
+  if (typeof payload.access_token !== 'string' || typeof payload.id_token !== 'string') {
     return fail({ kind: 'token-invalid' });
   }
 
+  const user = decodeIdToken(payload.id_token);
+
+  if (!user.ok) {
+    return user;
+  }
+
   const lifetime = typeof payload.expires_in === 'number' ? payload.expires_in : 0;
-  const idToken = typeof payload.id_token === 'string' ? payload.id_token : null;
 
   return ok({
     accessToken: payload.access_token,
-    idToken,
+    idToken: payload.id_token,
     expiresAt: Date.now() + lifetime * 1000,
-    user: idToken === null ? {} : decodeIdToken(idToken),
+    user: user.value,
     authority: config.authority,
-    clientId: config.clientId,
   });
 }
 
@@ -168,12 +172,7 @@ export async function completeLogin(
 export function buildLogoutUrl(session: KeycloakSession): string {
   const url = new URL(endpoint(session.authority, 'logout'));
   url.searchParams.set('post_logout_redirect_uri', window.location.origin);
-
-  if (session.idToken === null) {
-    url.searchParams.set('client_id', session.clientId);
-  } else {
-    url.searchParams.set('id_token_hint', session.idToken);
-  }
+  url.searchParams.set('id_token_hint', session.idToken);
 
   return url.toString();
 }

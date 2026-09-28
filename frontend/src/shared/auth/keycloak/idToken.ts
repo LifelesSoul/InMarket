@@ -1,4 +1,7 @@
+import type { AuthError } from '../errors';
+import { fail, type Result } from '../result';
 import type { AuthUser } from '../types';
+import { toAuthUser } from '../user';
 
 function decodeSegment(segment: string): string {
   const normalized = segment.replaceAll('-', '+').replaceAll('_', '/');
@@ -8,22 +11,20 @@ function decodeSegment(segment: string): string {
   return new TextDecoder().decode(bytes);
 }
 
-export function decodeIdToken(idToken: string): AuthUser {
+export function decodeIdToken(idToken: string): Result<AuthUser, AuthError> {
   const segment = idToken.split('.')[1];
 
   if (segment === undefined) {
-    return {};
+    return fail({ kind: 'token-invalid' });
   }
+
+  let claims: unknown;
 
   try {
-    const claims = JSON.parse(decodeSegment(segment)) as Record<string, unknown>;
-
-    return {
-      name: typeof claims.name === 'string' ? claims.name : undefined,
-      email: typeof claims.email === 'string' ? claims.email : undefined,
-      picture: typeof claims.picture === 'string' ? claims.picture : undefined,
-    };
+    claims = JSON.parse(decodeSegment(segment));
   } catch {
-    return {};
+    return fail({ kind: 'token-invalid' });
   }
+
+  return toAuthUser(claims);
 }
