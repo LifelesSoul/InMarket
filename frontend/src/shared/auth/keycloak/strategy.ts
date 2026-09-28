@@ -1,12 +1,30 @@
+import { unexpected } from '../errors';
+import type { AuthError } from '../errors';
 import { createChallenge, createState, createVerifier } from '../pkce';
+import { fail, ok } from '../result';
+import type { Result } from '../result';
 import { decodeIdToken } from './idToken';
 import { savePending, takePending } from './pendingLogin';
-import type { CompletedLogin, TrustedAuthority, ValidatedConfig } from './types';
+import type { CompletedLogin, KeycloakSession, TrustedAuthority, ValidatedConfig } from './types';
 
 export const CALLBACK_PATH = '/auth/callback';
 
-function redirectUri(): string {
-  return `${window.location.origin}${CALLBACK_PATH}`;
+export interface AuthorizeRequest {
+  config: ValidatedConfig;
+  redirectUri: string;
+  state: string;
+  challenge: string;
+  prompt?: 'none';
+}
+
+interface TokenPayload {
+  access_token?: unknown;
+  id_token?: unknown;
+  expires_in?: unknown;
+}
+
+export function callbackUri(path: string): string {
+  return `${window.location.origin}${path}`;
 }
 
 function endpoint(authority: TrustedAuthority, name: string): string {
@@ -17,99 +35,144 @@ function safeReturnTo(value: string): string {
   return value.startsWith('/') && !value.startsWith('//') ? value : '/';
 }
 
-export async function startLogin(config: ValidatedConfig, returnTo: string): Promise<void> {
-  const verifier = createVerifier();
-  const state = createState();
-  const challenge = await createChallenge(verifier);
-
-  savePending({
-    verifier,
-    state,
-    returnTo: safeReturnTo(returnTo),
-  });
-
-  const url = new URL(endpoint(config.authority, 'auth'));
-  url.searchParams.set('client_id', config.clientId);
+export function buildAuthorizeUrl(request: AuthorizeRequest): string {
+  const url = new URL(endpoint(request.config.authority, 'auth'));
+  url.searchParams.set('client_id', request.config.clientId);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('redirect_uri', redirectUri());
-  url.searchParams.set('scope', config.scopes);
-  url.searchParams.set('state', state);
-  url.searchParams.set('code_challenge', challenge);
+  url.searchParams.set('redirect_uri', request.redirectUri);
+  url.searchParams.set('scope', request.config.scopes);
+  url.searchParams.set('state', request.state);
+  url.searchParams.set('code_challenge', request.challenge);
   url.searchParams.set('code_challenge_method', 'S256');
 
-  window.location.assign(url.toString());
+  if (request.prompt !== undefined) {
+    url.searchParams.set('prompt', request.prompt);
+  }
+
+  return url.toString();
+}
+
+export async function exchangeCode(
+  config: ValidatedConfig,
+  code: string,
+  verifier: string,
+  redirectUri: string,
+): Promise<Result<KeycloakSession, AuthError>> {
+  const body = new URLSearchParams({
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: redirectUri,
+    client_id: config.clientId,
+    code_verifier: verifier,
+  });
+
+  let response: Response;
+
+  try {
+    response = await fetch(endpoint(config.authority, 'token'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+  } catch {
+    return fail({ kind: 'token-exchange' });
+  }
+
+  if (!response.ok) {
+    return fail({ kind: 'token-exchange', status: response.status });
+  }
+
+  let payload: TokenPayload;
+
+  try {
+    payload = (await response.json()) as TokenPayload;
+  } catch {
+    return fail({ kind: 'token-exchange' });
+  }
+
+  if (typeof payload.access_token !== 'string') {
+    return fail({ kind: 'token-exchange' });
+  }
+
+  const lifetime = typeof payload.expires_in === 'number' ? payload.expires_in : 0;
+  const idToken = typeof payload.id_token === 'string' ? payload.id_token : null;
+
+  return ok({
+    accessToken: payload.access_token,
+    idToken,
+    expiresAt: Date.now() + lifetime * 1000,
+    user: idToken === null ? {} : decodeIdToken(idToken),
+    authority: config.authority,
+    clientId: config.clientId,
+  });
+}
+
+export async function startLogin(
+  config: ValidatedConfig,
+  returnTo: string,
+): Promise<Result<void, AuthError>> {
+  let url: string;
+
+  try {
+    const verifier = createVerifier();
+    const state = createState();
+    const challenge = await createChallenge(verifier);
+
+    savePending({ verifier, state, returnTo: safeReturnTo(returnTo) });
+
+    url = buildAuthorizeUrl({ config, redirectUri: callbackUri(CALLBACK_PATH), state, challenge });
+  } catch (err: unknown) {
+    return fail(unexpected(err));
+  }
+
+  window.location.assign(url);
+
+  return ok(undefined);
 }
 
 export async function completeLogin(
   config: ValidatedConfig,
   params: URLSearchParams,
-): Promise<CompletedLogin> {
+): Promise<Result<CompletedLogin, AuthError>> {
   const pending = takePending();
+  const error = params.get('error');
 
-  if (params.get('error') !== null) {
-    throw new Error('The identity provider refused the sign-in');
+  if (error !== null) {
+    return fail({ kind: 'provider-refused', code: error });
   }
 
   if (pending === null) {
-    throw new Error('No sign-in was started from this tab');
+    return fail({ kind: 'no-pending-login' });
   }
 
-  const returnedState = params.get('state');
-
-  if (returnedState === null || returnedState !== pending.state) {
-    throw new Error('The sign-in response does not match the request that started it');
+  if (params.get('state') !== pending.state) {
+    return fail({ kind: 'state-mismatch' });
   }
 
   const code = params.get('code');
 
   if (code === null) {
-    throw new Error('The identity provider returned no authorization code');
+    return fail({ kind: 'missing-code' });
   }
 
-  const body = new URLSearchParams({
-    grant_type: 'authorization_code',
-    code,
-    redirect_uri: redirectUri(),
-    client_id: config.clientId,
-    code_verifier: pending.verifier,
-  });
+  const session = await exchangeCode(config, code, pending.verifier, callbackUri(CALLBACK_PATH));
 
-  const response = await fetch(endpoint(config.authority, 'token'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
-
-  if (!response.ok) {
-    throw new Error(`The token endpoint answered with status ${response.status}`);
+  if (!session.ok) {
+    return session;
   }
 
-  const payload = (await response.json()) as {
-    access_token?: unknown;
-    id_token?: unknown;
-    expires_in?: unknown;
-  };
-
-  if (typeof payload.access_token !== 'string') {
-    throw new TypeError('The token endpoint returned no access token');
-  }
-
-  const lifetime = typeof payload.expires_in === 'number' ? payload.expires_in : 0;
-
-  return {
-    session: {
-      accessToken: payload.access_token,
-      expiresAt: Date.now() + lifetime * 1000,
-      user: typeof payload.id_token === 'string' ? decodeIdToken(payload.id_token) : {},
-      authority: config.authority,
-    },
-    returnTo: safeReturnTo(pending.returnTo),
-  };
+  return ok({ session: session.value, returnTo: safeReturnTo(pending.returnTo) });
 }
 
-export function buildLogoutUrl(authority: TrustedAuthority): string {
-  const url = new URL(endpoint(authority, 'logout'));
+export function buildLogoutUrl(session: KeycloakSession): string {
+  const url = new URL(endpoint(session.authority, 'logout'));
   url.searchParams.set('post_logout_redirect_uri', window.location.origin);
+
+  if (session.idToken === null) {
+    url.searchParams.set('client_id', session.clientId);
+  } else {
+    url.searchParams.set('id_token_hint', session.idToken);
+  }
 
   return url.toString();
 }

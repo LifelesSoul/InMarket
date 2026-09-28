@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Silent sign-in</title>
+  </head>
+  <body>
+    <script>
+      window.parent.postMessage(
+        { source: 'inmarket.silent-callback', search: window.location.search },
+        window.location.origin,
+      );
+    </script>
+  </body>
+</html>

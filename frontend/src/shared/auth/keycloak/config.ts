@@ -1,3 +1,5 @@
+import type { AuthError } from '../errors';
+import { fail, ok, type Result } from '../result';
 import type { KeycloakConfig, TrustedAuthority, ValidatedConfig } from './types';
 
 const CLIENT_ID_PATTERN = /^[\w-]{1,128}$/;
@@ -17,14 +19,11 @@ function trustedOrigin(): string | null {
   }
 }
 
-export function toTrustedAuthority(rawAuthority: string): TrustedAuthority {
+export function toTrustedAuthority(rawAuthority: string): Result<TrustedAuthority, AuthError> {
   const expected = trustedOrigin();
 
   if (expected === null) {
-    throw new Error(
-      'VITE_KEYCLOAK_URL is not set, so this build trusts no Keycloak origin. ' +
-        'Add it to frontend/.env and restart the dev server.',
-    );
+    return fail({ kind: 'untrusted-authority', expectedOrigin: null });
   }
 
   let parsed: URL;
@@ -32,32 +31,38 @@ export function toTrustedAuthority(rawAuthority: string): TrustedAuthority {
   try {
     parsed = new URL(rawAuthority);
   } catch {
-    throw new TypeError('The Keycloak authority is not a valid absolute url');
+    return fail({ kind: 'invalid-config', field: 'authority' });
   }
 
   if (parsed.origin !== expected) {
-    throw new Error(`The Keycloak authority is not on the origin this build trusts (${expected})`);
+    return fail({ kind: 'untrusted-authority', expectedOrigin: expected });
   }
 
   const realmPath = parsed.pathname.endsWith('/')
     ? parsed.pathname.slice(0, -1)
     : parsed.pathname;
 
-  return { origin: expected, realmPath };
+  return ok({ origin: expected, realmPath });
 }
 
-export function validateConfig(config: KeycloakConfig): ValidatedConfig {
+export function validateConfig(config: KeycloakConfig): Result<ValidatedConfig, AuthError> {
   if (!CLIENT_ID_PATTERN.test(config.clientId)) {
-    throw new TypeError('The Keycloak client id has an unexpected shape');
+    return fail({ kind: 'invalid-config', field: 'clientId' });
   }
 
   if (!SCOPE_PATTERN.test(config.scopes)) {
-    throw new TypeError('The Keycloak scopes have an unexpected shape');
+    return fail({ kind: 'invalid-config', field: 'scopes' });
   }
 
-  return {
-    authority: toTrustedAuthority(config.authority),
+  const authority = toTrustedAuthority(config.authority);
+
+  if (!authority.ok) {
+    return authority;
+  }
+
+  return ok({
+    authority: authority.value,
     clientId: config.clientId,
     scopes: config.scopes,
-  };
+  });
 }
