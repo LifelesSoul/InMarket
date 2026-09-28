@@ -3,10 +3,11 @@ import type { AuthError } from '../errors';
 import { createChallenge, createState, createVerifier } from '../pkce';
 import { fail } from '../result';
 import type { Result } from '../result';
-import { buildAuthorizeUrl, callbackUri, exchangeCode } from './strategy';
+import { buildAuthorizeUrl, exchangeCode } from './strategy';
 import type { KeycloakSession, ValidatedConfig } from './types';
 
-export const SILENT_CALLBACK_PATH = '/silent-callback.html';
+const SILENT_CALLBACK_PATH = '/silent-callback.html';
+const SILENT_CALLBACK_URI = `${window.location.origin}${SILENT_CALLBACK_PATH}`;
 
 const SILENT_TIMEOUT_MS = 5_000;
 const SILENT_MESSAGE_SOURCE = 'inmarket.silent-callback';
@@ -67,8 +68,6 @@ function waitForSilentCallback(url: string): Promise<URLSearchParams | null> {
 export async function restoreSession(
   config: ValidatedConfig,
 ): Promise<Result<KeycloakSession, AuthError>> {
-  const redirectUri = callbackUri(SILENT_CALLBACK_PATH);
-
   let verifier: string;
   let state: string;
   let url: string;
@@ -77,7 +76,7 @@ export async function restoreSession(
     verifier = createVerifier();
     state = createState();
     const challenge = await createChallenge(verifier);
-    url = buildAuthorizeUrl({ config, redirectUri, state, challenge, prompt: 'none' });
+    url = buildAuthorizeUrl({ config, redirectUri: SILENT_CALLBACK_URI, state, challenge, prompt: 'none' });
   } catch (err: unknown) {
     return fail(unexpected(err));
   }
@@ -108,5 +107,5 @@ export async function restoreSession(
     return fail({ kind: 'missing-code' });
   }
 
-  return exchangeCode(config, code, verifier, redirectUri);
+  return exchangeCode(config, code, verifier, SILENT_CALLBACK_URI);
 }

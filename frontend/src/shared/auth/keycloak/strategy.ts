@@ -8,6 +8,7 @@ import { savePending, takePending } from './pendingLogin';
 import type { CompletedLogin, KeycloakSession, TrustedAuthority, ValidatedConfig } from './types';
 
 export const CALLBACK_PATH = '/auth/callback';
+export const CALLBACK_URI = `${window.location.origin}${CALLBACK_PATH}`;
 
 export interface AuthorizeRequest {
   config: ValidatedConfig;
@@ -21,10 +22,6 @@ interface TokenPayload {
   access_token?: unknown;
   id_token?: unknown;
   expires_in?: unknown;
-}
-
-export function callbackUri(path: string): string {
-  return `${window.location.origin}${path}`;
 }
 
 function endpoint(authority: TrustedAuthority, name: string): string {
@@ -120,7 +117,7 @@ export async function startLogin(
 
     savePending({ verifier, state, returnTo: safeReturnTo(returnTo) });
 
-    url = buildAuthorizeUrl({ config, redirectUri: callbackUri(CALLBACK_PATH), state, challenge });
+    url = buildAuthorizeUrl({ config, redirectUri: CALLBACK_URI, state, challenge });
   } catch (err: unknown) {
     return fail(unexpected(err));
   }
@@ -155,7 +152,7 @@ export async function completeLogin(
     return fail({ kind: 'missing-code' });
   }
 
-  const session = await exchangeCode(config, code, pending.verifier, callbackUri(CALLBACK_PATH));
+  const session = await exchangeCode(config, code, pending.verifier, CALLBACK_URI);
 
   if (!session.ok) {
     return session;
