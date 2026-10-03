@@ -57,7 +57,7 @@ export function describeAuthError(error: AuthError): string {
     case 'plan-unavailable':
       return `The login endpoint answered with status ${error.status}`;
     case 'plan-invalid':
-      return 'The login endpoint returned a response that is not JSON';
+      return 'The login endpoint returned a response in an unexpected format';
     case 'unknown-provider':
       return 'The server selected an identity provider this build does not know';
     case 'invalid-config':
