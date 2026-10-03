@@ -96,8 +96,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   }, [session]);
 
   const getAccessToken = useCallback(
-    async (): Promise<Result<string, AuthError>> =>
-      session === null ? fail({ kind: 'not-signed-in' }) : session.getAccessToken(),
+    (): Promise<Result<string, AuthError>> =>
+      session === null ? Promise.resolve(fail({ kind: 'not-signed-in' })) : session.getAccessToken(),
     [session],
   );
 

@@ -51,7 +51,7 @@ export function MyProfile() {
       }
     };
 
-    fetchMyProfile();
+    void fetchMyProfile();
   }, [getAccessToken, isAuthenticated]);
 
   if (isAuthLoading || isLoading) return <div>Loading profile... ⏳</div>;

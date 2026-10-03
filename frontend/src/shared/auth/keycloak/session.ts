@@ -1,4 +1,5 @@
-import { fail, ok } from '../result';
+import type { AuthError } from '../errors';
+import { fail, ok, type Result } from '../result';
 import type { ProviderSession } from '../session';
 import { buildLogoutUrl } from './strategy';
 import type { KeycloakSession } from './types';
@@ -10,13 +11,13 @@ export function createKeycloakSession(
   return {
     provider: 'Keycloak',
     user: session.user,
-    async getAccessToken() {
+    getAccessToken(): Promise<Result<string, AuthError>> {
       if (session.expiresAt <= Date.now()) {
         onExpired();
-        return fail({ kind: 'session-expired' });
+        return Promise.resolve(fail({ kind: 'session-expired' }));
       }
 
-      return ok(session.accessToken);
+      return Promise.resolve(ok(session.accessToken));
     },
     logout() {
       window.location.assign(buildLogoutUrl(session));
