@@ -9,7 +9,7 @@ export function createAuth0Session(
     auth0: Auth0ContextInterface,
     onExpired: () => void,
 ): Result<ProviderSession, AuthError> {
-    const user = toAuthUser(auth0.user);
+    const user = toAuthUser(auth0.user ?? {});
 
     if (!user.ok) {
         return user;

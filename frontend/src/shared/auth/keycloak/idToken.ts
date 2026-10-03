@@ -1,7 +1,7 @@
 import type { AuthError } from '../errors';
 import { fail, type Result } from '../result';
 import type { AuthUser } from '../types';
-import { toAuthUser } from '../user';
+import { isUserClaims, toAuthUser } from '../user';
 
 function decodeSegment(segment: string): string {
   const normalized = segment.replaceAll('-', '+').replaceAll('_', '/');
@@ -18,13 +18,17 @@ export function decodeIdToken(idToken: string): Result<AuthUser, AuthError> {
     return fail({ kind: 'token-invalid' });
   }
 
-  let claims: unknown;
+  let payload: unknown;
 
   try {
-    claims = JSON.parse(decodeSegment(segment));
+    payload = JSON.parse(decodeSegment(segment));
   } catch {
     return fail({ kind: 'token-invalid' });
   }
 
-  return toAuthUser(claims);
+  if (!isUserClaims(payload)) {
+    return fail({ kind: 'token-invalid' });
+  }
+
+  return toAuthUser(payload);
 }

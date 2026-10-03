@@ -1,25 +1,38 @@
+import { isJsonObject } from '../json';
 import type { AuthError } from './errors';
 import { fail, ok, type Result } from './result';
 import type { AuthUser } from './types';
 
-function readClaim(claims: Record<string, unknown>, key: string): string | null {
-  const value = claims[key];
-  return typeof value === 'string' && value.length > 0 ? value : null;
+export interface UserClaims {
+  name?: string;
+  preferred_username?: string;
+  email?: string;
+  picture?: string;
 }
 
-export function toAuthUser(data: unknown): Result<AuthUser, AuthError> {
-  const claims = (data ?? {}) as Record<string, unknown>;
-  const name = readClaim(claims, 'name') ?? readClaim(claims, 'preferred_username');
-  const email = readClaim(claims, 'email');
-  const picture = readClaim(claims, 'picture');
+const CLAIM_KEYS = ['name', 'preferred_username', 'email', 'picture'] as const;
 
-  if (name === null) {
+export function isUserClaims(value: unknown): value is UserClaims {
+  return isJsonObject(value)
+    && CLAIM_KEYS.every((key) => value[key] === undefined || typeof value[key] === 'string');
+}
+
+function isFilled(value: string | undefined): value is string {
+  return value !== undefined && value.length > 0;
+}
+
+export function toAuthUser(claims: UserClaims): Result<AuthUser, AuthError> {
+  const name = isFilled(claims.name) ? claims.name : claims.preferred_username;
+
+  if (!isFilled(name)) {
     return fail({ kind: 'incomplete-profile', claim: 'name' });
   }
 
-  if (email === null) {
+  if (!isFilled(claims.email)) {
     return fail({ kind: 'incomplete-profile', claim: 'email' });
   }
 
-  return ok(picture === null ? { name, email } : { name, email, picture });
+  const user: AuthUser = { name, email: claims.email };
+
+  return ok(isFilled(claims.picture) ? { ...user, picture: claims.picture } : user);
 }
