@@ -11,6 +11,10 @@ export type LoginPlan =
 const LOGIN_PLAN_URL = `${import.meta.env.VITE_API_URL}/auth/login-url`;
 const LOGIN_PLAN_TIMEOUT_MS = 10_000;
 
+function isTimeout(err: unknown): boolean {
+  return err instanceof DOMException && err.name === 'TimeoutError';
+}
+
 function str(v: unknown): string {
   return typeof v === 'string' ? v : '';
 }
@@ -42,7 +46,11 @@ export async function fetchLoginPlan(): Promise<Result<LoginPlan, AuthError>> {
   try {
     response = await fetch(LOGIN_PLAN_URL, { signal: AbortSignal.timeout(LOGIN_PLAN_TIMEOUT_MS) });
   } catch (err: unknown) {
-    return fail({ kind: 'plan-unreachable', message: errorMessage(err) });
+    return fail(
+      isTimeout(err)
+        ? { kind: 'plan-timeout' }
+        : { kind: 'plan-unreachable', message: errorMessage(err) },
+    );
   }
 
   if (!response.ok) {

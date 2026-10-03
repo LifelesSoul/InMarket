@@ -1,5 +1,6 @@
 export type AuthError =
   | { kind: 'plan-unreachable'; message: string }
+  | { kind: 'plan-timeout' }
   | { kind: 'plan-unavailable'; status: number }
   | { kind: 'plan-invalid' }
   | { kind: 'unknown-provider' }
@@ -51,6 +52,8 @@ export function describeAuthError(error: AuthError): string {
   switch (error.kind) {
     case 'plan-unreachable':
       return `The login endpoint could not be reached (${error.message})`;
+    case 'plan-timeout':
+      return 'The login endpoint did not answer in time';
     case 'plan-unavailable':
       return `The login endpoint answered with status ${error.status}`;
     case 'plan-invalid':
