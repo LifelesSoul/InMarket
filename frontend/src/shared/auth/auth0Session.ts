@@ -1,7 +1,7 @@
 import { GenericError, type Auth0ContextInterface } from '@auth0/auth0-react';
-import { isInteractionRequired } from './errors';
+import { errorMessage, isInteractionRequired } from './errors';
 import type { AuthError } from './errors';
-import { ok, type Result } from './result';
+import { fail, ok, type Result } from './result';
 import type { ProviderSession } from './session';
 import { toAuthUser } from './user';
 
@@ -20,14 +20,14 @@ export function createAuth0Session(
         user: user.value,
         async getAccessToken() {
             try {
-                return await auth0.getAccessTokenSilently();
+                return ok(await auth0.getAccessTokenSilently());
             } catch (err: unknown) {
                 if (err instanceof GenericError && isInteractionRequired(err.error)) {
                     onExpired();
-                    return null;
+                    return fail({ kind: 'session-expired' });
                 }
 
-                throw err;
+                return fail({ kind: 'provider-sdk', message: errorMessage(err) });
             }
         },
         logout() {

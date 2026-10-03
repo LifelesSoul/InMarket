@@ -1,3 +1,6 @@
+import type { AuthError } from './errors';
+import type { Result } from './result';
+
 export type AuthProviderName = 'Auth0' | 'Keycloak';
 
 export interface AuthUser {
@@ -17,7 +20,7 @@ export interface AuthSnapshot {
 export interface AuthActions {
   login: () => Promise<void>;
   logout: () => void;
-  getAccessToken: () => Promise<string | null>;
+  getAccessToken: () => Promise<Result<string, AuthError>>;
 }
 
 export type AuthContextValue = Readonly<AuthSnapshot & AuthActions>;

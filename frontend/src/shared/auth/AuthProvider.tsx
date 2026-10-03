@@ -5,8 +5,10 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { createAuth0Session } from './auth0Session';
 import { AuthContext } from './authContext';
 import { describeAuthError } from './errors';
+import type { AuthError } from './errors';
 import { beginLogin, finishKeycloakLogin, restoreKeycloak } from './flow';
 import { CALLBACK_PATH, createKeycloakSession } from './keycloak';
+import { fail, type Result } from './result';
 import { authReducer, initialAuthState, isBusy } from './state';
 import type { AuthActions, AuthContextValue } from './types';
 
@@ -27,11 +29,12 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     initialized.current = true;
 
     const signOut = () => dispatch({ type: 'signed-out' });
+    const expire = () => dispatch({ type: 'failed', error: { kind: 'session-expired' } });
 
     if (location.pathname === CALLBACK_PATH) {
       void finishKeycloakLogin(location.search).then((result) => {
         if (result.ok) {
-          dispatch({ type: 'signed-in', session: createKeycloakSession(result.value.session, signOut) });
+          dispatch({ type: 'signed-in', session: createKeycloakSession(result.value.session, expire) });
           navigate(result.value.returnTo, { replace: true });
         } else {
           dispatch({ type: 'failed', error: result.error });
@@ -42,7 +45,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
 
     if (auth0.isAuthenticated) {
-      const session = createAuth0Session(auth0, signOut);
+      const session = createAuth0Session(auth0, expire);
 
       if (session.ok) {
         dispatch({ type: 'signed-in', session: session.value });
@@ -59,7 +62,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
     void restoreKeycloak().then((result) => {
       if (result.ok && result.value !== null) {
-        dispatch({ type: 'signed-in', session: createKeycloakSession(result.value, signOut) });
+        dispatch({ type: 'signed-in', session: createKeycloakSession(result.value, expire) });
       } else {
         signOut();
       }
@@ -93,7 +96,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   }, [session]);
 
   const getAccessToken = useCallback(
-    async (): Promise<string | null> => (session === null ? null : session.getAccessToken()),
+    async (): Promise<Result<string, AuthError>> =>
+      session === null ? fail({ kind: 'not-signed-in' }) : session.getAccessToken(),
     [session],
   );
 

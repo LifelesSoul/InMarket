@@ -16,6 +16,8 @@ export type AuthError =
   | { kind: 'token-exchange'; status: number }
   | { kind: 'token-invalid' }
   | { kind: 'incomplete-profile'; claim: 'name' | 'email' }
+  | { kind: 'not-signed-in' }
+  | { kind: 'session-expired' }
   | { kind: 'silent-unavailable'; reason: string }
   | { kind: 'provider-sdk'; message: string }
   | { kind: 'unexpected'; message: string };
@@ -82,6 +84,10 @@ export function describeAuthError(error: AuthError): string {
       return 'The token endpoint returned no usable token';
     case 'incomplete-profile':
       return `The identity provider did not return the user's ${error.claim}`;
+    case 'not-signed-in':
+      return 'You need to log in to do this';
+    case 'session-expired':
+      return 'Your session has expired. Please log in again.';
     case 'silent-unavailable':
       return 'There is no identity provider session to restore';
     case 'provider-sdk':
