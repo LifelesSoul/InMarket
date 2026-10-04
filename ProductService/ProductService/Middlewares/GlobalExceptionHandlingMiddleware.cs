@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ProductService.BLL.Exceptions;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -54,6 +55,11 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
                 ErrorMessages.Titles.ValidationError,
                 ex.Message),
 
+            ForbiddenException ex => new ExceptionResponse(
+                StatusCodes.Status403Forbidden,
+                ErrorMessages.Titles.Forbidden,
+                ex.Message),
+
             KeyNotFoundException ex => new ExceptionResponse(
                 StatusCodes.Status404NotFound,
                 ErrorMessages.Titles.NotFound,
@@ -87,6 +93,7 @@ public class GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMi
         {
             public const string ValidationError = "Validation Error";
             public const string NotFound = "Resource Not Found";
+            public const string Forbidden = "Forbidden";
             public const string InvalidArgument = "Invalid Argument";
             public const string Conflict = "Database Conflict";
             public const string OperationFailed = "Operation Failed";
