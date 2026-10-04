@@ -7,8 +7,10 @@ using ProductService.BLL.Events;
 using ProductService.BLL.Exceptions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
+using ProductService.DAL.Models;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
+using ProductService.Domain.Enums;
 using System.Transactions;
 using UserService.Domain.Enums;
 
@@ -25,7 +27,28 @@ public class ProductsService(
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
-        var pagedEntities = await repository.GetPaged(limit, lastId, cancellationToken);
+        var filter = new ProductFilter(Status: ProductStatus.Available);
+
+        var pagedEntities = await repository.GetPaged(limit, lastId, filter, cancellationToken);
+        return mapper.Map<PagedResult<ProductModel>>(pagedEntities);
+    }
+
+    public async Task<PagedResult<ProductModel>> GetMine(
+        Caller caller,
+        int limit,
+        Guid? lastId,
+        CancellationToken cancellationToken)
+    {
+        var user = await userRepository.GetByExternalId(caller.ExternalId, cancellationToken);
+
+        if (user is null)
+        {
+            return new PagedResult<ProductModel>();
+        }
+
+        var filter = new ProductFilter(SellerId: user.Id);
+
+        var pagedEntities = await repository.GetPaged(limit, lastId, filter, cancellationToken);
         return mapper.Map<PagedResult<ProductModel>>(pagedEntities);
     }
 
@@ -167,6 +190,7 @@ public class ProductsService(
 public interface IProductService
 {
     Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken);
+    Task<PagedResult<ProductModel>> GetMine(Caller caller, int limit, Guid? lastId, CancellationToken cancellationToken);
     Task<ProductModel> Create(CreateProductModel model, Caller caller, CancellationToken cancellationToken);
     Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken);
     Task Remove(Guid id, Caller caller, CancellationToken cancellationToken);

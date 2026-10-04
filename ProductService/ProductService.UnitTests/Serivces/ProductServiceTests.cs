@@ -78,7 +78,11 @@ public class ProductServiceTests : ServiceTestsBase
         };
 
         _repositoryMock
-            .Setup(r => r.GetPaged(limit, token, Ct))
+            .Setup(r => r.GetPaged(
+                limit,
+                token,
+                It.Is<ProductFilter>(f => f.Status == ProductStatus.Available && f.SellerId == null),
+                Ct))
             .ReturnsAsync(pagedList);
 
         MapperMock
@@ -89,6 +93,67 @@ public class ProductServiceTests : ServiceTestsBase
 
         result.ShouldBe(expectedModel);
         result.Items.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task GetMine_ReturnsCallerProductsOfEveryStatus()
+    {
+        var sellerId = Guid.NewGuid();
+        SetupCaller(sellerId, UserRolePresets.SellerWithBuying);
+
+        var draft = CreateProductEntity();
+        draft.SellerId = sellerId;
+        draft.Status = ProductStatus.Draft;
+
+        var pagedList = new PagedList<Domain.Entities.Product>
+        {
+            Items = new List<Domain.Entities.Product> { draft },
+            LastId = draft.Id
+        };
+
+        var expectedModel = new PagedResult<ProductModel>
+        {
+            Items = new List<ProductModel> { new()
+            {
+                Title = draft.Title,
+                Price = draft.Price,
+                Category = null!,
+                Seller = null!
+            }},
+            LastId = draft.Id.ToString()
+        };
+
+        _repositoryMock
+            .Setup(r => r.GetPaged(
+                10,
+                null,
+                It.Is<ProductFilter>(f => f.SellerId == sellerId && f.Status == null),
+                Ct))
+            .ReturnsAsync(pagedList);
+
+        MapperMock
+            .Setup(m => m.Map<PagedResult<ProductModel>>(pagedList))
+            .Returns(expectedModel);
+
+        var result = await _service.GetMine(Owner, 10, null, Ct);
+
+        result.ShouldBe(expectedModel);
+    }
+
+    [Fact]
+    public async Task GetMine_WhenCallerHasNoUser_ReturnsEmptyPage()
+    {
+        _userRepositoryMock
+            .Setup(r => r.GetByExternalId(ExternalUserId, Ct))
+            .ReturnsAsync((User?)null);
+
+        var result = await _service.GetMine(Owner, 10, null, Ct);
+
+        result.Items.ShouldBeEmpty();
+        result.LastId.ShouldBeNull();
+        _repositoryMock.Verify(
+            r => r.GetPaged(It.IsAny<int>(), It.IsAny<Guid?>(), It.IsAny<ProductFilter>(), Ct),
+            Times.Never);
     }
 
     [Fact]

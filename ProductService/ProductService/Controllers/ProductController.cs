@@ -27,6 +27,18 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
         return Ok(result);
     }
 
+    [HttpGet("mine")]
+    [Authorize]
+    public async Task<ActionResult<PagedResult<ProductViewModel>>> GetMine(
+        [FromQuery] int limit = 10,
+        [FromQuery] Guid? lastId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var pagedModels = await service.GetMine(User.ToCaller(), limit, lastId, cancellationToken);
+
+        return Ok(mapper.Map<PagedResult<ProductViewModel>>(pagedModels));
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProductViewModel>> GetById(Guid id, CancellationToken cancellationToken = default)
     {

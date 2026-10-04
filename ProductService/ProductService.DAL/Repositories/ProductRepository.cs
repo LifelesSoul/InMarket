@@ -9,21 +9,44 @@ namespace ProductService.DAL.Repositories;
 [ExcludeFromCodeCoverage]
 public class ProductRepository(ProductDbContext context) : Repository<Product>(context), IProductRepository
 {
-    public async Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken)
+    public override async Task<Product?> GetById(Guid id, CancellationToken cancellationToken, bool disableTracking = false)
     {
-        var query = DbSet
-            .AsNoTracking()
-            .Include(product => product.Category)
-            .Include(product => product.Seller)
-            .Include(product => product.Images)
-            .OrderBy(product => product.Id);
+        if (!disableTracking)
+        {
+            return await base.GetById(id, cancellationToken, disableTracking);
+        }
+
+        return await WithDetails(DbSet.AsNoTracking())
+            .FirstOrDefaultAsync(product => product.Id == id, cancellationToken);
+    }
+
+    public async Task<PagedList<Product>> GetPaged(
+        int limit,
+        Guid? lastId,
+        ProductFilter filter,
+        CancellationToken cancellationToken)
+    {
+        var query = WithDetails(DbSet.AsNoTracking());
+
+        if (filter.SellerId.HasValue)
+        {
+            query = query.Where(product => product.SellerId == filter.SellerId.Value);
+        }
+
+        if (filter.Status.HasValue)
+        {
+            query = query.Where(product => product.Status == filter.Status.Value);
+        }
 
         if (lastId.HasValue)
         {
-            query = (IOrderedQueryable<Product>)query.Where(product => product.Id > lastId.Value);
+            query = query.Where(product => product.Id > lastId.Value);
         }
 
-        var items = await query.Take(limit).ToListAsync(cancellationToken);
+        var items = await query
+            .OrderBy(product => product.Id)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
 
         return new PagedList<Product>
         {
@@ -86,10 +109,18 @@ public class ProductRepository(ProductDbContext context) : Repository<Product>(c
         }
         await base.Update(product, cancellationToken);
     }
+
+    private static IQueryable<Product> WithDetails(IQueryable<Product> query)
+    {
+        return query
+            .Include(product => product.Category)
+            .Include(product => product.Seller)
+            .Include(product => product.Images);
+    }
 }
 
 public interface IProductRepository : IRepository<Product>
 {
-    Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, CancellationToken cancellationToken);
+    Task<PagedList<Product>> GetPaged(int limit, Guid? lastId, ProductFilter filter, CancellationToken cancellationToken);
     Task Update(Product product, IEnumerable<string>? newImageUrls, CancellationToken cancellationToken);
 }
