@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
@@ -10,6 +11,7 @@ using ProductService.BLL.Exceptions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
+using ProductService.BLL.Validators;
 using ProductService.DAL.Models;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Enums;
@@ -42,7 +44,9 @@ public class ProductServiceTests : ServiceTestsBase
             _userRepositoryMock.Object,
             MapperMock.Object,
             _loggerMock.Object,
-            _backgroundJobClientMock.Object
+            _backgroundJobClientMock.Object,
+            new CreateProductModelValidator(),
+            new UpdateProductModelValidator()
         );
     }
 
@@ -533,6 +537,63 @@ public class ProductServiceTests : ServiceTestsBase
         };
 
         await Should.ThrowAsync<ForbiddenException>(() => _service.Update(updateModel, Owner, Ct));
+
+        entity.Title.ShouldBe("Default Product");
+        _repositoryMock.Verify(r => r.Update(It.IsAny<Domain.Entities.Product>(), It.IsAny<IEnumerable<string>>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Create_WhenModelIsInvalid_ThrowsValidationException()
+    {
+        SetupCaller(Guid.NewGuid(), UserRolePresets.SellerWithBuying);
+
+        var createModel = new CreateProductModel
+        {
+            Title = "",
+            Price = 0,
+            CategoryId = Guid.Empty
+        };
+
+        await Should.ThrowAsync<ValidationException>(() => _service.Create(createModel, Owner, Ct));
+
+        _repositoryMock.Verify(r => r.Add(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Create_WhenImageUrlIsNotHttp_ThrowsValidationException()
+    {
+        SetupCaller(Guid.NewGuid(), UserRolePresets.SellerWithBuying);
+
+        var createModel = new CreateProductModel
+        {
+            Title = "New Product",
+            Price = 100,
+            CategoryId = Guid.NewGuid(),
+            ImageUrls = ["https://images.example.com/1.png", "ftp://images.example.com/2.png"]
+        };
+
+        await Should.ThrowAsync<ValidationException>(() => _service.Create(createModel, Owner, Ct));
+
+        _repositoryMock.Verify(r => r.Add(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Update_WhenModelIsInvalid_ThrowsValidationException()
+    {
+        var entity = CreateProductEntity();
+        _repositoryMock.Setup(r => r.GetById(entity.Id, Ct, false)).ReturnsAsync(entity);
+        SetupCaller(entity.SellerId, UserRolePresets.SellerWithBuying);
+
+        var updateModel = new UpdateProductModel
+        {
+            Id = entity.Id,
+            Title = "Updated",
+            Price = 10.999m,
+            Status = (ProductStatus)42,
+            CategoryId = entity.CategoryId
+        };
+
+        await Should.ThrowAsync<ValidationException>(() => _service.Update(updateModel, Owner, Ct));
 
         entity.Title.ShouldBe("Default Product");
         _repositoryMock.Verify(r => r.Update(It.IsAny<Domain.Entities.Product>(), It.IsAny<IEnumerable<string>>(), Ct), Times.Never);

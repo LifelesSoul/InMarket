@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using ProductService.BLL.Constants;
@@ -18,7 +19,9 @@ public class ProductsService(
     IUserRepository userRepository,
     IMapper mapper,
     ILogger<ProductsService> logger,
-    IBackgroundJobClient backgroundJobClient) : IProductService
+    IBackgroundJobClient backgroundJobClient,
+    IValidator<CreateProductModel> createValidator,
+    IValidator<UpdateProductModel> updateValidator) : IProductService
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
@@ -38,6 +41,8 @@ public class ProductsService(
         {
             throw new ForbiddenException("Only sellers can publish products.");
         }
+
+        await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         var entity = mapper.Map<Product>(model);
         entity.SellerId = seller.Id;
@@ -117,6 +122,8 @@ public class ProductsService(
             ?? throw new KeyNotFoundException($"Product {model.Id} not found");
 
         await EnsureCanManage(product, caller, cancellationToken);
+
+        await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         mapper.Map(model, product);
 

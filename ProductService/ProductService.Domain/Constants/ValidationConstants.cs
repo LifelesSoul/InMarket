@@ -26,4 +26,11 @@ public static class ValidationConstants
         public const string PasswordLowerCaseRegex = "[a-z]";
         public const string PasswordDigitRegex = "[0-9]";
     }
+
+    public static class Product
+    {
+        public const int TitleMaxLength = DbConstants.TitleTextLength;
+        public const int PricePrecision = 18;
+        public const int PriceScale = 2;
+    }
 }
