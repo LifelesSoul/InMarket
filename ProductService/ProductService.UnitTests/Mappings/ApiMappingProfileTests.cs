@@ -46,6 +46,30 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
     }
 
     [Fact]
+    public void MapProductModelToProductViewModel_ShouldMapCategoryIdImagesAndCreationDate()
+    {
+        var categoryId = Guid.NewGuid();
+        var creationDate = new DateTimeOffset(2026, 9, 1, 12, 0, 0, TimeSpan.Zero);
+
+        var model = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "Camera",
+            Price = 500m,
+            CreationDate = creationDate,
+            ImageUrls = new List<string> { "http://first.com", "http://second.com" },
+            Category = new ProductCategoryModel { Id = categoryId, Name = "Photo" },
+            Seller = new SellerModel { Id = Guid.NewGuid(), Username = "U", Email = "E" }
+        };
+
+        var viewModel = Mapper.Map<ProductViewModel>(model);
+
+        viewModel.CategoryId.ShouldBe(categoryId);
+        viewModel.ImageUrls.ShouldBe(new[] { "http://first.com", "http://second.com" });
+        viewModel.CreatedAt.ShouldBe(creationDate);
+    }
+
+    [Fact]
     public void MapProductModelWithMultipleImages_ShouldPickStrictlyTheFirstUrl()
     {
         var model = new ProductModel
