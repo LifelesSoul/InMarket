@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import type { Product, PagedResult } from '../types';
+import { formatPrice } from '../format';
 import './ProductList.css';
 import { UserProfile } from '../../Auth/components/UserProfile';
 
@@ -83,12 +85,17 @@ export function ProductList() {
               ref={isLastElement ? lastProductElementRef : null} 
               className="product-card"
             >
-              <h3 className="product-title">{product.title}</h3>
-              <span className="product-category">
-                {product.categoryName}
-              </span>
-              <p className="product-description">{product.description || "No Options"}</p>
-              <strong className="product-price">Cost: ${product.price}</strong>
+              <Link to={`/products/${product.id}`} className="product-card-link">
+                {product.imageUrl && (
+                  <img className="product-card-image" src={product.imageUrl} alt="" />
+                )}
+                <h3 className="product-title">{product.title}</h3>
+                <span className="product-category">
+                  {product.categoryName}
+                </span>
+                <p className="product-description">{product.description || "No Options"}</p>
+                <strong className="product-price">{formatPrice(product.price)}</strong>
+              </Link>
             </div>
           );
         })}
