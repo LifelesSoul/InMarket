@@ -45,7 +45,8 @@ public class MappingProfile : Profile
         CreateMap<User, UserProfileDto>()
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : string.Empty))
             .ForMember(dest => dest.Biography, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Biography : string.Empty))
-            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0));
+            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0))
+            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Role.ToMarketRoles()));
 
         CreateMap<User, UserModel>()
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : null))

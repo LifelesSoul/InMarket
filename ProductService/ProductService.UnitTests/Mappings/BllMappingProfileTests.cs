@@ -3,6 +3,7 @@ using ProductService.BLL.Mappings;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.Profile;
 using ProductService.BLL.Models.User;
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
@@ -363,5 +364,25 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Seller = seller,
             Images = new List<ProductImage>()
         };
+    }
+
+    [Fact]
+    public void MapUserToUserProfileDto_ShouldMapIdDateAndRoles()
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = "seller",
+            Email = "seller@test.com",
+            Role = UserRolePresets.SellerWithBuying,
+            RegistrationDate = DateTimeOffset.UtcNow,
+            Profile = null!
+        };
+
+        var dto = Mapper.Map<UserProfileDto>(user);
+
+        dto.Id.ShouldBe(user.Id);
+        dto.RegistrationDate.ShouldBe(user.RegistrationDate);
+        dto.Roles.ShouldBe(new[] { "Buyer", "Seller" });
     }
 }

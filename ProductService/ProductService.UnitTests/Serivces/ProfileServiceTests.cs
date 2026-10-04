@@ -40,6 +40,9 @@ public class ProfileServiceTests : ServiceTestsBase
 
         var expected = new UserProfileDto
         {
+            Id = entity.Id,
+            RegistrationDate = entity.RegistrationDate,
+            Roles = ["Buyer"],
             Username = entity.Username,
             Email = entity.Email,
             AvatarUrl = "https://example.com/avatar.png",

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.API.Extensions;
+using ProductService.BLL.Models.Profile;
 using ProductService.BLL.Services;
 using System.Diagnostics.CodeAnalysis;
 
@@ -47,6 +48,27 @@ public class ProfileController : ControllerBase
             return StatusCode(500, "Failed to create user profile.");
         }
 
-        return Ok(profile);
+        return Ok(WithTokenRoles(profile));
+    }
+
+    [HttpPost("me/seller")]
+    [Authorize]
+    public async Task<IActionResult> BecomeSeller(CancellationToken cancellationToken)
+    {
+        var externalId = User.GetExternalId();
+
+        await _userService.BecomeSeller(externalId, cancellationToken);
+
+        var profile = await _profileService.GetProfileByExternalIdAsync(externalId)
+            ?? throw new KeyNotFoundException("User not found.");
+
+        return Ok(WithTokenRoles(profile));
+    }
+
+    private UserProfileDto WithTokenRoles(UserProfileDto profile)
+    {
+        return User.IsAdmin()
+            ? profile with { Roles = [.. profile.Roles, "Admin"] }
+            : profile;
     }
 }

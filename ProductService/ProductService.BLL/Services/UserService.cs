@@ -139,6 +139,22 @@ public class UsersService(
             await repository.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task BecomeSeller(string externalId, CancellationToken cancellationToken)
+    {
+        var user = await repository.GetByExternalId(externalId, cancellationToken)
+            ?? throw new KeyNotFoundException("User not found. Open your profile first.");
+
+        if (user.Role.HasFlag(UserRoles.Seller))
+        {
+            return;
+        }
+
+        user.Role |= UserRolePresets.SellerWithBuying;
+
+        await repository.Update(user, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+    }
 }
 
 public interface IUserService
@@ -149,4 +165,5 @@ public interface IUserService
     Task<UserModel> Create(CreateUserModel model, CancellationToken cancellationToken);
     Task<UserModel> Update(UpdateUserModel model, CancellationToken cancellationToken);
     Task Delete(Guid id, CancellationToken cancellationToken);
+    Task BecomeSeller(string externalId, CancellationToken cancellationToken);
 }
