@@ -1,3 +1,4 @@
+using ProductService.BLL.Models;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
@@ -27,5 +28,10 @@ public static class ClaimsPrincipalExtensions
     public static bool IsAdmin(this ClaimsPrincipal principal)
     {
         return principal.IsInRole("Admin");
+    }
+
+    public static Caller ToCaller(this ClaimsPrincipal principal)
+    {
+        return new Caller(principal.GetExternalId(), principal.IsAdmin());
     }
 }

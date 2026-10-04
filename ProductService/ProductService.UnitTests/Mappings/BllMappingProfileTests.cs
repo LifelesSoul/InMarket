@@ -81,7 +81,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Title = "New Product",
             Price = 100m,
             CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid(),
             Description = "Desc",
 
             ImageUrls = new List<string> { "http://img1.com", "http://img2.com" }
@@ -108,7 +107,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Title = "Null Images Product",
             Price = 100m,
             CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid(),
 
             ImageUrls = null
         };
@@ -130,7 +128,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Title = "Empty Images Product",
             Price = 100m,
             CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid(),
 
             ImageUrls = new List<string>()
         };

@@ -67,6 +67,7 @@ public class MappingProfile : Profile
             .ForMember(destination => destination.ImageUrls, option => option.MapFrom(source => source.Images.Select(image => image.Url)));
 
         CreateMap<CreateProductModel, Product>()
+            .ForMember(destination => destination.SellerId, option => option.Ignore())
             .ForMember(destination => destination.Priority, option => option.MapFrom(source => Priority.Low))
             .ForMember(destination => destination.Status, option => option.MapFrom(source => ProductStatus.Available))
             .ForMember(destination => destination.Images, option => option.MapFrom(source =>
