@@ -1,0 +1,31 @@
+.product-form-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.product-form-page-back {
+  color: #2a9d8f;
+  text-decoration: none;
+}
+
+.product-form-page-title {
+  margin: 0;
+}
+
+.product-form-page-message {
+  color: #555;
+}
+
+.product-form-page-error {
+  padding: 8px;
+  border-radius: 8px;
+  background: #fee;
+  color: red;
+}
+
+.product-form-page-retry {
+  align-self: flex-start;
+}
