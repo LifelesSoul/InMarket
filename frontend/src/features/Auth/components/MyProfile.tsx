@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { describeAuthError } from '../../../shared/auth/errors';
 import { useAuth } from '../../../shared/auth/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -28,13 +29,14 @@ export function MyProfile() {
       try {
         const token = await getAccessToken();
 
-        if (token === null) {
-          throw new Error('Could not obtain an access token');
+        if (!token.ok) {
+          setError(describeAuthError(token.error));
+          return;
         }
 
         const response = await fetch(`${import.meta.env.VITE_API_URL}/profiles/me`, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token.value}`
           }
         });
 
@@ -49,7 +51,7 @@ export function MyProfile() {
       }
     };
 
-    fetchMyProfile();
+    void fetchMyProfile();
   }, [getAccessToken, isAuthenticated]);
 
   if (isAuthLoading || isLoading) return <div>Loading profile... ⏳</div>;

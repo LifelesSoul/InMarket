@@ -1,9 +1,5 @@
-export { CALLBACK_PATH, buildLogoutUrl, completeLogin, startLogin } from './strategy';
+export { CALLBACK_PATH, completeLogin, startLogin } from './strategy';
+export { restoreSession } from './silent';
 export { validateConfig } from './config';
-export type {
-  CompletedLogin,
-  KeycloakConfig,
-  KeycloakSession,
-  TrustedAuthority,
-  ValidatedConfig,
-} from './types';
+export { createKeycloakSession } from './session';
+export type { CompletedLogin, KeycloakConfig, KeycloakSession } from './types';

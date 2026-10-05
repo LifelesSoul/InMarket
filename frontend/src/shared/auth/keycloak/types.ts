@@ -19,6 +19,7 @@ export interface ValidatedConfig {
 
 export interface KeycloakSession {
   accessToken: string;
+  idToken: string;
   expiresAt: number;
   user: AuthUser;
   authority: TrustedAuthority;

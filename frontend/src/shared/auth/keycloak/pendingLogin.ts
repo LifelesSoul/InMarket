@@ -1,3 +1,8 @@
+import { errorMessage } from '../errors';
+import type { AuthError } from '../errors';
+import { fail, ok } from '../result';
+import type { Result } from '../result';
+
 export interface PendingLogin {
   verifier: string;
   state: string;
@@ -6,51 +11,58 @@ export interface PendingLogin {
 
 const PENDING_KEY = 'inmarket.auth.keycloak.pending';
 
-function isPendingLogin(value: unknown): value is PendingLogin {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
+export function savePending(pending: PendingLogin): Result<void, AuthError> {
+  const value = new URLSearchParams({
+    verifier: pending.verifier,
+    state: pending.state,
+    returnTo: pending.returnTo,
+  }).toString();
 
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    typeof candidate.verifier === 'string' &&
-    typeof candidate.state === 'string' &&
-    typeof candidate.returnTo === 'string'
-  );
-}
-
-export function savePending(pending: PendingLogin): void {
-  sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
-}
-
-function readPending(): PendingLogin | null {
   try {
-    const raw = sessionStorage.getItem(PENDING_KEY);
-
-    if (raw === null) {
-      return null;
-    }
-
-    const parsed: unknown = JSON.parse(raw);
-
-    return isPendingLogin(parsed) ? parsed : null;
-  } catch {
-    return null;
+    sessionStorage.setItem(PENDING_KEY, value);
+    return ok(undefined);
+  } catch (err: unknown) {
+    return fail({ kind: 'storage-unavailable', message: errorMessage(err) });
   }
 }
 
-function clearPending(): void {
+function readPending(): Result<PendingLogin, AuthError> {
+  let raw: string | null;
+
+  try {
+    raw = sessionStorage.getItem(PENDING_KEY);
+  } catch (err: unknown) {
+    return fail({ kind: 'storage-unavailable', message: errorMessage(err) });
+  }
+
+  if (raw === null) {
+    return fail({ kind: 'no-pending-login' });
+  }
+
+  const params = new URLSearchParams(raw);
+  const verifier = params.get('verifier');
+  const state = params.get('state');
+  const returnTo = params.get('returnTo');
+
+  if (verifier === null || state === null || returnTo === null) {
+    return fail({ kind: 'no-pending-login' });
+  }
+
+  return ok({ verifier, state, returnTo });
+}
+
+function clearPending(): Result<void, AuthError> {
   try {
     sessionStorage.removeItem(PENDING_KEY);
-  } catch {
-    return;
+    return ok(undefined);
+  } catch (err: unknown) {
+    return fail({ kind: 'storage-unavailable', message: errorMessage(err) });
   }
 }
 
-export function takePending(): PendingLogin | null {
+export function takePending(): Result<PendingLogin, AuthError> {
   const pending = readPending();
-  clearPending();
+  const cleared = clearPending();
 
-  return pending;
+  return cleared.ok ? pending : cleared;
 }
