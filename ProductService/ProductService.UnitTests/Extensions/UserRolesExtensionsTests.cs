@@ -7,22 +7,25 @@ namespace ProductService.Tests.Extensions;
 
 public class UserRolesExtensionsTests
 {
+    private static readonly string[] BuyerOnly = ["Buyer"];
+    private static readonly string[] BuyerAndSeller = ["Buyer", "Seller"];
+
     [Fact]
     public void ToMarketRoles_WhenBuyer_ReturnsBuyer()
     {
-        UserRoles.Buyer.ToMarketRoles().ShouldBe(new[] { "Buyer" });
+        UserRoles.Buyer.ToMarketRoles().ShouldBe(BuyerOnly);
     }
 
     [Fact]
     public void ToMarketRoles_WhenSellerOnly_AddsBuyerToo()
     {
-        UserRoles.Seller.ToMarketRoles().ShouldBe(new[] { "Buyer", "Seller" });
+        UserRoles.Seller.ToMarketRoles().ShouldBe(BuyerAndSeller);
     }
 
     [Fact]
     public void ToMarketRoles_WhenAdminInDatabase_DoesNotReturnAdmin()
     {
-        UserRolePresets.AdminAll.ToMarketRoles().ShouldBe(new[] { "Buyer", "Seller" });
+        UserRolePresets.AdminAll.ToMarketRoles().ShouldBe(BuyerAndSeller);
     }
 
     [Fact]

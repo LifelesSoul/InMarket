@@ -37,8 +37,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eee;
-  color: #2a9d8f;
+  background: #f2faf9;
+  color: #1f7a70;
   font-size: 32px;
   font-weight: 600;
 }
@@ -80,7 +80,7 @@
   padding: 8px;
   border-radius: 8px;
   background: #fee;
-  color: red;
+  color: #b00020;
 }
 
 .profile-retry {

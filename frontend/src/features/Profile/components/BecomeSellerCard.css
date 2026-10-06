@@ -18,7 +18,7 @@
   padding: 8px 16px;
   border: none;
   border-radius: 8px;
-  background: #2a9d8f;
+  background: #1f7a70;
   color: #fff;
   cursor: pointer;
 }
@@ -33,5 +33,5 @@
   padding: 8px;
   border-radius: 8px;
   background: #fee;
-  color: red;
+  color: #b00020;
 }

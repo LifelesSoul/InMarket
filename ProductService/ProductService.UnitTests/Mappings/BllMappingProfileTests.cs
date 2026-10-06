@@ -17,6 +17,8 @@ namespace ProductService.Tests.Mappings;
 
 public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 {
+    private static readonly string[] BuyerAndSeller = ["Buyer", "Seller"];
+
     [Fact]
     public void MapProductToProductModel_ShouldFlattenImages()
     {
@@ -380,6 +382,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 
         dto.Id.ShouldBe(user.Id);
         dto.RegistrationDate.ShouldBe(user.RegistrationDate);
-        dto.Roles.ShouldBe(new[] { "Buyer", "Seller" });
+        dto.Roles.ShouldBe(BuyerAndSeller);
     }
 }
