@@ -75,16 +75,16 @@
   padding: 8px;
   border-radius: 8px;
   background: #fee;
-  color: red;
+  color: #b00020;
 }
 
 .my-products-more {
   align-self: center;
   padding: 8px 16px;
-  border: 1px solid #2a9d8f;
+  border: 1px solid #1f7a70;
   border-radius: 8px;
   background: #fff;
-  color: #2a9d8f;
+  color: #1f7a70;
   cursor: pointer;
 }
 

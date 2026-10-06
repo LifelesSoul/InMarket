@@ -9,15 +9,15 @@
 
 .product-status-draft {
   background: #fff4d6;
-  color: #8a6d1f;
+  color: #7a5f17;
 }
 
 .product-status-available {
   background: #e3f4f2;
-  color: #2a9d8f;
+  color: #1f7a70;
 }
 
 .product-status-removed {
   background: #fee;
-  color: red;
+  color: #b00020;
 }

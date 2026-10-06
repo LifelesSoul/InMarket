@@ -37,7 +37,7 @@
   padding: 8px;
   border-radius: 8px;
   background: #fee;
-  color: red;
+  color: #b00020;
 }
 
 .product-form-actions {
@@ -54,7 +54,7 @@
 
 .product-form-submit {
   border: none;
-  background: #2a9d8f;
+  background: #1f7a70;
   color: #fff;
 }
 
