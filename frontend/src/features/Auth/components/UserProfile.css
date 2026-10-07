@@ -48,6 +48,11 @@
   color: white;
 }
 
+.auth-btn.add-product {
+  background-color: #1f7a70;
+  color: white;
+}
+
 .auth-btn.logout {
   background-color: #dc3545;
   color: white;

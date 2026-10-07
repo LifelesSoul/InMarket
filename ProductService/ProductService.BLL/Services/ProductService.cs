@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using ProductService.BLL.Constants;
@@ -6,8 +7,10 @@ using ProductService.BLL.Events;
 using ProductService.BLL.Exceptions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
+using ProductService.DAL.Models;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Entities;
+using ProductService.Domain.Enums;
 using System.Transactions;
 using UserService.Domain.Enums;
 
@@ -18,11 +21,34 @@ public class ProductsService(
     IUserRepository userRepository,
     IMapper mapper,
     ILogger<ProductsService> logger,
-    IBackgroundJobClient backgroundJobClient) : IProductService
+    IBackgroundJobClient backgroundJobClient,
+    IValidator<CreateProductModel> createValidator,
+    IValidator<UpdateProductModel> updateValidator) : IProductService
 {
     public async Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken)
     {
-        var pagedEntities = await repository.GetPaged(limit, lastId, cancellationToken);
+        var filter = new ProductFilter(Status: ProductStatus.Available);
+
+        var pagedEntities = await repository.GetPaged(limit, lastId, filter, cancellationToken);
+        return mapper.Map<PagedResult<ProductModel>>(pagedEntities);
+    }
+
+    public async Task<PagedResult<ProductModel>> GetMine(
+        Caller caller,
+        int limit,
+        Guid? lastId,
+        CancellationToken cancellationToken)
+    {
+        var user = await userRepository.GetByExternalId(caller.ExternalId, cancellationToken);
+
+        if (user is null)
+        {
+            return new PagedResult<ProductModel>();
+        }
+
+        var filter = new ProductFilter(SellerId: user.Id);
+
+        var pagedEntities = await repository.GetPaged(limit, lastId, filter, cancellationToken);
         return mapper.Map<PagedResult<ProductModel>>(pagedEntities);
     }
 
@@ -38,6 +64,8 @@ public class ProductsService(
         {
             throw new ForbiddenException("Only sellers can publish products.");
         }
+
+        await createValidator.ValidateAndThrowAsync(model, cancellationToken);
 
         var entity = mapper.Map<Product>(model);
         entity.SellerId = seller.Id;
@@ -118,6 +146,8 @@ public class ProductsService(
 
         await EnsureCanManage(product, caller, cancellationToken);
 
+        await updateValidator.ValidateAndThrowAsync(model, cancellationToken);
+
         mapper.Map(model, product);
 
         using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
@@ -160,6 +190,7 @@ public class ProductsService(
 public interface IProductService
 {
     Task<PagedResult<ProductModel>> GetAll(int limit, Guid? lastId, CancellationToken cancellationToken);
+    Task<PagedResult<ProductModel>> GetMine(Caller caller, int limit, Guid? lastId, CancellationToken cancellationToken);
     Task<ProductModel> Create(CreateProductModel model, Caller caller, CancellationToken cancellationToken);
     Task<ProductModel?> GetById(Guid id, CancellationToken cancellationToken);
     Task Remove(Guid id, Caller caller, CancellationToken cancellationToken);

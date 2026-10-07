@@ -17,4 +17,10 @@ public static class ValidationMessages
     public const string PasswordUpperCase = "{PropertyName} must contain at least one uppercase letter.";
     public const string PasswordLowerCase = "{PropertyName} must contain at least one lowercase letter.";
     public const string PasswordDigit = "{PropertyName} must contain at least one number.";
+
+    // specific for Product
+    public const string PositivePrice = "{PropertyName} must be greater than 0.";
+    public const string PriceFormat = "{PropertyName} must be a valid amount with at most 2 decimal places.";
+    public const string InvalidStatus = "{PropertyName} is not a known product status.";
+    public const string ImageUrls = "{PropertyName} must contain only absolute http or https links.";
 }

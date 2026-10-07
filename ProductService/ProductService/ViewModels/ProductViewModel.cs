@@ -13,6 +13,8 @@ public class ProductViewModel
 
     public decimal Price { get; set; } = 0m;
 
+    public Guid CategoryId { get; set; }
+
     public string CategoryName { get; set; } = string.Empty;
 
     public string? Description { get; set; }
@@ -22,6 +24,8 @@ public class ProductViewModel
     public ProductStatus Status { get; set; } = ProductStatus.Draft;
 
     public string? ImageUrl { get; set; }
+
+    public List<string> ImageUrls { get; set; } = [];
 
     public DateTimeOffset CreatedAt { get; set; } = TimeProvider.System.GetUtcNow();
 

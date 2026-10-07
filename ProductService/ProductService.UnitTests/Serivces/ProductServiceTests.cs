@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
@@ -10,6 +11,7 @@ using ProductService.BLL.Exceptions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
+using ProductService.BLL.Validators;
 using ProductService.DAL.Models;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Enums;
@@ -42,7 +44,9 @@ public class ProductServiceTests : ServiceTestsBase
             _userRepositoryMock.Object,
             MapperMock.Object,
             _loggerMock.Object,
-            _backgroundJobClientMock.Object
+            _backgroundJobClientMock.Object,
+            new CreateProductModelValidator(),
+            new UpdateProductModelValidator()
         );
     }
 
@@ -74,7 +78,11 @@ public class ProductServiceTests : ServiceTestsBase
         };
 
         _repositoryMock
-            .Setup(r => r.GetPaged(limit, token, Ct))
+            .Setup(r => r.GetPaged(
+                limit,
+                token,
+                It.Is<ProductFilter>(f => f.Status == ProductStatus.Available && f.SellerId == null),
+                Ct))
             .ReturnsAsync(pagedList);
 
         MapperMock
@@ -85,6 +93,67 @@ public class ProductServiceTests : ServiceTestsBase
 
         result.ShouldBe(expectedModel);
         result.Items.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task GetMine_ReturnsCallerProductsOfEveryStatus()
+    {
+        var sellerId = Guid.NewGuid();
+        SetupCaller(sellerId, UserRolePresets.SellerWithBuying);
+
+        var draft = CreateProductEntity();
+        draft.SellerId = sellerId;
+        draft.Status = ProductStatus.Draft;
+
+        var pagedList = new PagedList<Domain.Entities.Product>
+        {
+            Items = new List<Domain.Entities.Product> { draft },
+            LastId = draft.Id
+        };
+
+        var expectedModel = new PagedResult<ProductModel>
+        {
+            Items = new List<ProductModel> { new()
+            {
+                Title = draft.Title,
+                Price = draft.Price,
+                Category = null!,
+                Seller = null!
+            }},
+            LastId = draft.Id.ToString()
+        };
+
+        _repositoryMock
+            .Setup(r => r.GetPaged(
+                10,
+                null,
+                It.Is<ProductFilter>(f => f.SellerId == sellerId && f.Status == null),
+                Ct))
+            .ReturnsAsync(pagedList);
+
+        MapperMock
+            .Setup(m => m.Map<PagedResult<ProductModel>>(pagedList))
+            .Returns(expectedModel);
+
+        var result = await _service.GetMine(Owner, 10, null, Ct);
+
+        result.ShouldBe(expectedModel);
+    }
+
+    [Fact]
+    public async Task GetMine_WhenCallerHasNoUser_ReturnsEmptyPage()
+    {
+        _userRepositoryMock
+            .Setup(r => r.GetByExternalId(ExternalUserId, Ct))
+            .ReturnsAsync((User?)null);
+
+        var result = await _service.GetMine(Owner, 10, null, Ct);
+
+        result.Items.ShouldBeEmpty();
+        result.LastId.ShouldBeNull();
+        _repositoryMock.Verify(
+            r => r.GetPaged(It.IsAny<int>(), It.IsAny<Guid?>(), It.IsAny<ProductFilter>(), Ct),
+            Times.Never);
     }
 
     [Fact]
@@ -362,7 +431,7 @@ public class ProductServiceTests : ServiceTestsBase
             Price = 999,
             Status = ProductStatus.Available,
             CategoryId = Guid.NewGuid(),
-            ImageUrls = new List<string> { "url1" }
+            ImageUrls = new List<string> { "https://images.example.com/1.png" }
         };
 
         var existingEntity = CreateProductEntity();
@@ -533,6 +602,63 @@ public class ProductServiceTests : ServiceTestsBase
         };
 
         await Should.ThrowAsync<ForbiddenException>(() => _service.Update(updateModel, Owner, Ct));
+
+        entity.Title.ShouldBe("Default Product");
+        _repositoryMock.Verify(r => r.Update(It.IsAny<Domain.Entities.Product>(), It.IsAny<IEnumerable<string>>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Create_WhenModelIsInvalid_ThrowsValidationException()
+    {
+        SetupCaller(Guid.NewGuid(), UserRolePresets.SellerWithBuying);
+
+        var createModel = new CreateProductModel
+        {
+            Title = "",
+            Price = 0,
+            CategoryId = Guid.Empty
+        };
+
+        await Should.ThrowAsync<ValidationException>(() => _service.Create(createModel, Owner, Ct));
+
+        _repositoryMock.Verify(r => r.Add(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Create_WhenImageUrlIsNotHttp_ThrowsValidationException()
+    {
+        SetupCaller(Guid.NewGuid(), UserRolePresets.SellerWithBuying);
+
+        var createModel = new CreateProductModel
+        {
+            Title = "New Product",
+            Price = 100,
+            CategoryId = Guid.NewGuid(),
+            ImageUrls = ["https://images.example.com/1.png", "ftp://images.example.com/2.png"]
+        };
+
+        await Should.ThrowAsync<ValidationException>(() => _service.Create(createModel, Owner, Ct));
+
+        _repositoryMock.Verify(r => r.Add(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Update_WhenModelIsInvalid_ThrowsValidationException()
+    {
+        var entity = CreateProductEntity();
+        _repositoryMock.Setup(r => r.GetById(entity.Id, Ct, false)).ReturnsAsync(entity);
+        SetupCaller(entity.SellerId, UserRolePresets.SellerWithBuying);
+
+        var updateModel = new UpdateProductModel
+        {
+            Id = entity.Id,
+            Title = "Updated",
+            Price = 10.999m,
+            Status = (ProductStatus)42,
+            CategoryId = entity.CategoryId
+        };
+
+        await Should.ThrowAsync<ValidationException>(() => _service.Update(updateModel, Owner, Ct));
 
         entity.Title.ShouldBe("Default Product");
         _repositoryMock.Verify(r => r.Update(It.IsAny<Domain.Entities.Product>(), It.IsAny<IEnumerable<string>>(), Ct), Times.Never);
