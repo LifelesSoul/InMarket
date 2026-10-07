@@ -37,6 +37,8 @@ public class CategoryService(
         var createdEntity = await repository.Add(entity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to create category.");
 
+        await repository.SaveChangesAsync(cancellationToken);
+
         return mapper.Map<CategoryModel>(createdEntity);
     }
 
@@ -50,6 +52,7 @@ public class CategoryService(
         mapper.Map(model, entity);
 
         await repository.Update(entity, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
 
         return mapper.Map<CategoryModel>(entity);
     }
@@ -59,7 +62,14 @@ public class CategoryService(
         var entity = await repository.GetById(id, cancellationToken, disableTracking: false)
              ?? throw new KeyNotFoundException($"Category with id {id} not found");
 
+        if (await repository.HasProducts(id, cancellationToken))
+        {
+            throw new InvalidOperationException(
+                $"Category \"{entity.Name}\" still has products. Move or delete them first.");
+        }
+
         await repository.Delete(entity, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
     }
 }
 

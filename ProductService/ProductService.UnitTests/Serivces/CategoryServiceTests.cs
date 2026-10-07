@@ -122,6 +122,7 @@ public class CategoryServiceTests : ServiceTestsBase
 
         result.ShouldBe(expectedModel);
         _repositoryMock.Verify(r => r.Add(entityToCreate, Ct), Times.Once);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Once);
     }
 
     [Fact]
@@ -140,6 +141,7 @@ public class CategoryServiceTests : ServiceTestsBase
         exception.Errors.ShouldContain(e => e.PropertyName == "Name" && e.ErrorMessage == "Required");
 
         _repositoryMock.Verify(r => r.Add(It.IsAny<Domain.Entities.Category>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Never);
     }
 
     [Fact]
@@ -195,6 +197,7 @@ public class CategoryServiceTests : ServiceTestsBase
 
         result.ShouldBe(expectedModel);
         _repositoryMock.Verify(r => r.Update(existingEntity, Ct), Times.Once);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Once);
     }
 
     [Fact]
@@ -237,6 +240,7 @@ public class CategoryServiceTests : ServiceTestsBase
         exception.Message.ShouldContain("Name is too short");
 
         _repositoryMock.Verify(r => r.Update(It.IsAny<Domain.Entities.Category>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Never);
     }
 
     [Fact]
@@ -252,6 +256,30 @@ public class CategoryServiceTests : ServiceTestsBase
         await _service.Remove(id, Ct);
 
         _repositoryMock.Verify(r => r.Delete(entity, Ct), Times.Once);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Once);
+    }
+
+    [Fact]
+    public async Task Remove_WhenCategoryHasProducts_ThrowsInvalidOperationException()
+    {
+        var id = Guid.NewGuid();
+        var entity = new Domain.Entities.Category { Id = id, Name = "Phones" };
+
+        _repositoryMock
+            .Setup(r => r.GetById(id, Ct, false))
+            .ReturnsAsync(entity);
+
+        _repositoryMock
+            .Setup(r => r.HasProducts(id, Ct))
+            .ReturnsAsync(true);
+
+        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+            _service.Remove(id, Ct));
+
+        exception.Message.ShouldContain("Phones");
+
+        _repositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Entities.Category>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Never);
     }
 
     [Fact]
