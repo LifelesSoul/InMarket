@@ -15,20 +15,27 @@ builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddSignalR();
 
+var allowedOrigins = builder.Configuration
+    .GetRequiredSection("Cors:AllowedOrigins")
+    .Get<string[]>();
+
+if (allowedOrigins is null or { Length: 0 })
+{
+    throw new InvalidOperationException("CORS allowed origins are missing or empty in the configuration");
+}
+
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.SetIsOriginAllowed(origin => true)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+    options.AddDefaultPolicy(policy => policy
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
 
-builder.Services.AddAuth0Authentication(builder.Configuration);
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddSingleton<IAuthorizationHandler, NotificationAuthorizationHandler>();
 builder.Services.AddAuthorizationBuilder()

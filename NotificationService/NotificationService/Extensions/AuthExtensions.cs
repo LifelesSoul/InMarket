@@ -1,48 +1,84 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using NotificationService.Application.Constants;
+using NotificationService.API.Configuration;
 using NotificationService.Configuration;
 
 namespace NotificationService.API.Extensions;
 
 public static class AuthExtensions
 {
-    public static IServiceCollection AddAuth0Authentication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<Auth0Settings>(configuration.GetSection(Auth0Settings.SectionName));
+        services.Configure<KeycloakSettings>(configuration.GetSection(KeycloakSettings.SectionName));
 
         var auth0Settings = configuration.GetSection(Auth0Settings.SectionName).Get<Auth0Settings>()
             ?? throw new InvalidOperationException("Auth0 settings are missing in appsettings.json");
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+        var keycloakSettings = configuration.GetSection(KeycloakSettings.SectionName).Get<KeycloakSettings>()
+            ?? throw new InvalidOperationException("Keycloak settings are missing in appsettings.json");
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = AuthConstants.SelectorScheme;
+            options.DefaultChallengeScheme = AuthConstants.SelectorScheme;
+        })
+        .AddPolicyScheme(AuthConstants.SelectorScheme, AuthConstants.SelectorScheme, options =>
+        {
+            options.ForwardDefaultSelector = context =>
+                AuthSchemeSelector.ForRequest(context, keycloakSettings.Authority);
+        })
+        .AddJwtBearer(AuthConstants.Auth0Scheme, options =>
+        {
+            options.Authority = $"https://{auth0Settings.Domain}/";
+            options.Audience = auth0Settings.Audience;
+
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.Authority = $"https://{auth0Settings.Domain}/";
-                options.Audience = auth0Settings.Audience;
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                RoleClaimType = auth0Settings.RoleClaimType
+            };
 
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true
-                };
+            options.Events = CreateHubTokenEvents();
+        })
+        .AddJwtBearer(AuthConstants.KeycloakScheme, options =>
+        {
+            options.Authority = keycloakSettings.Authority;
+            options.RequireHttpsMetadata = false;
 
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        var accessToken = context.Request.Query["access_token"];
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+                ValidateIssuer = true,
+                ValidIssuer = keycloakSettings.Authority
+            };
 
-                        var path = context.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) &&
-                            path.StartsWithSegments(HubRoutes.NotificationHub))
-                        {
-                            context.Token = accessToken;
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+            options.Events = CreateHubTokenEvents();
+        });
+
+        services.AddTransient<IClaimsTransformation, KeycloakRoleTransformation>();
 
         return services;
+    }
+
+    private static JwtBearerEvents CreateHubTokenEvents()
+    {
+        return new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var hubToken = AuthSchemeSelector.ReadHubToken(context.HttpContext);
+
+                if (hubToken is not null)
+                {
+                    context.Token = hubToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     }
 }
