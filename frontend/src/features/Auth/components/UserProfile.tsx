@@ -29,6 +29,12 @@ export function UserProfile() {
             <span className="profile-email">{user?.email}</span>
           </div>
 
+          {hasRole('Admin') && (
+            <button className="auth-btn admin" onClick={() => navigate('/admin/categories')}>
+              Admin
+            </button>
+          )}
+
           {hasRole('Seller') && (
             <button className="auth-btn add-product" onClick={() => navigate('/products/new')}>
               + Add product

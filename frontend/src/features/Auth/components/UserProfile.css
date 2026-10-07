@@ -53,6 +53,11 @@
   color: white;
 }
 
+.auth-btn.admin {
+  background-color: #555;
+  color: white;
+}
+
 .auth-btn.logout {
   background-color: #dc3545;
   color: white;

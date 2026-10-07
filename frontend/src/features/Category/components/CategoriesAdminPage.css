@@ -1,0 +1,56 @@
+.categories-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.categories-admin-back {
+  color: #1f7a70;
+  text-decoration: none;
+}
+
+.categories-admin-title {
+  margin: 0;
+}
+
+.categories-admin-card {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.categories-admin-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.categories-admin-message,
+.categories-admin-hint {
+  margin: 0;
+  color: #555;
+}
+
+.categories-admin-hint {
+  font-size: 0.85rem;
+}
+
+.categories-admin-error {
+  padding: 8px;
+  border-radius: 8px;
+  background: #fee;
+  color: #b00020;
+}
+
+.categories-admin-retry {
+  align-self: flex-start;
+}
