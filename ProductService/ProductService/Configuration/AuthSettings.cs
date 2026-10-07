@@ -11,6 +11,7 @@ public record Auth0Settings
     public string Audience { get; init; } = string.Empty;
     public string ClientId { get; init; } = string.Empty;
     public string Scopes { get; init; } = "openid profile email";
+    public string RoleClaimType { get; init; } = string.Empty;
 }
 
 [ExcludeFromCodeCoverage]
