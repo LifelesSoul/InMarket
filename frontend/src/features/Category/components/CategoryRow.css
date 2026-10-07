@@ -1,0 +1,48 @@
+.category-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+}
+
+.category-row-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.category-row-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.category-row-primary,
+.category-row-danger {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.category-row-primary {
+  background: #1f7a70;
+}
+
+.category-row-danger {
+  background: #dc3545;
+}
+
+.category-row-error {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fee;
+  color: #b00020;
+}
