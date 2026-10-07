@@ -431,7 +431,7 @@ public class ProductServiceTests : ServiceTestsBase
             Price = 999,
             Status = ProductStatus.Available,
             CategoryId = Guid.NewGuid(),
-            ImageUrls = new List<string> { "url1" }
+            ImageUrls = new List<string> { "https://images.example.com/1.png" }
         };
 
         var existingEntity = CreateProductEntity();
