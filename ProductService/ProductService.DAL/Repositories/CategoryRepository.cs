@@ -15,9 +15,16 @@ public class CategoryRepository(ProductDbContext context) : Repository<Category>
             .OrderBy(context => context.Name)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<bool> HasProducts(Guid id, CancellationToken cancellationToken)
+    {
+        return await Context.Products
+            .AnyAsync(product => product.CategoryId == id, cancellationToken);
+    }
 }
 
 public interface ICategoryRepository : IRepository<Category>
 {
     Task<IReadOnlyList<Category>> GetAll(CancellationToken cancellationToken);
+    Task<bool> HasProducts(Guid id, CancellationToken cancellationToken);
 }
