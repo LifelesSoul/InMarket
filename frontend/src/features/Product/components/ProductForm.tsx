@@ -2,7 +2,8 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Result } from '../../../shared/auth/result';
 import { EMPTY_PRODUCT_FORM, readProductForm, TITLE_MAX_LENGTH, type ProductFormValues } from '../form';
-import { PRODUCT_STATUS_LABELS, ProductStatus, type Category, type NewProduct } from '../types';
+import type { Category } from '../../Category/types';
+import { PRODUCT_STATUS_LABELS, ProductStatus, type NewProduct } from '../types';
 import './ProductForm.css';
 
 const EDITABLE_STATUSES: readonly ProductStatus[] = [ProductStatus.Draft, ProductStatus.Available, ProductStatus.Sold];

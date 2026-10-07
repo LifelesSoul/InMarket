@@ -33,11 +33,6 @@ export interface Product {
   seller: Seller;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-}
-
 export interface NewProduct {
   title: string;
   price: number;
