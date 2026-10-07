@@ -42,15 +42,8 @@ public class MappingProfile : Profile
     {
         CreateMap<User, SellerModel>();
 
-        CreateMap<User, UserProfileDto>()
-            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : string.Empty))
-            .ForMember(dest => dest.Biography, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Biography : string.Empty))
-            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0));
-
-        CreateMap<User, UserModel>()
-            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : null))
-            .ForMember(dest => dest.Biography, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Biography : null))
-            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0));
+        AddUserProfileMaps();
+        AddUserModelMaps();
 
         CreateMap<CreateUserModel, User>();
 
@@ -60,12 +53,30 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRoles.Buyer));
     }
 
+    private void AddUserProfileMaps()
+    {
+        CreateMap<User, UserProfileDto>()
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : string.Empty))
+            .ForMember(dest => dest.Biography, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Biography : string.Empty))
+            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0))
+            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Role.ToMarketRoles()));
+    }
+
+    private void AddUserModelMaps()
+    {
+        CreateMap<User, UserModel>()
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.AvatarUrl : null))
+            .ForMember(dest => dest.Biography, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Biography : null))
+            .ForMember(dest => dest.RatingScore, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.RatingScore : 0));
+    }
+
     private void AddProductMaps()
     {
         CreateMap<Product, ProductModel>()
             .ForMember(destination => destination.ImageUrls, option => option.MapFrom(source => source.Images.Select(image => image.Url)));
 
         CreateMap<CreateProductModel, Product>()
+            .ForMember(destination => destination.SellerId, option => option.Ignore())
             .ForMember(destination => destination.Priority, option => option.MapFrom(source => Priority.Low))
             .ForMember(destination => destination.Status, option => option.MapFrom(source => ProductStatus.Available))
             .ForMember(destination => destination.Images, option => option.MapFrom(source =>

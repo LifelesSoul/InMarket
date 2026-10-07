@@ -39,9 +39,7 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateProductModel model, CancellationToken cancellationToken = default)
     {
-        var externalUserId = User.GetExternalId();
-
-        var createdModel = await service.Create(model, model.SellerId, externalUserId, cancellationToken);
+        var createdModel = await service.Create(model, User.ToCaller(), cancellationToken);
 
         return Ok(mapper.Map<ProductViewModel>(createdModel));
     }
@@ -50,9 +48,7 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [Authorize]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
     {
-        var externalUserId = User.GetExternalId();
-
-        await service.Remove(id, externalUserId, cancellationToken);
+        await service.Remove(id, User.ToCaller(), cancellationToken);
 
         return NoContent();
     }
@@ -61,9 +57,7 @@ public class ProductsController(IProductService service, IMapper mapper) : Contr
     [Authorize]
     public async Task<ActionResult<ProductViewModel>> Update([FromBody] UpdateProductModel model, CancellationToken cancellationToken = default)
     {
-        var externalUserId = User.GetExternalId();
-
-        var updatedModel = await service.Update(model, externalUserId, cancellationToken);
+        var updatedModel = await service.Update(model, User.ToCaller(), cancellationToken);
 
         return Ok(mapper.Map<ProductViewModel>(updatedModel));
     }

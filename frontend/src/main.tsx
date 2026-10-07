@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import { Auth0Provider } from '@auth0/auth0-react'
 import { AuthProvider } from './shared/auth/AuthProvider'
+import { MyProfileProvider } from './features/Profile/MyProfileProvider'
 import { CALLBACK_PATH } from './shared/auth/keycloak'
 
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -24,7 +25,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     >
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <MyProfileProvider>
+            <App />
+          </MyProfileProvider>
         </AuthProvider>
       </BrowserRouter>
     </Auth0Provider>

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using ProductService.BLL.Constants;
 using ProductService.BLL.Events;
+using ProductService.BLL.Exceptions;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Product;
 using ProductService.BLL.Services;
@@ -13,13 +14,18 @@ using ProductService.DAL.Models;
 using ProductService.DAL.Repositories;
 using ProductService.Domain.Enums;
 using Shouldly;
+using UserService.Domain.Entities;
+using UserService.Domain.Enums;
 using Xunit;
 
 namespace ProductService.Tests.Services.Product;
 
 public class ProductServiceTests : ServiceTestsBase
 {
+    private const string ExternalUserId = "auth0|123456";
+
     private readonly Mock<IProductRepository> _repositoryMock;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IBackgroundJobClient> _backgroundJobClientMock;
     private readonly Mock<ILogger<ProductsService>> _loggerMock;
     private readonly ProductsService _service;
@@ -27,11 +33,13 @@ public class ProductServiceTests : ServiceTestsBase
     public ProductServiceTests()
     {
         _repositoryMock = new Mock<IProductRepository>();
+        _userRepositoryMock = new Mock<IUserRepository>();
         _backgroundJobClientMock = new Mock<IBackgroundJobClient>();
         _loggerMock = new Mock<ILogger<ProductsService>>();
 
         _service = new ProductsService(
             _repositoryMock.Object,
+            _userRepositoryMock.Object,
             MapperMock.Object,
             _loggerMock.Object,
             _backgroundJobClientMock.Object
@@ -84,13 +92,13 @@ public class ProductServiceTests : ServiceTestsBase
     {
         var sellerId = Guid.NewGuid();
         var externalUserId = "auth0|123456";
+        SetupCaller(sellerId, UserRolePresets.SellerWithBuying);
 
         var createModel = new CreateProductModel
         {
             Title = "New Product",
             Price = 100,
-            CategoryId = Guid.NewGuid(),
-            SellerId = sellerId
+            CategoryId = Guid.NewGuid()
         };
 
         var entityToCreate = CreateProductEntity();
@@ -137,9 +145,10 @@ public class ProductServiceTests : ServiceTestsBase
 
         MapperMock.Setup(m => m.Map<ProductModel>(createdEntity)).Returns(expectedModel);
 
-        var result = await _service.Create(createModel, sellerId, externalUserId, Ct);
+        var result = await _service.Create(createModel, Owner, Ct);
 
         result.ShouldBe(expectedModel);
+        entityToCreate.SellerId.ShouldBe(sellerId);
         _repositoryMock.Verify(r => r.Add(entityToCreate, Ct), Times.Once);
 
         _backgroundJobClientMock.Verify(x => x.Create(
@@ -159,16 +168,15 @@ public class ProductServiceTests : ServiceTestsBase
         {
             Title = "Fail Product",
             Price = 10,
-            CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid()
+            CategoryId = Guid.NewGuid()
         };
         var entity = CreateProductEntity();
-        var externalUserId = "auth0|123456";
+        SetupCaller(Guid.NewGuid(), UserRolePresets.SellerWithBuying);
 
         MapperMock.Setup(m => m.Map<Domain.Entities.Product>(createModel)).Returns(entity);
         _repositoryMock.Setup(r => r.Add(entity, Ct)).ReturnsAsync((Domain.Entities.Product)null!);
 
-        await Should.ThrowAsync<InvalidOperationException>(() => _service.Create(createModel, Guid.NewGuid(), externalUserId, Ct));
+        await Should.ThrowAsync<InvalidOperationException>(() => _service.Create(createModel, Owner, Ct));
 
         _backgroundJobClientMock.Verify(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>()), Times.Never);
     }
@@ -177,13 +185,12 @@ public class ProductServiceTests : ServiceTestsBase
     public async Task Create_WhenHangfireFails_ShouldLogAndReturnModel()
     {
         var sellerId = Guid.NewGuid();
-        var externalUserId = "auth0|123456";
+        SetupCaller(sellerId, UserRolePresets.SellerWithBuying);
         var createModel = new CreateProductModel
         {
             Title = "New Product",
             Price = 100,
-            CategoryId = Guid.NewGuid(),
-            SellerId = sellerId
+            CategoryId = Guid.NewGuid()
         };
 
         var entityToCreate = CreateProductEntity();
@@ -216,7 +223,7 @@ public class ProductServiceTests : ServiceTestsBase
         _backgroundJobClientMock.Setup(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>()))
             .Throws(new Exception("Hangfire error"));
 
-        var result = await _service.Create(createModel, sellerId, externalUserId, Ct);
+        var result = await _service.Create(createModel, Owner, Ct);
 
         result.ShouldBe(expectedModel);
 
@@ -279,6 +286,7 @@ public class ProductServiceTests : ServiceTestsBase
         entity.Id = id;
         entity.Title = "Test Product";
         var externalUserId = "auth0|123456";
+        SetupCaller(entity.SellerId, UserRolePresets.SellerWithBuying);
 
         _repositoryMock
             .Setup(r => r.GetById(id, Ct, false))
@@ -310,7 +318,7 @@ public class ProductServiceTests : ServiceTestsBase
             })
             .Returns(notificationEvent);
 
-        await _service.Remove(id, externalUserId, Ct);
+        await _service.Remove(id, Owner, Ct);
 
         _repositoryMock.Verify(r => r.Delete(entity, Ct), Times.Once);
 
@@ -327,14 +335,13 @@ public class ProductServiceTests : ServiceTestsBase
     public async Task Remove_WhenNotExists_ThrowsKeyNotFoundException()
     {
         var id = Guid.NewGuid();
-        var externalUserId = "auth0|123456";
 
         _repositoryMock
             .Setup(r => r.GetById(id, Ct, false))
             .ReturnsAsync((Domain.Entities.Product?)null);
 
         var exception = await Should.ThrowAsync<KeyNotFoundException>(() =>
-            _service.Remove(id, externalUserId, Ct));
+            _service.Remove(id, Owner, Ct));
 
         exception.Message.ShouldBe($"Product {id} not found");
 
@@ -361,6 +368,7 @@ public class ProductServiceTests : ServiceTestsBase
         var existingEntity = CreateProductEntity();
         existingEntity.Id = id;
         existingEntity.Title = "Old Product Title";
+        SetupCaller(existingEntity.SellerId, UserRolePresets.SellerWithBuying);
 
         var expectedModel = new ProductModel
         {
@@ -408,7 +416,7 @@ public class ProductServiceTests : ServiceTestsBase
 
         MapperMock.Setup(m => m.Map<ProductModel>(existingEntity)).Returns(expectedModel);
 
-        await _service.Update(updateModel, externalUserId, Ct);
+        await _service.Update(updateModel, Owner, Ct);
 
         _repositoryMock.Verify(r => r.Update(existingEntity, updateModel.ImageUrls, Ct), Times.Once);
 
@@ -432,11 +440,123 @@ public class ProductServiceTests : ServiceTestsBase
             Status = ProductStatus.Available,
             CategoryId = Guid.NewGuid()
         };
-        var externalUserId = "auth0|123456";
 
         _repositoryMock.Setup(r => r.GetById(updateModel.Id, Ct, false)).ReturnsAsync((Domain.Entities.Product?)null);
 
-        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, externalUserId, Ct));
+        await Should.ThrowAsync<KeyNotFoundException>(() => _service.Update(updateModel, Owner, Ct));
+    }
+
+    [Fact]
+    public async Task Create_WhenCallerIsNotSeller_ThrowsForbiddenException()
+    {
+        SetupCaller(Guid.NewGuid(), UserRoles.Buyer);
+
+        var createModel = new CreateProductModel
+        {
+            Title = "New Product",
+            Price = 100,
+            CategoryId = Guid.NewGuid()
+        };
+
+        await Should.ThrowAsync<ForbiddenException>(() => _service.Create(createModel, Owner, Ct));
+
+        _repositoryMock.Verify(r => r.Add(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Create_WhenCallerHasNoUser_ThrowsForbiddenException()
+    {
+        _userRepositoryMock
+            .Setup(r => r.GetByExternalId(ExternalUserId, Ct))
+            .ReturnsAsync((User?)null);
+
+        var createModel = new CreateProductModel
+        {
+            Title = "New Product",
+            Price = 100,
+            CategoryId = Guid.NewGuid()
+        };
+
+        await Should.ThrowAsync<ForbiddenException>(() => _service.Create(createModel, Owner, Ct));
+    }
+
+    [Fact]
+    public async Task Remove_WhenCallerIsNotOwner_ThrowsForbiddenException()
+    {
+        var entity = CreateProductEntity();
+        _repositoryMock.Setup(r => r.GetById(entity.Id, Ct, false)).ReturnsAsync(entity);
+        SetupCaller(Guid.NewGuid(), UserRolePresets.SellerWithBuying);
+
+        await Should.ThrowAsync<ForbiddenException>(() => _service.Remove(entity.Id, Owner, Ct));
+
+        _repositoryMock.Verify(r => r.Delete(It.IsAny<Domain.Entities.Product>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Remove_WhenCallerIsAdmin_SkipsOwnerCheck()
+    {
+        var entity = CreateProductEntity();
+        _repositoryMock.Setup(r => r.GetById(entity.Id, Ct, false)).ReturnsAsync(entity);
+
+        MapperMock
+            .Setup(m => m.Map<CreateNotificationEvent>(
+                entity,
+                It.IsAny<Action<IMappingOperationOptions<object, CreateNotificationEvent>>>()))
+            .Returns(new CreateNotificationEvent
+            {
+                Title = NotificationMessages.ProductDeletedTitle,
+                Message = NotificationMessages.GetProductDeletedMessage(entity.Title),
+                UserId = entity.SellerId,
+                ExternalId = "auth0|admin"
+            });
+
+        await _service.Remove(entity.Id, new Caller("auth0|admin", IsAdmin: true), Ct);
+
+        _repositoryMock.Verify(r => r.Delete(entity, Ct), Times.Once);
+        _userRepositoryMock.Verify(r => r.GetByExternalId(It.IsAny<string>(), Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task Update_WhenCallerIsNotOwner_ThrowsForbiddenException()
+    {
+        var entity = CreateProductEntity();
+        _repositoryMock.Setup(r => r.GetById(entity.Id, Ct, false)).ReturnsAsync(entity);
+        SetupCaller(Guid.NewGuid(), UserRolePresets.SellerWithBuying);
+
+        var updateModel = new UpdateProductModel
+        {
+            Id = entity.Id,
+            Title = "Hacked",
+            Price = 1,
+            Status = ProductStatus.Available,
+            CategoryId = entity.CategoryId
+        };
+
+        await Should.ThrowAsync<ForbiddenException>(() => _service.Update(updateModel, Owner, Ct));
+
+        entity.Title.ShouldBe("Default Product");
+        _repositoryMock.Verify(r => r.Update(It.IsAny<Domain.Entities.Product>(), It.IsAny<IEnumerable<string>>(), Ct), Times.Never);
+    }
+
+    private static Caller Owner => new(ExternalUserId, IsAdmin: false);
+
+    private User SetupCaller(Guid id, UserRoles role)
+    {
+        var user = new User
+        {
+            Id = id,
+            ExternalId = ExternalUserId,
+            Username = "seller",
+            Email = "seller@test.com",
+            Role = role,
+            Profile = null!
+        };
+
+        _userRepositoryMock
+            .Setup(r => r.GetByExternalId(ExternalUserId, Ct))
+            .ReturnsAsync(user);
+
+        return user;
     }
 
     private static Domain.Entities.Product CreateProductEntity()

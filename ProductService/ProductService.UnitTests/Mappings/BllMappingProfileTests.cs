@@ -3,6 +3,7 @@ using ProductService.BLL.Mappings;
 using ProductService.BLL.Models;
 using ProductService.BLL.Models.Category;
 using ProductService.BLL.Models.Product;
+using ProductService.BLL.Models.Profile;
 using ProductService.BLL.Models.User;
 using ProductService.DAL.Models;
 using ProductService.Domain.Entities;
@@ -16,6 +17,8 @@ namespace ProductService.Tests.Mappings;
 
 public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
 {
+    private static readonly string[] BuyerAndSeller = ["Buyer", "Seller"];
+
     [Fact]
     public void MapProductToProductModel_ShouldFlattenImages()
     {
@@ -80,7 +83,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Title = "New Product",
             Price = 100m,
             CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid(),
             Description = "Desc",
 
             ImageUrls = new List<string> { "http://img1.com", "http://img2.com" }
@@ -107,7 +109,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Title = "Null Images Product",
             Price = 100m,
             CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid(),
 
             ImageUrls = null
         };
@@ -129,7 +130,6 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Title = "Empty Images Product",
             Price = 100m,
             CategoryId = Guid.NewGuid(),
-            SellerId = Guid.NewGuid(),
 
             ImageUrls = new List<string>()
         };
@@ -363,5 +363,25 @@ public class BllMappingProfileTests : MapperTestsBase<MappingProfile>
             Seller = seller,
             Images = new List<ProductImage>()
         };
+    }
+
+    [Fact]
+    public void MapUserToUserProfileDto_ShouldMapIdDateAndRoles()
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = "seller",
+            Email = "seller@test.com",
+            Role = UserRolePresets.SellerWithBuying,
+            RegistrationDate = DateTimeOffset.UtcNow,
+            Profile = null!
+        };
+
+        var dto = Mapper.Map<UserProfileDto>(user);
+
+        dto.Id.ShouldBe(user.Id);
+        dto.RegistrationDate.ShouldBe(user.RegistrationDate);
+        dto.Roles.ShouldBe(BuyerAndSeller);
     }
 }

@@ -414,6 +414,40 @@ public class UserServiceTests : ServiceTestsBase
         _repositoryMock.Verify(r => r.Update(It.IsAny<User>(), Ct), Times.Never);
     }
 
+    [Fact]
+    public async Task BecomeSeller_WhenBuyer_AddsSellerAndSaves()
+    {
+        var user = CreateUser(role: UserRoles.Buyer);
+        _repositoryMock.Setup(r => r.GetByExternalId("auth0|1", Ct)).ReturnsAsync(user);
+
+        await _service.BecomeSeller("auth0|1", Ct);
+
+        user.Role.HasFlag(UserRoles.Seller).ShouldBeTrue();
+        user.Role.HasFlag(UserRoles.Buyer).ShouldBeTrue();
+        _repositoryMock.Verify(r => r.Update(user, Ct), Times.Once);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Once);
+    }
+
+    [Fact]
+    public async Task BecomeSeller_WhenAlreadySeller_DoesNothing()
+    {
+        var user = CreateUser(role: UserRolePresets.SellerWithBuying);
+        _repositoryMock.Setup(r => r.GetByExternalId("auth0|1", Ct)).ReturnsAsync(user);
+
+        await _service.BecomeSeller("auth0|1", Ct);
+
+        _repositoryMock.Verify(r => r.Update(It.IsAny<User>(), Ct), Times.Never);
+        _repositoryMock.Verify(r => r.SaveChangesAsync(Ct), Times.Never);
+    }
+
+    [Fact]
+    public async Task BecomeSeller_WhenUserMissing_ThrowsKeyNotFoundException()
+    {
+        _repositoryMock.Setup(r => r.GetByExternalId("auth0|1", Ct)).ReturnsAsync((User?)null);
+
+        await Should.ThrowAsync<KeyNotFoundException>(() => _service.BecomeSeller("auth0|1", Ct));
+    }
+
     private static User CreateUser(
         Guid? id = null,
         string? email = null,
