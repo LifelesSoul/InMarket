@@ -3,12 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useResource } from '../../../shared/api/useResource';
 import { ok, type Result } from '../../../shared/auth/result';
 import { useAuth } from '../../../shared/auth/useAuth';
+import { fetchCategories } from '../../Category/api';
+import type { Category } from '../../Category/types';
 import { RequireProfile } from '../../Profile/components/RequireProfile';
 import type { MyProfile } from '../../Profile/types';
-import { fetchCategories, fetchProduct, updateProduct } from '../api';
+import { fetchProduct, updateProduct } from '../api';
 import { toFormValues } from '../form';
 import { canManageProduct } from '../permissions';
-import type { Category, NewProduct, Product, ProductStatus } from '../types';
+import type { NewProduct, Product, ProductStatus } from '../types';
 import { ProductForm } from './ProductForm';
 import './ProductFormPage.css';
 
