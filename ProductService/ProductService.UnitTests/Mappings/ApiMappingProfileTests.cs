@@ -13,6 +13,8 @@ namespace ProductService.Tests.Mappings;
 
 public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
 {
+    private static readonly string[] ExpectedImageUrls = ["http://first.com", "http://second.com"];
+
     [Fact]
     public void MapProductModelToProductViewModel_ShouldMapCustomFields()
     {
@@ -65,7 +67,7 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         var viewModel = Mapper.Map<ProductViewModel>(model);
 
         viewModel.CategoryId.ShouldBe(categoryId);
-        viewModel.ImageUrls.ShouldBe(new[] { "http://first.com", "http://second.com" });
+        viewModel.ImageUrls.ShouldBe(ExpectedImageUrls);
         viewModel.CreatedAt.ShouldBe(creationDate);
     }
 
