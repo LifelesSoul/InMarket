@@ -44,6 +44,23 @@
   font-size: 0.85rem;
 }
 
+.categories-admin-denied {
+  padding: 15px;
+  border: 1px solid #f5c2c7;
+  border-radius: 8px;
+  background: #fee;
+  color: #b00020;
+}
+
+.categories-admin-denied-title {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.categories-admin-denied-text {
+  margin: 0;
+}
+
 .categories-admin-error {
   padding: 8px;
   border-radius: 8px;
