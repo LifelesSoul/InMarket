@@ -14,6 +14,7 @@ namespace ProductService.API.Controllers;
 public class UserController(IUserService service, IMapper mapper) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<UserViewModel>>> GetAll(
         [FromQuery] int page,
         [FromQuery] int pageSize,
@@ -27,6 +28,7 @@ public class UserController(IUserService service, IMapper mapper) : ControllerBa
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserViewModel>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var model = await service.GetById(id, cancellationToken);
