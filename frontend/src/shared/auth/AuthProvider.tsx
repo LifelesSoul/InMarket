@@ -79,7 +79,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
     dispatch({ type: 'login-requested' });
 
-    const result = await beginLogin(currentPath, () => auth0.loginWithRedirect());
+    const result = await beginLogin(currentPath, () =>
+      auth0.loginWithRedirect({ appState: { returnTo: currentPath } }),
+    );
 
     if (!result.ok) {
       dispatch({ type: 'failed', error: result.error });

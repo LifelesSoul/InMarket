@@ -24,7 +24,14 @@ function CategoriesAdminContent() {
   const { state, reload } = useResource(fetchCategories);
 
   if (!hasRole('Admin')) {
-    return <p className="categories-admin-message">Only admins can manage categories.</p>;
+    return (
+      <div className="categories-admin-denied" role="alert">
+        <p className="categories-admin-denied-title">Access denied</p>
+        <p className="categories-admin-denied-text">
+          You don&apos;t have admin rights. Ask an administrator to give you the Admin role.
+        </p>
+      </div>
+    );
   }
 
   if (state.status === 'loading') {
