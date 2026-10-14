@@ -1,0 +1,19 @@
+.require-profile {
+  color: #555;
+}
+
+.require-profile-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #1f7a70;
+  color: #fff;
+  cursor: pointer;
+}
+
+.require-profile-error {
+  padding: 8px;
+  border-radius: 8px;
+  background: #fee;
+  color: #b00020;
+}

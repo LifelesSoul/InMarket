@@ -15,8 +15,10 @@ public class MappingProfile : Profile
         CreateMap<SellerModel, SellerViewModel>();
 
         CreateMap<ProductModel, ProductViewModel>()
+            .ForMember(destination => destination.CategoryId, option => option.MapFrom(source => source.Category.Id))
             .ForMember(destination => destination.CategoryName, option => option.MapFrom(source => source.Category.Name))
-            .ForMember(destination => destination.ImageUrl, option => option.MapFrom(source => source.ImageUrls.FirstOrDefault()));
+            .ForMember(destination => destination.ImageUrl, option => option.MapFrom(source => source.ImageUrls.FirstOrDefault()))
+            .ForMember(destination => destination.CreatedAt, option => option.MapFrom(source => source.CreationDate));
 
         CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
 

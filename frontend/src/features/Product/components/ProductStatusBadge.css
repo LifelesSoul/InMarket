@@ -1,0 +1,23 @@
+.product-status {
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #eee;
+  color: #555;
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.product-status-draft {
+  background: #fff4d6;
+  color: #7a5f17;
+}
+
+.product-status-available {
+  background: #e3f4f2;
+  color: #1f7a70;
+}
+
+.product-status-removed {
+  background: #fee;
+  color: #b00020;
+}

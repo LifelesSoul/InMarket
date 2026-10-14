@@ -13,6 +13,8 @@ namespace ProductService.Tests.Mappings;
 
 public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
 {
+    private static readonly string[] ExpectedImageUrls = ["http://first.com", "http://second.com"];
+
     [Fact]
     public void MapProductModelToProductViewModel_ShouldMapCustomFields()
     {
@@ -43,6 +45,30 @@ public class ApiMappingProfileTests : MapperTestsBase<MappingProfile>
         viewModel.Title.ShouldBe("iPhone 15");
         viewModel.CategoryName.ShouldBe("Smartphones");
         viewModel.ImageUrl.ShouldBe("http://main-image.com");
+    }
+
+    [Fact]
+    public void MapProductModelToProductViewModel_ShouldMapCategoryIdImagesAndCreationDate()
+    {
+        var categoryId = Guid.NewGuid();
+        var creationDate = new DateTimeOffset(2026, 9, 1, 12, 0, 0, TimeSpan.Zero);
+
+        var model = new ProductModel
+        {
+            Id = Guid.NewGuid(),
+            Title = "Camera",
+            Price = 500m,
+            CreationDate = creationDate,
+            ImageUrls = new List<string> { "http://first.com", "http://second.com" },
+            Category = new ProductCategoryModel { Id = categoryId, Name = "Photo" },
+            Seller = new SellerModel { Id = Guid.NewGuid(), Username = "U", Email = "E" }
+        };
+
+        var viewModel = Mapper.Map<ProductViewModel>(model);
+
+        viewModel.CategoryId.ShouldBe(categoryId);
+        viewModel.ImageUrls.ShouldBe(ExpectedImageUrls);
+        viewModel.CreatedAt.ShouldBe(creationDate);
     }
 
     [Fact]

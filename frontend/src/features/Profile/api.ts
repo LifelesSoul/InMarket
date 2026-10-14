@@ -1,11 +1,8 @@
-import { apiRequest, describeApiError } from '../../shared/api/client';
+import { apiRequest, describeApiError, type TokenSource } from '../../shared/api/client';
 import { describeAuthError } from '../../shared/auth/errors';
-import type { AuthError } from '../../shared/auth/errors';
 import { fail, ok, type Result } from '../../shared/auth/result';
-import { isJsonObject } from '../../shared/json';
+import { isFilledString, isJsonObject, isOptionalString, isStringArray } from '../../shared/json';
 import type { MarketRole, MyProfile } from './types';
-
-type TokenSource = () => Promise<Result<string, AuthError>>;
 
 interface MyProfileResponse {
   id: string;
@@ -24,14 +21,6 @@ function isMarketRole(role: string): role is MarketRole {
   return MARKET_ROLES.has(role);
 }
 
-function isFilledString(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0;
-}
-
-function isOptionalString(value: unknown): value is string | null | undefined {
-  return value === undefined || value === null || typeof value === 'string';
-}
-
 function isMyProfileResponse(value: unknown): value is MyProfileResponse {
   return isJsonObject(value)
     && isFilledString(value.id)
@@ -41,8 +30,7 @@ function isMyProfileResponse(value: unknown): value is MyProfileResponse {
     && isOptionalString(value.avatarUrl)
     && isOptionalString(value.biography)
     && (value.ratingScore === undefined || typeof value.ratingScore === 'number')
-    && Array.isArray(value.roles)
-    && value.roles.every((role) => typeof role === 'string');
+    && isStringArray(value.roles);
 }
 
 function toMyProfile(response: MyProfileResponse): MyProfile {

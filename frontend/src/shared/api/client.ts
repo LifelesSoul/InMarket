@@ -1,6 +1,8 @@
-import { errorMessage } from '../auth/errors';
+import { errorMessage, type AuthError } from '../auth/errors';
 import { fail, ok, type Result } from '../auth/result';
 import { isJsonObject } from '../json';
+
+export type TokenSource = () => Promise<Result<string, AuthError>>;
 
 export type ApiError =
   | { kind: 'network'; message: string }
@@ -63,6 +65,10 @@ export async function apiRequest(path: string, request: ApiRequest = {}): Promis
 
   if (!response.ok) {
     return fail(await readProblem(response));
+  }
+
+  if (response.status === 204) {
+    return ok(undefined);
   }
 
   try {

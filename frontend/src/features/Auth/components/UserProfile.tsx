@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/auth/useAuth';
+import { useMyProfile } from '../../Profile/useMyProfile';
 import './UserProfile.css';
 
 export function UserProfile() {
   const { isAuthenticated, isLoading, user, error, login, logout } = useAuth();
+  const { hasRole } = useMyProfile();
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -26,6 +28,12 @@ export function UserProfile() {
             <span className="profile-name">{user?.name}</span>
             <span className="profile-email">{user?.email}</span>
           </div>
+
+          {hasRole('Seller') && (
+            <button className="auth-btn add-product" onClick={() => navigate('/products/new')}>
+              + Add product
+            </button>
+          )}
 
           <button
             className="auth-btn"

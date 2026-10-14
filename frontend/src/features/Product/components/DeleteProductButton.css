@@ -1,0 +1,39 @@
+.delete-product,
+.delete-product-cancel {
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-product {
+  border: none;
+  background: #dc3545;
+  color: #fff;
+}
+
+.delete-product-cancel {
+  border: 1px solid #ccc;
+  background: #fff;
+}
+
+.delete-product:disabled,
+.delete-product-cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.delete-product-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.delete-product-error {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fee;
+  color: #b00020;
+}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../shared/auth/useAuth';
+import { MyProducts } from '../../Product/components/MyProducts';
 import { useMyProfile } from '../useMyProfile';
 import { BecomeSellerCard } from './BecomeSellerCard';
 import { RoleBadges } from './RoleBadges';
@@ -68,7 +69,7 @@ export function ProfilePage() {
         </p>
       </section>
 
-      {!isSeller && <BecomeSellerCard />}
+      {isSeller ? <MyProducts /> : <BecomeSellerCard />}
     </div>
   );
 }
