@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Hangfire;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -100,10 +100,20 @@ public static class ServiceCollectionExtensions
         var keycloakSettings = configuration.GetSection(KeycloakSettings.SectionName).Get<KeycloakSettings>()
             ?? throw new InvalidOperationException("Keycloak settings are missing in Configuration!");
 
+        if (string.IsNullOrWhiteSpace(auth0Settings.RoleClaimType))
+        {
+            throw new InvalidOperationException("Auth0:RoleClaimType is missing in Configuration!");
+        }
+
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = AuthSchemes.Auth0;
-            options.DefaultChallengeScheme = AuthSchemes.Auth0;
+            options.DefaultScheme = AuthSchemes.Selector;
+            options.DefaultChallengeScheme = AuthSchemes.Selector;
+        })
+        .AddPolicyScheme(AuthSchemes.Selector, AuthSchemes.Selector, options =>
+        {
+            options.ForwardDefaultSelector = context =>
+                AuthSchemeSelector.ForRequest(context, keycloakSettings.Authority);
         })
         .AddJwtBearer(AuthSchemes.Auth0, options =>
         {
@@ -113,7 +123,7 @@ public static class ServiceCollectionExtensions
             {
                 ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
-                RoleClaimType = "https://inmarket-api/roles"
+                RoleClaimType = auth0Settings.RoleClaimType
             };
         })
         .AddJwtBearer(AuthSchemes.Keycloak, options =>
@@ -130,14 +140,8 @@ public static class ServiceCollectionExtensions
             };
         });
 
-        services.AddAuthorization(options =>
-        {
-            var defaultPolicy = new AuthorizationPolicyBuilder(AuthSchemes.Auth0, AuthSchemes.Keycloak)
-                .RequireAuthenticatedUser()
-                .Build();
-
-            options.DefaultPolicy = defaultPolicy;
-        });
+        services.AddTransient<IClaimsTransformation, KeycloakRoleTransformation>();
+        services.AddAuthorization();
 
         return services;
     }
