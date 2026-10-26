@@ -1,4 +1,4 @@
-import { errorMessage, type AuthError } from '../auth/errors';
+import { describeAuthError, errorMessage, type AuthError } from '../auth/errors';
 import { fail, ok, type Result } from '../auth/result';
 import { isJsonObject } from '../json';
 
@@ -87,4 +87,24 @@ export function describeApiError(error: ApiError): string {
     case 'invalid-json':
       return `The server answered ${error.status} with a response that is not JSON`;
   }
+}
+
+export async function apiCall(path: string, request: ApiRequest = {}): Promise<Result<unknown, string>> {
+  const response = await apiRequest(path, request);
+
+  return response.ok ? response : fail(describeApiError(response.error));
+}
+
+export async function apiCallWithToken(
+  path: string,
+  getToken: TokenSource,
+  request: Omit<ApiRequest, 'token'> = {},
+): Promise<Result<unknown, string>> {
+  const token = await getToken();
+
+  if (!token.ok) {
+    return fail(describeAuthError(token.error));
+  }
+
+  return apiCall(path, { ...request, token: token.value });
 }

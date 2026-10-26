@@ -1,10 +1,8 @@
-import { apiRequest, describeApiError, type ApiRequest, type TokenSource } from '../../shared/api/client';
-import { describeAuthError } from '../../shared/auth/errors';
+import { apiCall, apiCallWithToken, type TokenSource } from '../../shared/api/client';
 import { fail, ok, type Result } from '../../shared/auth/result';
 import { isFilledString, isJsonObject, isOptionalString, isStringArray } from '../../shared/json';
 import {
   ProductStatus,
-  type Category,
   type NewProduct,
   type PagedResult,
   type Product,
@@ -58,10 +56,6 @@ function isProductResponse(value: unknown): value is ProductResponse {
     && isSeller(value.seller);
 }
 
-function isCategory(value: unknown): value is Category {
-  return isJsonObject(value) && isFilledString(value.id) && typeof value.name === 'string';
-}
-
 function isPageResponse(value: unknown): value is PageResponse {
   return isJsonObject(value) && Array.isArray(value.items) && isOptionalString(value.lastId);
 }
@@ -82,26 +76,6 @@ function toProduct(response: ProductResponse): Product {
   };
 }
 
-async function send(path: string, request: ApiRequest = {}): Promise<Result<unknown, string>> {
-  const response = await apiRequest(path, request);
-
-  return response.ok ? response : fail(describeApiError(response.error));
-}
-
-async function sendSigned(
-  path: string,
-  getToken: TokenSource,
-  request: Omit<ApiRequest, 'token'> = {},
-): Promise<Result<unknown, string>> {
-  const token = await getToken();
-
-  if (!token.ok) {
-    return fail(describeAuthError(token.error));
-  }
-
-  return send(path, { ...request, token: token.value });
-}
-
 function readProduct(result: Result<unknown, string>): Result<Product, string> {
   if (!result.ok) {
     return result;
@@ -119,23 +93,7 @@ function productPath(id: string): string {
 }
 
 export async function fetchProduct(id: string): Promise<Result<Product, string>> {
-  return readProduct(await send(productPath(id)));
-}
-
-export async function fetchCategories(): Promise<Result<Category[], string>> {
-  const result = await send('/category');
-
-  if (!result.ok) {
-    return result;
-  }
-
-  const categories = result.value;
-
-  if (!Array.isArray(categories) || !categories.every(isCategory)) {
-    return fail('The server returned categories in an unexpected format');
-  }
-
-  return ok(categories);
+  return readProduct(await apiCall(productPath(id)));
 }
 
 export async function fetchMyProducts(
@@ -148,7 +106,7 @@ export async function fetchMyProducts(
     query.set('lastId', lastId);
   }
 
-  const result = await sendSigned(`/products/mine?${query.toString()}`, getToken);
+  const result = await apiCallWithToken(`/products/mine?${query.toString()}`, getToken);
 
   if (!result.ok) {
     return result;
@@ -164,15 +122,15 @@ export async function fetchMyProducts(
 }
 
 export async function createProduct(getToken: TokenSource, product: NewProduct): Promise<Result<Product, string>> {
-  return readProduct(await sendSigned('/products', getToken, { method: 'POST', body: product }));
+  return readProduct(await apiCallWithToken('/products', getToken, { method: 'POST', body: product }));
 }
 
 export async function updateProduct(getToken: TokenSource, changes: ProductChanges): Promise<Result<Product, string>> {
-  return readProduct(await sendSigned('/products', getToken, { method: 'PUT', body: changes }));
+  return readProduct(await apiCallWithToken('/products', getToken, { method: 'PUT', body: changes }));
 }
 
 export async function deleteProduct(getToken: TokenSource, id: string): Promise<Result<void, string>> {
-  const result = await sendSigned(productPath(id), getToken, { method: 'DELETE' });
+  const result = await apiCallWithToken(productPath(id), getToken, { method: 'DELETE' });
 
   return result.ok ? ok(undefined) : result;
 }
